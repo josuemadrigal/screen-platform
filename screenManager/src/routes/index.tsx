@@ -6,7 +6,6 @@ import {
   Clock
 } from 'lucide-react'
 import { useScreen } from '../hooks/useScreen'
-import { useState, useEffect } from 'react'
 import { api } from '../lib/api'
 import { cn } from '../lib/utils'
 

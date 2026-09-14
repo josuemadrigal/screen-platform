@@ -2,7 +2,7 @@ import { createFileRoute } from '@tanstack/react-router'
 import { useState, useEffect, useRef } from 'react'
 import { api } from '../lib/api'
 import { useScreen } from '../hooks/useScreen'
-import { Monitor, Cast, Play, AlertCircle, XCircle, Pause } from 'lucide-react'
+import { Monitor, Cast, Play, AlertCircle, XCircle } from 'lucide-react'
 import { cn } from '../lib/utils'
 
 export const Route = createFileRoute('/client')({

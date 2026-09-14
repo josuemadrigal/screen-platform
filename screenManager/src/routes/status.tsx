@@ -3,7 +3,7 @@ import { useScreen } from '../hooks/useScreen'
 import { 
   Activity, Play, Pause, Square, SkipBack, SkipForward, 
   RefreshCw, Maximize2, MessageSquare, Circle, 
-  Monitor, Clock, LayoutGrid, Zap, Signal, CheckCircle2
+  Monitor, LayoutGrid, Zap, Signal
 } from 'lucide-react'
 import { cn } from '../lib/utils'
 import Swal from 'sweetalert2'

@@ -11,6 +11,7 @@ export interface Screen {
     title: string;
     thumbnail: string;
   };
+  screenshot?: string; // Base64 capture sent by the TV client
   lastUpdate: Date;
 }
 
