@@ -1,0 +1,62 @@
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:16-alpine
+    container_name: screen_postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-screen_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}
+      POSTGRES_DB: ${POSTGRES_DB:-screen_db}
+      POSTGRES_INITDB_ARGS: '--encoding=UTF8'
+    ports:
+      - '5437:5432'
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./prisma/init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - screen_network
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U ${POSTGRES_USER:-screen_user}']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # NestJS API
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: screen_api
+    restart: unless-stopped
+    environment:
+      NODE_ENV: ${NODE_ENV:-development}
+      PORT: 4006
+      # Inside the compose network the DB host is the service name, not localhost.
+      DATABASE_URL: postgresql://${POSTGRES_USER:-screen_user}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-screen_db}?schema=public
+      JWT_SECRET: ${JWT_SECRET:?Set JWT_SECRET in .env}
+      JWT_EXPIRATION: ${JWT_EXPIRATION:-24h}
+      # BOT_URL in .env points to localhost for local dev; inside Docker the host is host.docker.internal.
+      BOT_URL: ${BOT_URL_DOCKER:-http://host.docker.internal:4011/v1}
+      BOT_IMG_screen: ${BOT_IMG_screen:-}
+      BOT_API_KEY: ${BOT_API_KEY:-}
+      LOG_LEVEL: debug
+      CORS_ORIGIN: http://localhost:5173,http://localhost:4006
+    ports:
+      - '4006:4006'
+    depends_on:
+      postgres:
+        condition: service_healthy
+    volumes:
+      - ./src:/app/src
+      - ./dist:/app/dist
+    networks:
+      - screen_network
+    command: npm run start:prod
+
+volumes:
+  postgres_data:
+    driver: local
+networks:
+  screen_network:
+    driver: bridge

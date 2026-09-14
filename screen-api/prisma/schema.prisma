@@ -1,0 +1,73 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        Int       @id @default(autoincrement())
+  name      String
+  user      String    @unique
+  email     String    @unique
+  password  String
+  status    String    @default("1")
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  @@map("users")
+}
+
+model Screen {
+  id        Int       @id @default(autoincrement())
+  name      String
+  code      String    @unique
+  location  String
+  status    Int       @default(1)
+  playlist  String?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  @@map("screens")
+}
+
+model Playlist {
+  id           Int       @id @default(autoincrement())
+  playlistname String
+  videos       String    // Storing as comma-separated IDs or JSON string for now to match old logic, but better to use relations later
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  @@map("playlists")
+}
+
+model Video {
+  id        Int       @id @default(autoincrement())
+  fileName  String
+  title     String
+  idUser    String
+  path      String
+  thumbnail String
+  duration  String
+  dateout   String
+  status    Int       @default(1)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  @@map("storages")
+}
+
+model History {
+  id        Int       @id @default(autoincrement())
+  userid    Int
+  action    String
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  @@map("historys")
+}

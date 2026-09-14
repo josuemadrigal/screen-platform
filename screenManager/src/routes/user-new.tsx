@@ -1,0 +1,169 @@
+import { createFileRoute, useNavigate } from '@tanstack/react-router'
+import { useState } from 'react'
+import { api } from '../lib/api'
+import { UserPlus, Mail, Lock, User, Eye, EyeOff, ShieldCheck } from 'lucide-react'
+import { cn } from '../lib/utils'
+import Swal from 'sweetalert2'
+
+export const Route = createFileRoute('/user-new')({
+  component: UserAddPage,
+})
+
+function UserAddPage() {
+  const [formData, setFormData] = useState({
+    name: '',
+    user: '',
+    email: '',
+    password: '',
+    password2: '',
+  })
+  const [showPassword, setShowPassword] = useState(false)
+  const [isSaving, setIsSaving] = useState(false)
+  
+  const navigate = useNavigate()
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (formData.password !== formData.password2) {
+      Swal.fire('Error', 'Las contraseñas no coinciden', 'error')
+      return
+    }
+
+    setIsSaving(true)
+    try {
+      await api.post('/auth/register', formData)
+      
+      Swal.fire({
+        icon: 'success',
+        title: 'Usuario creado',
+        showConfirmButton: false,
+        timer: 1500
+      })
+      
+      setTimeout(() => navigate({ to: '/' }), 1500)
+    } catch (error) {
+      console.error(error)
+      Swal.fire('Error', 'No se pudo crear el usuario', 'error')
+    } finally {
+      setIsSaving(false)
+    }
+  }
+
+  return (
+    <div className="max-w-4xl mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
+      <header className="flex items-center gap-4">
+        <div className="p-3 rounded-2xl bg-primary/10 text-primary">
+          <UserPlus size={32} />
+        </div>
+        <div>
+          <h1 className="text-4xl font-bold tracking-tight text-white/90">Nuevo Usuario</h1>
+          <p className="text-slate-400 mt-1">Otorga acceso al panel de administración.</p>
+        </div>
+      </header>
+
+      <form onSubmit={handleSubmit} className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <div className="space-y-6">
+          <div className="glass p-8 rounded-3xl space-y-6">
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-slate-400 ml-1 flex items-center gap-2">
+                  <User size={14} /> Nombre Completo
+                </label>
+                <input 
+                  type="text" 
+                  value={formData.name}
+                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                  placeholder="Ej. Juan Pérez"
+                  className="w-full px-6 py-4 rounded-2xl bg-white/5 border border-white/10 focus:ring-2 focus:ring-primary/50 focus:border-primary outline-none transition-all"
+                  required
+                />
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-slate-400 ml-1 flex items-center gap-2">
+                  <User size={14} /> Nombre de Usuario
+                </label>
+                <input
+                  type="text"
+                  value={formData.user}
+                  onChange={(e) => setFormData({ ...formData, user: e.target.value.toLowerCase().replace(/\s/g, '') })}
+                  placeholder="Ej. jperez"
+                  className="w-full px-6 py-4 rounded-2xl bg-white/5 border border-white/10 focus:ring-2 focus:ring-primary/50 focus:border-primary outline-none transition-all font-mono"
+                  required
+                />
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-slate-400 ml-1 flex items-center gap-2">
+                  <Mail size={14} /> Correo Electrónico
+                </label>
+                <input 
+                  type="email" 
+                  value={formData.email}
+                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                  placeholder="ejemplo@correo.com"
+                  className="w-full px-6 py-4 rounded-2xl bg-white/5 border border-white/10 focus:ring-2 focus:ring-primary/50 focus:border-primary outline-none transition-all"
+                  required
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="space-y-6">
+          <div className="glass p-8 rounded-3xl space-y-6">
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-slate-400 ml-1 flex items-center gap-2">
+                  <Lock size={14} /> Contraseña
+                </label>
+                <div className="relative">
+                  <input 
+                    type={showPassword ? "text" : "password"}
+                    value={formData.password}
+                    onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                    className="w-full px-6 py-4 rounded-2xl bg-white/5 border border-white/10 focus:ring-2 focus:ring-primary/50 focus:border-primary outline-none transition-all pr-14"
+                    required
+                  />
+                  <button 
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-6 top-1/2 -translate-y-1/2 text-slate-500 hover:text-white transition-colors"
+                  >
+                    {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                  </button>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-slate-400 ml-1 flex items-center gap-2">
+                  <ShieldCheck size={14} /> Confirmar Contraseña
+                </label>
+                <input 
+                  type="password" 
+                  value={formData.password2}
+                  onChange={(e) => setFormData({ ...formData, password2: e.target.value })}
+                  className="w-full px-6 py-4 rounded-2xl bg-white/5 border border-white/10 focus:ring-2 focus:ring-primary/50 focus:border-primary outline-none transition-all"
+                  required
+                />
+              </div>
+            </div>
+
+            <button
+              type="submit"
+              disabled={isSaving}
+              className={cn(
+                "w-full py-4 rounded-2xl font-bold text-lg transition-all shadow-xl active:scale-[0.98]",
+                isSaving 
+                  ? "bg-slate-700 text-slate-400 cursor-not-allowed" 
+                  : "bg-primary hover:bg-primary/90 text-white shadow-primary/20"
+              )}
+            >
+              {isSaving ? 'Creando...' : 'Crear Usuario'}
+            </button>
+          </div>
+        </div>
+      </form>
+    </div>
+  )
+}

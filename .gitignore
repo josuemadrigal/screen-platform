@@ -1,0 +1,25 @@
+# Dependencies and builds
+node_modules/
+dist/
+
+# Local environment (each project ships a .env.example)
+.env
+*.local
+
+# OS / editor
+.DS_Store
+.vscode/*
+!.vscode/extensions.json
+.idea
+
+# Uploaded media (screen-api)
+screen-api/storage/*
+!screen-api/storage/.gitkeep
+
+# Native builds (screen-tv-client, regenerate with `npx cap add android`)
+screen-tv-client/android/
+screen-tv-client/ios/
+
+# Logs and scratch
+*.log
+scratch/

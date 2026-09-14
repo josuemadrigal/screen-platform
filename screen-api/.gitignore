@@ -1,0 +1,12 @@
+node_modules
+storage/*
+!storage/.gitkeep
+.env
+dist/
+**/.DS_Store
+scratch/
+
+# Legacy MySQL dump with real data; keep local only
+screenapp.sql
+
+/generated/prisma
