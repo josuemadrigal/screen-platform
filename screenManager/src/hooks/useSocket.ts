@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react'
 import { io, Socket } from 'socket.io-client'
+import { useAuthStore } from '../store/authStore'
 
 const SOCKET_URL = import.meta.env.VITE_API_URL || 'http://localhost:4006'
 
@@ -7,7 +8,8 @@ export const useSocket = (onUpdateScreens?: (screens: any[]) => void) => {
   const socketRef = useRef<Socket | null>(null)
 
   useEffect(() => {
-    const socket = io(SOCKET_URL)
+    // The API only sends the screen list and accepts control commands from sockets that carry the admin JWT.
+    const socket = io(SOCKET_URL, { auth: { token: useAuthStore.getState().token } })
     socketRef.current = socket
 
     socket.on('connect', () => {
