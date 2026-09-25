@@ -3,7 +3,8 @@ import { AuthService } from './auth.service';
 import { HistoryService } from '../history/history.service';
 import { LoginDto } from './dto/login.dto';
 import { RegisterDto } from './dto/register.dto';
-import { ApiTags, ApiOperation } from '@nestjs/swagger';
+import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
+import { Public, BootstrapPublic } from './public.decorator';
 
 @ApiTags('auth')
 @Controller('auth')
@@ -14,7 +15,9 @@ export class AuthController {
   ) {}
 
   @Post('register')
-  @ApiOperation({ summary: 'Register a new user' })
+  @BootstrapPublic()
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Register a new user (no token needed only while no user exists)' })
   async register(@Body() registerDto: RegisterDto) {
     const result = await this.authService.register(registerDto);
     await this.historyService.create({
@@ -25,6 +28,7 @@ export class AuthController {
   }
 
   @Post('login')
+  @Public()
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Login user' })
   async login(@Body() loginDto: LoginDto) {

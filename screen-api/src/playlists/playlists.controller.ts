@@ -7,9 +7,10 @@ import { JwtService } from '@nestjs/jwt';
 import { getUserIdFromRequest } from '../auth/get-user-id';
 import { CreatePlaylistDto } from './dto/create-playlist.dto';
 import { UpdatePlaylistDto } from './dto/update-playlist.dto';
-import { ApiTags, ApiOperation } from '@nestjs/swagger';
+import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 
 @ApiTags('playlists')
+@ApiBearerAuth()
 @Controller('playlists')
 export class PlaylistsController {
   constructor(

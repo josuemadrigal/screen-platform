@@ -30,7 +30,7 @@ services:
     container_name: screen_api
     restart: unless-stopped
     environment:
-      NODE_ENV: ${NODE_ENV:-development}
+      NODE_ENV: ${NODE_ENV:-production}
       PORT: 4006
       # Inside the compose network the DB host is the service name, not localhost.
       DATABASE_URL: postgresql://${POSTGRES_USER:-screen_user}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-screen_db}?schema=public
@@ -40,19 +40,20 @@ services:
       BOT_URL: ${BOT_URL_DOCKER:-http://host.docker.internal:4011/v1}
       BOT_IMG_screen: ${BOT_IMG_screen:-}
       BOT_API_KEY: ${BOT_API_KEY:-}
-      LOG_LEVEL: debug
-      CORS_ORIGIN: http://localhost:5173,http://localhost:4006
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+      # Comma-separated list of allowed browser origins (panel and TV client URLs). Empty = allow all.
+      CORS_ORIGIN: ${CORS_ORIGIN:-}
+      TZ: ${TZ:-America/Santo_Domingo}
     ports:
       - '4006:4006'
     depends_on:
       postgres:
         condition: service_healthy
     volumes:
-      - ./src:/app/src
-      - ./dist:/app/dist
+      # Uploaded videos and thumbnails survive container recreation
+      - ./storage:/app/storage
     networks:
       - screen_network
-    command: npm run start:prod
 
 volumes:
   postgres_data:

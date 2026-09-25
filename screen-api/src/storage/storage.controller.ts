@@ -6,11 +6,12 @@ import { HistoryService } from '../history/history.service';
 import { EventsGateway } from '../events/events.gateway';
 import { JwtService } from '@nestjs/jwt';
 import { getUserIdFromRequest } from '../auth/get-user-id';
-import { ApiTags, ApiOperation, ApiConsumes, ApiBody } from '@nestjs/swagger';
+import { ApiTags, ApiOperation, ApiConsumes, ApiBody, ApiBearerAuth } from '@nestjs/swagger';
 import { diskStorage } from 'multer';
 import { extname } from 'path';
 
 @ApiTags('storage')
+@ApiBearerAuth()
 @Controller('storage')
 export class StorageController {
   constructor(

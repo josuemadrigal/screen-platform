@@ -10,6 +10,7 @@ import { TasksModule } from './tasks/tasks.module';
 import { HistoryModule } from './history/history.module';
 
 import { ServeStaticModule } from '@nestjs/serve-static';
+import { HealthController } from './health.controller';
 import { join } from 'path';
 
 @Module({
@@ -35,7 +36,7 @@ import { join } from 'path';
     TasksModule,
     HistoryModule,
   ],
-  controllers: [],
+  controllers: [HealthController],
   providers: [],
 })
 export class AppModule {}

@@ -7,7 +7,7 @@ const config: CapacitorConfig = {
   android: {
     allowMixedContent: false, // HTTPS ya configurado
     captureInput: true,
-    webContentsDebuggingEnabled: true, // Quitar en producción
+    webContentsDebuggingEnabled: process.env.NODE_ENV !== 'production',
   },
   plugins: {
     CapacitorSQLite: {

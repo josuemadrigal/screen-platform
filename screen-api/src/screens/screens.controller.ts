@@ -7,9 +7,11 @@ import { JwtService } from '@nestjs/jwt';
 import { getUserIdFromRequest } from '../auth/get-user-id';
 import { CreateScreenDto } from './dto/create-screen.dto';
 import { UpdateScreenDto } from './dto/update-screen.dto';
-import { ApiTags, ApiOperation } from '@nestjs/swagger';
+import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
+import { Public } from '../auth/public.decorator';
 
 @ApiTags('screens')
+@ApiBearerAuth()
 @Controller('screens')
 export class ScreensController {
   constructor(
@@ -35,6 +37,7 @@ export class ScreensController {
   }
 
   @Get('code/:code')
+  @Public()
   @ApiOperation({ summary: 'Get screen by code' })
   findByCode(@Param('code') code: string) {
     return this.screensService.findByCode(code);

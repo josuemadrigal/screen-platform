@@ -25,7 +25,7 @@ export const useScreen = ({ screenName }: UseScreenOptions = {}) => {
   const [isConnected, setIsConnected] = useState(false);
 
   useEffect(() => {
-    const socketUrl = import.meta.env.VITE_SOCKET_URL || 'http://localhost:4006'
+    const socketUrl = import.meta.env.VITE_SOCKET_URL || import.meta.env.VITE_API_URL || 'http://localhost:4006'
     const newSocket = io(socketUrl, {
       transports: ["websocket"],
     });

@@ -54,3 +54,26 @@ For Android, see `screen-tv-client/BUILD.md`.
 ## Database changes
 
 All schema changes go through versioned Prisma migrations in `screen-api/prisma/migrations`, applied with `npx prisma migrate deploy`. Do not use `migrate dev` against a database with data.
+
+## Deploying
+
+### API (Docker)
+
+```bash
+cd screen-api
+cp .env.example .env   # set JWT_SECRET, POSTGRES_PASSWORD, CORS_ORIGIN (panel + TV client URLs), NODE_ENV=production
+docker compose up -d --build
+```
+
+The container applies pending Prisma migrations on start, serves uploaded media from the `./storage` bind mount, and exposes `GET /health` for the Docker health check. Swagger is disabled when `NODE_ENV=production`.
+
+Every API route requires a Bearer JWT except `POST /auth/login`, `GET /screens/code/:code` (used by TV clients), `GET /health` and the static media files. `POST /auth/register` works without a token only while the users table is empty, so the first admin can be created on a fresh install; after that it requires a logged-in user.
+
+### Panel and TV client (static builds)
+
+Both are static sites. Set `VITE_API_URL` (and optionally `VITE_SOCKET_URL`) to the public API URL in each project's `.env` **before** building, then serve the `dist/` folder from any web server or CDN:
+
+```bash
+cd screenManager && npm run build
+cd screen-tv-client && npm run build   # for Android: see BUILD.md
+```

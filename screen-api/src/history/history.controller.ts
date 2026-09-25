@@ -1,9 +1,10 @@
 import { Controller, Get, Post, Body, Param, ParseIntPipe } from '@nestjs/common';
 import { HistoryService } from './history.service';
 import { CreateHistoryDto } from './dto/create-history.dto';
-import { ApiTags, ApiOperation } from '@nestjs/swagger';
+import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 
 @ApiTags('history')
+@ApiBearerAuth()
 @Controller('history')
 export class HistoryController {
   constructor(private readonly historyService: HistoryService) {}

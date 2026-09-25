@@ -1,6 +1,6 @@
 
 # Build stage
-FROM node:20-bullseye AS builder
+FROM node:20-bookworm AS builder
 
 WORKDIR /app
 
@@ -24,7 +24,7 @@ RUN npm run build
 
 
 # Runtime stage
-FROM node:20-bullseye
+FROM node:20-bookworm-slim
 
 WORKDIR /app
 
@@ -33,11 +33,11 @@ COPY package*.json ./
 
 
 
-# Instalar solo dependencias de producción y OpenSSL 1.1 para Prisma
+# Producción: dependencias, OpenSSL (requerido por Prisma) y ffmpeg para las miniaturas de video
 RUN npm ci --only=production --legacy-peer-deps && \
     npm cache clean --force && \
     apt-get update && \
-    apt-get install -y libssl1.1 && \
+    apt-get install -y --no-install-recommends openssl ffmpeg && \
     rm -rf /var/lib/apt/lists/*
 
 # Copiar código compilado del builder
@@ -46,6 +46,9 @@ COPY --from=builder /app/dist ./dist
 # Copiar prisma schema
 COPY --from=builder /app/prisma ./prisma
 COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
+
+# Carpeta de medios (se monta como volumen en docker-compose) con permisos para el usuario node
+RUN mkdir -p storage/thumbs && chown -R node:node /app
 
 
 # Usar el usuario 'node' provisto por la imagen oficial
@@ -58,5 +61,5 @@ EXPOSE 4006
 HEALTHCHECK --interval=30s --timeout=3s --start-period=40s --retries=3 \
     CMD node -e "require('http').get('http://localhost:4006/health', (r) => {if (r.statusCode !== 200) throw new Error(r.statusCode)})"
 
-# Comando de inicio
-CMD [ "node", "dist/main.js" ]
+# Aplica migraciones pendientes y arranca
+CMD [ "sh", "-c", "npx prisma migrate deploy && node dist/main.js" ]

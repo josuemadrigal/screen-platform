@@ -20,10 +20,12 @@ async function bootstrap() {
     transform: true,
   }));
 
-  // CORS
-  app.enableCors();
+  // CORS: comma-separated origins in CORS_ORIGIN, or any origin when unset
+  const corsOrigin = process.env.CORS_ORIGIN?.split(',').map((o) => o.trim()).filter(Boolean);
+  app.enableCors({ origin: corsOrigin?.length ? corsOrigin : true });
 
-  // Swagger
+  // Swagger (not exposed in production)
+  if (process.env.NODE_ENV !== 'production') {
   const config = new DocumentBuilder()
     .setTitle('Screen API')
     .setDescription('The Screen Management API')
@@ -32,6 +34,7 @@ async function bootstrap() {
     .build();
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('api/docs', app, document);
+  }
 
   const port = process.env.PORT || 4006;
   await app.listen(port);
