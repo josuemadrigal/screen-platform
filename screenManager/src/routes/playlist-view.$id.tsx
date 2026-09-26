@@ -3,6 +3,7 @@ import { useState, useEffect, useRef } from 'react'
 import { api } from '../lib/api'
 import { Library, Play, Clock, Video as VideoIcon, ListMusic, ChevronRight, Monitor } from 'lucide-react'
 import { cn } from '../lib/utils'
+import { API_URL } from '../lib/config'
 
 export const Route = createFileRoute('/playlist-view/$id')({
   component: () => <PlaylistViewPage />,
@@ -15,7 +16,7 @@ function PlaylistViewPage() {
   const [currentVideoIndex, setCurrentVideoIndex] = useState(0)
   const playerRef = useRef<HTMLVideoElement>(null)
   
-  const servidor = import.meta.env.VITE_API_URL || 'http://localhost:4006'
+  const servidor = API_URL
 
   useEffect(() => {
     const fetchPlaylist = async () => {

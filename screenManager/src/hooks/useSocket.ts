@@ -1,8 +1,9 @@
 import { useEffect, useRef } from 'react'
 import { io, Socket } from 'socket.io-client'
 import { useAuthStore } from '../store/authStore'
+import { API_URL } from '../lib/config'
 
-const SOCKET_URL = import.meta.env.VITE_API_URL || 'http://localhost:4006'
+const SOCKET_URL = API_URL
 
 export const useSocket = (onUpdateScreens?: (screens: any[]) => void) => {
   const socketRef = useRef<Socket | null>(null)

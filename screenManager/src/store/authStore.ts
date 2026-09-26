@@ -1,6 +1,7 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import axios from 'axios'
+import { API_URL } from '../lib/config'
 
 interface User {
   id: number;
@@ -16,7 +17,6 @@ interface AuthState {
   login: (email: string, password: string) => Promise<boolean>;
 }
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:4006'
 
 export const useAuthStore = create<AuthState>()(
   persist(

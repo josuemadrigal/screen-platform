@@ -4,6 +4,7 @@ import { useScreen } from '../hooks/useScreen'
 import { useSQLiteCache } from '../hooks/useSQLiteCache'
 import { Monitor, Cast, AlertCircle, XCircle, Wifi, WifiOff, Play, Tv2 } from 'lucide-react'
 import { cn } from '../lib/utils'
+import { API_URL } from '../lib/config'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 interface VideoData {
@@ -41,7 +42,7 @@ export function ClientPage() {
   const activeCode = linkedCode || 'GENERIC'
   const { socket, isConnected } = useScreen({ screenName: isRegistered ? activeCode : undefined })
   const cache = useSQLiteCache()
-  const servidor = import.meta.env.VITE_API_URL || 'http://localhost:4006'
+  const servidor = API_URL
 
   const currentVideo = videoList[currentIndex]
   const nextIndex = videoList.length > 0 ? (currentIndex + 1) % videoList.length : 0

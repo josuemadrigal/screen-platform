@@ -4,6 +4,7 @@ import { api } from '../lib/api'
 import { Library, Trash2, Video, Search, CheckCircle2, ArrowLeft, Save, GripVertical } from 'lucide-react'
 import { cn } from '../lib/utils'
 import Swal from 'sweetalert2'
+import { API_URL } from '../lib/config'
 
 export const Route = createFileRoute('/playlist-edit/$id')({
   component: PlaylistEditPage,
@@ -184,7 +185,7 @@ function PlaylistEditPage() {
                     >
                       <div className="relative size-16 rounded-xl overflow-hidden shrink-0">
                         <img
-                          src={`${import.meta.env.VITE_API_URL || 'http://localhost:4006'}/thumbs/${video.thumbnail}`}
+                          src={`${API_URL}/thumbs/${video.thumbnail}`}
                           className="w-full h-full object-cover"
                         />
                         {isSelected && (
@@ -239,7 +240,7 @@ function PlaylistEditPage() {
                   </div>
                   <div className="relative shrink-0">
                     <img
-                      src={`${import.meta.env.VITE_API_URL || 'http://localhost:4006'}/thumbs/${video.thumbnail}`}
+                      src={`${API_URL}/thumbs/${video.thumbnail}`}
                       className="size-10 rounded-lg object-cover"
                     />
                     <span className="absolute -top-1.5 -left-1.5 size-5 rounded-md bg-primary text-white flex items-center justify-center text-[9px] font-black shadow-lg">

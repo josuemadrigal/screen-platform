@@ -4,6 +4,7 @@ import { Play, Calendar, MoreVertical, Circle, Trash2, Edit } from 'lucide-react
 import { cn } from '../lib/utils'
 import { api } from '../lib/api'
 import Swal from 'sweetalert2'
+import { API_URL } from '../lib/config'
 
 interface VideoProps {
   data: {
@@ -18,7 +19,7 @@ interface VideoProps {
 }
 
 export function VideoItem({ data }: VideoProps) {
-  const servidor = import.meta.env.VITE_API_URL || 'http://localhost:4006'
+  const servidor = API_URL
   const videoUrl = `${servidor}${data.path.startsWith('/') ? data.path : '/' + data.path}`
   const thumbUrl = `${servidor}/thumbs/${data.thumbnail}`
   

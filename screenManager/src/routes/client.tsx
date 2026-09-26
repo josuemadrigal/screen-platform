@@ -4,6 +4,7 @@ import { api } from '../lib/api'
 import { useScreen } from '../hooks/useScreen'
 import { Monitor, Cast, Play, AlertCircle, XCircle } from 'lucide-react'
 import { cn } from '../lib/utils'
+import { API_URL } from '../lib/config'
 
 export const Route = createFileRoute('/client')({
   component: ClientPage,
@@ -30,7 +31,7 @@ function ClientPage() {
   
   const activeCode = linkedCode || 'GENERIC'
   const { socket } = useScreen({ screenName: activeCode })
-  const servidor = import.meta.env.VITE_API_URL || 'http://localhost:4006'
+  const servidor = API_URL
 
   const currentVideo = videoList[currentIndex]
   const nextIndex = videoList.length > 0 ? (currentIndex + 1) % videoList.length : 0

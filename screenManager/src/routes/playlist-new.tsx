@@ -4,6 +4,7 @@ import { api } from '../lib/api'
 import { Library, Trash2, Video, Search, CheckCircle2 } from 'lucide-react'
 import { cn } from '../lib/utils'
 import Swal from 'sweetalert2'
+import { API_URL } from '../lib/config'
 
 export const Route = createFileRoute('/playlist-new')({
   component: PlaylistAddPage,
@@ -130,7 +131,7 @@ function PlaylistAddPage() {
                     >
                       <div className="relative size-16 rounded-xl overflow-hidden shrink-0">
                         <img 
-                          src={`${import.meta.env.VITE_API_URL || 'http://localhost:4006'}/thumbs/${video.thumbnail}`}
+                          src={`${API_URL}/thumbs/${video.thumbnail}`}
                           className="w-full h-full object-cover"
                         />
                         {isSelected && (

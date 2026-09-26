@@ -4,6 +4,7 @@ import { Monitor, Clock, MoreVertical, Circle, Edit, Trash2 } from 'lucide-react
 import { cn } from '../lib/utils'
 import { api } from '../lib/api'
 import Swal from 'sweetalert2'
+import { API_URL } from '../lib/config'
 
 interface PantallaProps {
   data: {
@@ -18,7 +19,7 @@ interface PantallaProps {
 }
 
 export function PantallaItem({ data }: PantallaProps) {
-  const servidor = import.meta.env.VITE_API_URL || 'http://localhost:4006'
+  const servidor = API_URL
   const videoPreview = `${servidor}/spot.mp4` // Si no existe, al menos la ruta es la estándar del viejo código
 
   const isOnline = data.status == '1' || data.status == 1

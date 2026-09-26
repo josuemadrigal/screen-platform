@@ -7,6 +7,7 @@ import {
 } from 'lucide-react'
 import { cn } from '../lib/utils'
 import Swal from 'sweetalert2'
+import { API_URL } from '../lib/config'
 
 export const Route = createFileRoute('/status')({
   component: ScreenStatusPage,
@@ -14,7 +15,7 @@ export const Route = createFileRoute('/status')({
 
 function ScreenStatusPage() {
   const { isConnected, connectedScreens, socket } = useScreen()
-  const servidor = import.meta.env.VITE_API_URL || 'http://localhost:4006'
+  const servidor = API_URL
 
   const handleControl = (socketId: string, action: string, data?: any) => {
     if (socket && socketId) {

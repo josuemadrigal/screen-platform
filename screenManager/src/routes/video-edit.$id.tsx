@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react'
 import { api } from '../lib/api'
 import { Film, Calendar, Save, ArrowLeft, Circle } from 'lucide-react'
 import Swal from 'sweetalert2'
+import { API_URL } from '../lib/config'
 
 export const Route = createFileRoute('/video-edit/$id')({
   component: VideoEditPage,
@@ -19,7 +20,7 @@ function VideoEditPage() {
   const [dateout, setDateout] = useState('')
   const [status, setStatus] = useState('1')
 
-  const servidor = import.meta.env.VITE_API_URL || 'http://localhost:4006'
+  const servidor = API_URL
 
   useEffect(() => {
     const fetchVideo = async () => {

@@ -1,16 +1,13 @@
 # Builds the two static frontends (admin panel + TV client) and packages them
 # into a Caddy image that serves them over HTTPS and proxies the API.
+# The API URL is NOT baked in: Caddy serves /config.js at runtime from DOMAIN,
+# so one image works for any domain.
 #
 # Build context must be the repository root:
-#   docker build -f deploy/Dockerfile.web --build-arg API_URL=https://api.example.com -t screen-web .
+#   docker build -f deploy/Dockerfile.web -t ghcr.io/josuemadrigal/screen-web:latest .
 
 # ---------- Build stage ----------
 FROM node:20-bookworm AS build
-ARG API_URL
-# Vite bakes these into the bundles at build time.
-ENV VITE_API_URL=${API_URL}
-ENV VITE_SOCKET_URL=${API_URL}
-
 WORKDIR /src
 
 COPY screenManager/package*.json ./screenManager/

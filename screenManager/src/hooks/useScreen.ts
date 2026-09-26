@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { io, Socket } from "socket.io-client";
 import { useAuthStore } from "../store/authStore";
+import { SOCKET_URL } from '../lib/config'
 
 export interface Screen {
   socketId: string;
@@ -26,7 +27,7 @@ export const useScreen = ({ screenName }: UseScreenOptions = {}) => {
   const [isConnected, setIsConnected] = useState(false);
 
   useEffect(() => {
-    const socketUrl = import.meta.env.VITE_SOCKET_URL || import.meta.env.VITE_API_URL || 'http://localhost:4006'
+    const socketUrl = SOCKET_URL
     const newSocket = io(socketUrl, {
       transports: ["websocket"],
       // Admin JWT: required to receive the screen list and send control commands.
