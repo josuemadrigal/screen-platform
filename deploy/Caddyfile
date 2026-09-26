@@ -1,0 +1,44 @@
+# Reverse proxy + static hosting with automatic HTTPS (Let's Encrypt).
+# DOMAIN and ACME_EMAIL come from the environment (see .env.example).
+#
+#   panel.DOMAIN -> admin panel (static)
+#   tv.DOMAIN    -> TV client   (static)
+#   api.DOMAIN   -> NestJS API + Socket.IO + uploaded media
+
+{
+	email {$ACME_EMAIL}
+}
+
+(static-spa) {
+	encode gzip zstd
+	# Hashed assets can be cached for a long time; index.html must not.
+	@assets path /assets/*
+	header @assets Cache-Control "public, max-age=31536000, immutable"
+	header /index.html Cache-Control "no-cache"
+	header {
+		X-Content-Type-Options nosniff
+		X-Frame-Options SAMEORIGIN
+		Referrer-Policy strict-origin-when-cross-origin
+	}
+	try_files {path} /index.html
+	file_server
+}
+
+panel.{$DOMAIN} {
+	root * /srv/panel
+	import static-spa
+}
+
+tv.{$DOMAIN} {
+	root * /srv/tv
+	import static-spa
+}
+
+api.{$DOMAIN} {
+	encode gzip
+	# Uploads: leave the body size unlimited here; the API validates the file.
+	# WebSocket (Socket.IO) upgrade is handled automatically by reverse_proxy.
+	reverse_proxy api:4006 {
+		flush_interval -1
+	}
+}

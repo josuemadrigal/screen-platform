@@ -1,0 +1,74 @@
+# Production stack: PostgreSQL + API + Caddy (HTTPS, static panel/TV client, API proxy).
+#
+#   cp deploy/.env.example deploy/.env   # fill in DOMAIN, ACME_EMAIL, secrets
+#   docker compose -f deploy/docker-compose.prod.yml --env-file deploy/.env up -d --build
+#
+# Only ports 80 and 443 are published. The API and the database stay on the internal network.
+
+name: screen-platform
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-screen_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in deploy/.env}
+      POSTGRES_DB: ${POSTGRES_DB:-screen_db}
+      POSTGRES_INITDB_ARGS: '--encoding=UTF8'
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U ${POSTGRES_USER:-screen_user}']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  api:
+    build:
+      context: ../screen-api
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      PORT: 4006
+      DATABASE_URL: postgresql://${POSTGRES_USER:-screen_user}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-screen_db}?schema=public
+      JWT_SECRET: ${JWT_SECRET:?Set JWT_SECRET in deploy/.env}
+      JWT_EXPIRATION: ${JWT_EXPIRATION:-24h}
+      # Browser origins allowed for HTTP and Socket.IO: the two frontends served by Caddy.
+      CORS_ORIGIN: https://panel.${DOMAIN},https://tv.${DOMAIN}
+      TZ: ${TZ:-America/Santo_Domingo}
+      BOT_URL: ${BOT_URL:-}
+      BOT_IMG_screen: ${BOT_IMG_screen:-}
+      BOT_API_KEY: ${BOT_API_KEY:-}
+    volumes:
+      # Uploaded videos and thumbnails. Back this folder up together with the database.
+      - ${STORAGE_PATH:-./storage}:/app/storage
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  web:
+    build:
+      context: ..
+      dockerfile: deploy/Dockerfile.web
+      args:
+        API_URL: https://api.${DOMAIN}
+    restart: unless-stopped
+    environment:
+      DOMAIN: ${DOMAIN:?Set DOMAIN in deploy/.env}
+      ACME_EMAIL: ${ACME_EMAIL:?Set ACME_EMAIL in deploy/.env}
+    ports:
+      - '80:80'
+      - '443:443'
+      - '443:443/udp'
+    volumes:
+      # Certificates and Caddy state; keep them so certificates are not re-issued on every restart.
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - api
+
+volumes:
+  postgres_data:
+  caddy_data:
+  caddy_config:

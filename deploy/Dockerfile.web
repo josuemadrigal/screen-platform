@@ -1,0 +1,33 @@
+# Builds the two static frontends (admin panel + TV client) and packages them
+# into a Caddy image that serves them over HTTPS and proxies the API.
+#
+# Build context must be the repository root:
+#   docker build -f deploy/Dockerfile.web --build-arg API_URL=https://api.example.com -t screen-web .
+
+# ---------- Build stage ----------
+FROM node:20-bookworm AS build
+ARG API_URL
+# Vite bakes these into the bundles at build time.
+ENV VITE_API_URL=${API_URL}
+ENV VITE_SOCKET_URL=${API_URL}
+
+WORKDIR /src
+
+COPY screenManager/package*.json ./screenManager/
+RUN cd screenManager && npm ci --legacy-peer-deps
+
+COPY screen-tv-client/package*.json ./screen-tv-client/
+RUN cd screen-tv-client && npm ci
+
+COPY screenManager ./screenManager
+RUN cd screenManager && npm run build
+
+COPY screen-tv-client ./screen-tv-client
+RUN cd screen-tv-client && npm run build
+
+# ---------- Runtime stage ----------
+FROM caddy:2-alpine
+
+COPY deploy/Caddyfile /etc/caddy/Caddyfile
+COPY --from=build /src/screenManager/dist /srv/panel
+COPY --from=build /src/screen-tv-client/dist /srv/tv
