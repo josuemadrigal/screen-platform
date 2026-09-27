@@ -1,4 +1,5 @@
-# Server-side stack: pulls prebuilt images from GitHub Container Registry.
+# Server-side stack: pulls the images that GitHub Actions publishes to Docker Hub
+# on every push to main (.github/workflows/*-publish.yml).
 # No source code, Node or build tools needed on the server.
 #
 # On the server, in a folder with this file and a .env (see .env.example):
@@ -26,7 +27,7 @@ services:
       retries: 5
 
   api:
-    image: ${IMAGE_API:-ghcr.io/josuemadrigal/screen-api}:${IMAGE_TAG:-latest}
+    image: ${IMAGE_API:-josueahp/screen-api}:${IMAGE_TAG:-latest}
     restart: unless-stopped
     environment:
       NODE_ENV: production
@@ -48,7 +49,7 @@ services:
         condition: service_healthy
 
   web:
-    image: ${IMAGE_WEB:-ghcr.io/josuemadrigal/screen-web}:${IMAGE_TAG:-latest}
+    image: ${IMAGE_WEB:-josueahp/screen-web}:${IMAGE_TAG:-latest}
     restart: unless-stopped
     environment:
       DOMAIN: ${DOMAIN:?Set DOMAIN in .env}

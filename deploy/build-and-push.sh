@@ -1,12 +1,13 @@
 #!/usr/bin/env bash
-# Builds the API and web images for the server (linux/amd64) and pushes them to the registry.
-# Run from your workstation after `docker login ghcr.io`.
+# Manual fallback: builds the API and web images for the server (linux/amd64) and pushes
+# them to Docker Hub. Normally GitHub Actions does this on every push to main; use this
+# only when you need to publish without going through CI. Run after `docker login`.
 #
 #   deploy/build-and-push.sh            # tags :latest
 #   deploy/build-and-push.sh v1.0.0     # tags :v1.0.0 and :latest
 set -euo pipefail
 
-REGISTRY="${REGISTRY:-ghcr.io/josuemadrigal}"
+REGISTRY="${REGISTRY:-josueahp}"
 TAG="${1:-latest}"
 PLATFORM="${PLATFORM:-linux/amd64}"
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"

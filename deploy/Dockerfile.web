@@ -4,7 +4,7 @@
 # so one image works for any domain.
 #
 # Build context must be the repository root:
-#   docker build -f deploy/Dockerfile.web -t ghcr.io/josuemadrigal/screen-web:latest .
+#   docker build -f deploy/Dockerfile.web -t josueahp/screen-web:latest .
 
 # ---------- Build stage ----------
 FROM node:20-bookworm AS build
