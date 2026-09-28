@@ -36,7 +36,7 @@ services:
       JWT_SECRET: ${JWT_SECRET:?Set JWT_SECRET in deploy/.env}
       JWT_EXPIRATION: ${JWT_EXPIRATION:-24h}
       # Browser origins allowed for HTTP and Socket.IO: the two frontends served by Caddy.
-      CORS_ORIGIN: https://panel.${DOMAIN},https://tv.${DOMAIN}
+      CORS_ORIGIN: https://panel.${DOMAIN}${PUBLIC_URL_SUFFIX:-},https://tv.${DOMAIN}${PUBLIC_URL_SUFFIX:-}
       TZ: ${TZ:-America/Santo_Domingo}
       BOT_URL: ${BOT_URL:-}
       BOT_IMG_screen: ${BOT_IMG_screen:-}
@@ -54,12 +54,23 @@ services:
       dockerfile: deploy/Dockerfile.web
     restart: unless-stopped
     environment:
-      DOMAIN: ${DOMAIN:?Set DOMAIN in deploy/.env}
-      ACME_EMAIL: ${ACME_EMAIL:?Set ACME_EMAIL in deploy/.env}
+      DOMAIN: ${DOMAIN:?Set DOMAIN in .env}
+      ACME_EMAIL: ${ACME_EMAIL:?Set ACME_EMAIL in .env}
+      # Port the public sites listen on. 443 normally; another one (e.g. 8443) when 443 of the
+      # public IP is taken and the router translates PUBLIC_PORT -> this server.
+      PUBLIC_PORT: ${PUBLIC_PORT:-443}
+      PUBLIC_URL_SUFFIX: ${PUBLIC_URL_SUFFIX:-}
+      # Certificate validation: http (needs ports 80/443 reachable) or namecheap/cloudflare/duckdns (DNS).
+      TLS_MODE: ${TLS_MODE:-http}
+      PUBLIC_IP: ${PUBLIC_IP:-}
+      NAMECHEAP_API_USER: ${NAMECHEAP_API_USER:-}
+      NAMECHEAP_API_KEY: ${NAMECHEAP_API_KEY:-}
+      CLOUDFLARE_API_TOKEN: ${CLOUDFLARE_API_TOKEN:-}
+      DUCKDNS_TOKEN: ${DUCKDNS_TOKEN:-}
     ports:
       - '80:80'
-      - '443:443'
-      - '443:443/udp'
+      - '${PUBLIC_PORT:-443}:${PUBLIC_PORT:-443}'
+      - '${PUBLIC_PORT:-443}:${PUBLIC_PORT:-443}/udp'
     volumes:
       # Certificates and Caddy state; keep them so certificates are not re-issued on every restart.
       - caddy_data:/data

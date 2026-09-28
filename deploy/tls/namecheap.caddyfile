@@ -1,0 +1,13 @@
+# TLS_MODE=namecheap: DNS challenge through the Namecheap API.
+# Requires: API access enabled on the account, the server's public IP whitelisted,
+# and the domain using Namecheap BasicDNS. Env: NAMECHEAP_API_USER, NAMECHEAP_API_KEY, PUBLIC_IP.
+(tls-issuer) {
+	tls {
+		dns namecheap {
+			api_key {$NAMECHEAP_API_KEY}
+			user {$NAMECHEAP_API_USER}
+			api_endpoint https://api.namecheap.com/xml.response
+			client_ip {$PUBLIC_IP}
+		}
+	}
+}

@@ -1,0 +1,6 @@
+# TLS_MODE=duckdns: DNS challenge through DuckDNS (free subdomains). Env: DUCKDNS_TOKEN.
+(tls-issuer) {
+	tls {
+		dns duckdns {$DUCKDNS_TOKEN}
+	}
+}

@@ -1,16 +1,22 @@
-# Reverse proxy + static hosting with automatic HTTPS (Let's Encrypt).
-# DOMAIN and ACME_EMAIL come from the environment (see .env.example).
+# Reverse proxy + static hosting with automatic HTTPS.
+# All values come from the environment (see .env.example):
 #
-#   panel.DOMAIN -> admin panel (static)
-#   tv.DOMAIN    -> TV client   (static)
-#   api.DOMAIN   -> NestJS API + Socket.IO + uploaded media
+#   DOMAIN             base domain -> panel.DOMAIN, tv.DOMAIN, api.DOMAIN
+#   ACME_EMAIL         Let's Encrypt contact
+#   PUBLIC_PORT        port the sites listen on (443 by default; e.g. 8443 when 443 is taken)
+#   PUBLIC_URL_SUFFIX  ":8443" when PUBLIC_PORT is not 443, empty otherwise (used in URLs)
+#   TLS_MODE           how certificates are validated: http (ports 80/443 reachable) or
+#                      namecheap / cloudflare / duckdns (DNS challenge, no ports needed)
 #
-# The frontends read the API URL at runtime from /config.js (generated here from DOMAIN),
-# so the same image works for any domain without rebuilding.
+# The frontends read the API URL at runtime from /config.js (generated here),
+# so the same image works for any domain.
 
 {
 	email {$ACME_EMAIL}
 }
+
+# TLS issuance settings for the chosen mode (see deploy/tls/*.caddyfile)
+import /etc/caddy/tls/{$TLS_MODE}.caddyfile
 
 (static-spa) {
 	encode gzip zstd
@@ -19,7 +25,7 @@
 	handle /config.js {
 		header Content-Type "application/javascript"
 		header Cache-Control "no-cache"
-		respond "window.__APP_CONFIG__ = { apiUrl: 'https://api.{$DOMAIN}', socketUrl: 'https://api.{$DOMAIN}' };" 200
+		respond "window.__APP_CONFIG__ = { apiUrl: 'https://api.{$DOMAIN}{$PUBLIC_URL_SUFFIX}', socketUrl: 'https://api.{$DOMAIN}{$PUBLIC_URL_SUFFIX}' };" 200
 	}
 
 	handle {
@@ -37,17 +43,20 @@
 	}
 }
 
-panel.{$DOMAIN} {
+panel.{$DOMAIN}:{$PUBLIC_PORT} {
+	import tls-issuer
 	root * /srv/panel
 	import static-spa
 }
 
-tv.{$DOMAIN} {
+tv.{$DOMAIN}:{$PUBLIC_PORT} {
+	import tls-issuer
 	root * /srv/tv
 	import static-spa
 }
 
-api.{$DOMAIN} {
+api.{$DOMAIN}:{$PUBLIC_PORT} {
+	import tls-issuer
 	encode gzip
 	# Uploads: no body size limit here; the API validates the file.
 	# WebSocket (Socket.IO) upgrade is handled automatically by reverse_proxy.

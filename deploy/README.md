@@ -80,6 +80,33 @@ HTTPS hit; give it a minute. Then:
 3. Log in at `https://panel.DOMAIN`, create a screen, upload a video, build a playlist.
 4. On each TV open `https://tv.DOMAIN` (or install the Android app) and enter the screen code.
 
+## Ports 80/443 not available (DNS validation)
+
+When another server already uses ports 80 and 443 of the public IP, the router can translate a
+different external port (say 8443) to this server, but Let's Encrypt can no longer validate over
+HTTP. Switch to DNS validation: Caddy creates a temporary DNS record and Let's Encrypt checks it.
+No inbound port is needed for issuance.
+
+In the server `.env`:
+
+```
+PUBLIC_PORT=8443
+PUBLIC_URL_SUFFIX=:8443
+TLS_MODE=namecheap        # or cloudflare / duckdns
+```
+
+and the provider credentials:
+
+| Provider | Variables | Requirements |
+|---|---|---|
+| `namecheap` | `NAMECHEAP_API_USER`, `NAMECHEAP_API_KEY`, `PUBLIC_IP` | API access enabled (Profile → Tools → API Access: needs 20+ domains, or $50 balance, or $50 spent in 2 years), server IP whitelisted, domain on Namecheap BasicDNS |
+| `cloudflare` | `CLOUDFLARE_API_TOKEN` | Token with Zone.DNS:Edit on the zone |
+| `duckdns` | `DUCKDNS_TOKEN` | Free account; `*.name.duckdns.org` resolves automatically |
+
+Router: translate TCP `PUBLIC_PORT` of the public IP to `PUBLIC_PORT` of this server. The sites
+are then reached at `https://panel.DOMAIN:8443`, `https://tv.DOMAIN:8443` and
+`https://api.DOMAIN:8443`; the panel and TVs pick the port up from `/config.js` automatically.
+
 ## 3. Updating
 
 Push to `main` (GitHub Actions publishes the new images, ~5 minutes). Then on the server:

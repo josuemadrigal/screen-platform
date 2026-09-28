@@ -6,7 +6,7 @@
 # Build context must be the repository root:
 #   docker build -f deploy/Dockerfile.web -t josueahp/screen-web:latest .
 
-# ---------- Build stage ----------
+# ---------- Frontend build stage ----------
 FROM node:20-bookworm AS build
 WORKDIR /src
 
@@ -22,9 +22,20 @@ RUN cd screenManager && npm run build
 COPY screen-tv-client ./screen-tv-client
 RUN cd screen-tv-client && npm run build
 
+# ---------- Caddy build stage ----------
+# Custom Caddy with DNS-challenge modules, so certificates can be issued even when
+# ports 80/443 of the public IP are not available (validation happens via DNS records).
+FROM caddy:2-builder AS caddy-build
+RUN xcaddy build \
+    --with github.com/caddy-dns/namecheap \
+    --with github.com/caddy-dns/cloudflare \
+    --with github.com/caddy-dns/duckdns
+
 # ---------- Runtime stage ----------
 FROM caddy:2-alpine
 
+COPY --from=caddy-build /usr/bin/caddy /usr/bin/caddy
 COPY deploy/Caddyfile /etc/caddy/Caddyfile
+COPY deploy/tls /etc/caddy/tls
 COPY --from=build /src/screenManager/dist /srv/panel
 COPY --from=build /src/screen-tv-client/dist /srv/tv

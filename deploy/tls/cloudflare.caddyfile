@@ -1,0 +1,6 @@
+# TLS_MODE=cloudflare: DNS challenge through Cloudflare. Env: CLOUDFLARE_API_TOKEN (Zone.DNS edit).
+(tls-issuer) {
+	tls {
+		dns cloudflare {$CLOUDFLARE_API_TOKEN}
+	}
+}
