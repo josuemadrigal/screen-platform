@@ -1,0 +1,32 @@
+# One site for *.DOMAIN with a single wildcard certificate, routed by hostname.
+# Used with TLS_MODE=duckdns: DuckDNS allows only one DNS validation record per name,
+# so the three hostnames must share one wildcard certificate. PANEL_HOST must be a
+# subdomain of DOMAIN here (e.g. panel.DOMAIN), not DOMAIN itself.
+
+*.{$DOMAIN}:{$PUBLIC_PORT} {
+	import tls-issuer
+
+	@panel host {$PANEL_HOST}
+	handle @panel {
+		root * /srv/panel
+		import static-spa
+	}
+
+	@tv host {$TV_HOST}
+	handle @tv {
+		root * /srv/tv
+		import static-spa
+	}
+
+	@api host {$API_HOST}
+	handle @api {
+		encode gzip
+		reverse_proxy api:4006 {
+			flush_interval -1
+		}
+	}
+
+	handle {
+		respond "Unknown host" 404
+	}
+}

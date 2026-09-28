@@ -37,5 +37,9 @@ FROM caddy:2-alpine
 COPY --from=caddy-build /usr/bin/caddy /usr/bin/caddy
 COPY deploy/Caddyfile /etc/caddy/Caddyfile
 COPY deploy/tls /etc/caddy/tls
+COPY deploy/layout /etc/caddy/layout
+# Map TLS_MODE to a site layout: duckdns needs one wildcard certificate, the rest one per host.
+RUN cd /etc/caddy/layout && ln -s hosts.caddyfile http.caddyfile && ln -s hosts.caddyfile namecheap.caddyfile \
+    && ln -s hosts.caddyfile cloudflare.caddyfile && ln -s wildcard.caddyfile duckdns.caddyfile
 COPY --from=build /src/screenManager/dist /srv/panel
 COPY --from=build /src/screen-tv-client/dist /srv/tv

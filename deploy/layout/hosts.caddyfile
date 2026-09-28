@@ -1,0 +1,23 @@
+# One site per hostname, one certificate each. Used with TLS_MODE=http, namecheap, cloudflare.
+
+{$PANEL_HOST}:{$PUBLIC_PORT} {
+	import tls-issuer
+	root * /srv/panel
+	import static-spa
+}
+
+{$TV_HOST}:{$PUBLIC_PORT} {
+	import tls-issuer
+	root * /srv/tv
+	import static-spa
+}
+
+{$API_HOST}:{$PUBLIC_PORT} {
+	import tls-issuer
+	encode gzip
+	# Uploads: no body size limit here; the API validates the file.
+	# WebSocket (Socket.IO) upgrade is handled automatically by reverse_proxy.
+	reverse_proxy api:4006 {
+		flush_interval -1
+	}
+}

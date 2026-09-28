@@ -36,7 +36,7 @@ services:
       JWT_SECRET: ${JWT_SECRET:?Set JWT_SECRET in deploy/.env}
       JWT_EXPIRATION: ${JWT_EXPIRATION:-24h}
       # Browser origins allowed for HTTP and Socket.IO: the two frontends served by Caddy.
-      CORS_ORIGIN: https://panel.${DOMAIN}${PUBLIC_URL_SUFFIX:-},https://tv.${DOMAIN}${PUBLIC_URL_SUFFIX:-}
+      CORS_ORIGIN: https://${PANEL_HOST:-${DOMAIN}}${PUBLIC_URL_SUFFIX:-},https://${TV_HOST:-tv.${DOMAIN}}${PUBLIC_URL_SUFFIX:-}
       TZ: ${TZ:-America/Santo_Domingo}
       BOT_URL: ${BOT_URL:-}
       BOT_IMG_screen: ${BOT_IMG_screen:-}
@@ -56,6 +56,10 @@ services:
     environment:
       DOMAIN: ${DOMAIN:?Set DOMAIN in .env}
       ACME_EMAIL: ${ACME_EMAIL:?Set ACME_EMAIL in .env}
+      # Hostnames of the three sites. Default: panel on DOMAIN, tv.DOMAIN, api.DOMAIN.
+      PANEL_HOST: ${PANEL_HOST:-${DOMAIN}}
+      TV_HOST: ${TV_HOST:-tv.${DOMAIN}}
+      API_HOST: ${API_HOST:-api.${DOMAIN}}
       # Port the public sites listen on. 443 normally; another one (e.g. 8443) when 443 of the
       # public IP is taken and the router translates PUBLIC_PORT -> this server.
       PUBLIC_PORT: ${PUBLIC_PORT:-443}
@@ -77,6 +81,20 @@ services:
       - caddy_config:/config
     depends_on:
       - api
+
+  # Keeps the DuckDNS name pointing at the current public IP (the router has WAN failover).
+  # Only started with COMPOSE_PROFILES=duckdns in .env.
+  ddns:
+    image: curlimages/curl:8.10.1
+    restart: unless-stopped
+    profiles: ["duckdns"]
+    environment:
+      DUCKDNS_DOMAIN: ${DOMAIN}
+      DUCKDNS_TOKEN: ${DUCKDNS_TOKEN:-}
+    command: >
+      sh -c 'while true; do
+        r=$$(curl -s "https://www.duckdns.org/update?domains=$${DUCKDNS_DOMAIN%%.duckdns.org}&token=$${DUCKDNS_TOKEN}&ip=");
+        echo "$$(date -u +%FT%TZ) duckdns update: $$r"; sleep 300; done'
 
 volumes:
   postgres_data:

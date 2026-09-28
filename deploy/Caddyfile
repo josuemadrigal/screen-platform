@@ -1,7 +1,8 @@
 # Reverse proxy + static hosting with automatic HTTPS.
 # All values come from the environment (see .env.example):
 #
-#   DOMAIN             base domain -> panel.DOMAIN, tv.DOMAIN, api.DOMAIN
+#   PANEL_HOST / TV_HOST / API_HOST   hostnames of the three sites (compose derives them
+#                      from DOMAIN when not set: DOMAIN, tv.DOMAIN, api.DOMAIN)
 #   ACME_EMAIL         Let's Encrypt contact
 #   PUBLIC_PORT        port the sites listen on (443 by default; e.g. 8443 when 443 is taken)
 #   PUBLIC_URL_SUFFIX  ":8443" when PUBLIC_PORT is not 443, empty otherwise (used in URLs)
@@ -25,7 +26,7 @@ import /etc/caddy/tls/{$TLS_MODE}.caddyfile
 	handle /config.js {
 		header Content-Type "application/javascript"
 		header Cache-Control "no-cache"
-		respond "window.__APP_CONFIG__ = { apiUrl: 'https://api.{$DOMAIN}{$PUBLIC_URL_SUFFIX}', socketUrl: 'https://api.{$DOMAIN}{$PUBLIC_URL_SUFFIX}' };" 200
+		respond "window.__APP_CONFIG__ = { apiUrl: 'https://{$API_HOST}{$PUBLIC_URL_SUFFIX}', socketUrl: 'https://{$API_HOST}{$PUBLIC_URL_SUFFIX}' };" 200
 	}
 
 	handle {
@@ -43,24 +44,5 @@ import /etc/caddy/tls/{$TLS_MODE}.caddyfile
 	}
 }
 
-panel.{$DOMAIN}:{$PUBLIC_PORT} {
-	import tls-issuer
-	root * /srv/panel
-	import static-spa
-}
-
-tv.{$DOMAIN}:{$PUBLIC_PORT} {
-	import tls-issuer
-	root * /srv/tv
-	import static-spa
-}
-
-api.{$DOMAIN}:{$PUBLIC_PORT} {
-	import tls-issuer
-	encode gzip
-	# Uploads: no body size limit here; the API validates the file.
-	# WebSocket (Socket.IO) upgrade is handled automatically by reverse_proxy.
-	reverse_proxy api:4006 {
-		flush_interval -1
-	}
-}
+# Site layout for the chosen mode (see deploy/layout/*.caddyfile): duckdns -> wildcard, others -> hosts
+import /etc/caddy/layout/{$TLS_MODE}.caddyfile
