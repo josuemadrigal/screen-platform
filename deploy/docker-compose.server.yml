@@ -89,10 +89,17 @@ services:
     environment:
       DUCKDNS_DOMAIN: ${DOMAIN}
       DUCKDNS_TOKEN: ${DUCKDNS_TOKEN:-}
+      # Optional: follow another DDNS name (e.g. the router's MikroTik cloud name) instead of
+      # this server's egress IP. Keeps DuckDNS on the inbound WAN when the router has failover.
+      DDNS_FOLLOW_HOST: ${DDNS_FOLLOW_HOST:-}
     command: >
       sh -c 'while true; do
-        r=$$(curl -s "https://www.duckdns.org/update?domains=$${DUCKDNS_DOMAIN%%.duckdns.org}&token=$${DUCKDNS_TOKEN}&ip=");
-        echo "$$(date -u +%FT%TZ) duckdns update: $$r"; sleep 300; done'
+        ip="";
+        if [ -n "$${DDNS_FOLLOW_HOST}" ]; then
+          ip=$$(nslookup "$${DDNS_FOLLOW_HOST}" 2>/dev/null | awk "/^Address/ && !/#53/ {print \$$2}" | grep -E "^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$$" | tail -1);
+        fi;
+        r=$$(curl -s "https://www.duckdns.org/update?domains=$${DUCKDNS_DOMAIN%%.duckdns.org}&token=$${DUCKDNS_TOKEN}&ip=$${ip}");
+        echo "$$(date -u +%FT%TZ) duckdns update ip=$${ip:-auto}: $$r"; sleep 300; done'
 
 volumes:
   postgres_data:
