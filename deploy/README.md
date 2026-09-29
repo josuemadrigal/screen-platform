@@ -54,9 +54,11 @@ or `docker login` on the server if you make them private.
   the first start.
 
 Only two files are needed on the server: `docker-compose.server.yml` and `.env`.
+The `storage` folder must be writable by uid 1000 (the `node` user inside the API container),
+hence the `chown`; without it every video upload fails with a 500.
 
 ```bash
-mkdir -p /opt/screen-platform/storage && cd /opt/screen-platform
+mkdir -p /opt/screen-platform/storage && chown 1000:1000 /opt/screen-platform/storage && cd /opt/screen-platform
 curl -fsSLO https://raw.githubusercontent.com/josuemadrigal/screen-platform/main/deploy/docker-compose.server.yml
 curl -fsSL  https://raw.githubusercontent.com/josuemadrigal/screen-platform/main/deploy/.env.example -o .env
 mv docker-compose.server.yml docker-compose.yml

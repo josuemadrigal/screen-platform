@@ -91,7 +91,9 @@ services:
     restart: unless-stopped
     profiles: ["duckdns"]
     environment:
-      DUCKDNS_DOMAIN: ${DOMAIN}
+      # DuckDNS name to keep updated. Defaults to DOMAIN; set DUCKDNS_DOMAIN when DOMAIN is the
+      # customer's domain and DuckDNS is only used for certificate validation (duckdns-delegated).
+      DUCKDNS_DOMAIN: ${DUCKDNS_DOMAIN:-${DOMAIN}}
       DUCKDNS_TOKEN: ${DUCKDNS_TOKEN:-}
       # Optional: follow another DDNS name (e.g. the router's MikroTik cloud name) instead of
       # this server's egress IP. Keeps DuckDNS on the inbound WAN when the router has failover.

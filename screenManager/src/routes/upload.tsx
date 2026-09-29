@@ -1,6 +1,6 @@
-import { createFileRoute, useNavigate } from '@tanstack/react-router'
+import { createFileRoute, useNavigate, useBlocker } from '@tanstack/react-router'
 import { useState, useRef } from 'react'
-import { Upload, Film, Calendar, CheckCircle2, AlertCircle } from 'lucide-react'
+import { Upload, Film, Calendar, CheckCircle2, AlertCircle, Loader2 } from 'lucide-react'
 import { api } from '../lib/api'
 import { useAuthStore } from '../store/authStore'
 import Swal from 'sweetalert2'
@@ -17,11 +17,23 @@ function UploadPage() {
   const [dateout, setDateout] = useState('')
   const [duration, setDuration] = useState('')
   const [isUploading, setIsUploading] = useState(false)
+  // 0-100 while the file travels to the server; 'processing' once it arrived and the server makes the thumbnail.
+  const [progress, setProgress] = useState(0)
+  const [phase, setPhase] = useState<'uploading' | 'processing'>('uploading')
   const [dragActive, setDragActive] = useState(false)
   
   const fileInputRef = useRef<HTMLInputElement>(null)
   const user = useAuthStore(state => state.user)
   const navigate = useNavigate()
+
+  // Leaving the page mid-upload cancels the request, so block in-app navigation and tab close.
+  useBlocker({
+    shouldBlockFn: () => {
+      if (!isUploading) return false
+      return !window.confirm('El video todavía se está subiendo. Si sales ahora se cancelará. ¿Salir de todos modos?')
+    },
+    enableBeforeUnload: () => isUploading,
+  })
 
   const formatDuration = (seconds: number): string => {
     const mins = Math.floor(seconds / 60)
@@ -55,6 +67,8 @@ function UploadPage() {
     }
 
     setIsUploading(true)
+    setProgress(0)
+    setPhase('uploading')
     const formData = new FormData()
     formData.append('file', file)
     formData.append('title', title)
@@ -65,7 +79,13 @@ function UploadPage() {
 
     try {
       await api.post('/storage/upload', formData, {
-        headers: { 'Content-Type': 'multipart/form-data' }
+        headers: { 'Content-Type': 'multipart/form-data' },
+        onUploadProgress: (event) => {
+          const total = event.total ?? file.size
+          const pct = total ? Math.min(100, Math.round((event.loaded * 100) / total)) : 0
+          setProgress(pct)
+          if (pct >= 100) setPhase('processing')
+        },
       })
       
       Swal.fire({
@@ -84,8 +104,53 @@ function UploadPage() {
     }
   }
 
+  const fileSizeMb = file ? file.size / (1024 * 1024) : 0
+
   return (
     <div className="max-w-4xl mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
+      {isUploading && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/85 backdrop-blur-sm p-6"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="upload-progress-title"
+        >
+          <div className="glass w-full max-w-md rounded-3xl p-8 space-y-6 text-center">
+            <div className="mx-auto flex size-16 items-center justify-center rounded-2xl bg-primary/10 text-primary">
+              {phase === 'uploading' ? <Upload size={32} /> : <Loader2 size={32} className="animate-spin" />}
+            </div>
+
+            <div className="space-y-1">
+              <h2 id="upload-progress-title" className="text-2xl font-bold text-white/90">
+                {phase === 'uploading' ? 'Subiendo video…' : 'Procesando video…'}
+              </h2>
+              <p className="text-sm text-slate-400">
+                {phase === 'uploading'
+                  ? 'No cierres ni cambies de página hasta que termine.'
+                  : 'El archivo ya llegó al servidor. Generando la miniatura, esto tarda unos segundos.'}
+              </p>
+            </div>
+
+            <div className="space-y-2">
+              <div className="h-3 w-full overflow-hidden rounded-full bg-white/10">
+                <div
+                  className={cn(
+                    "h-full rounded-full bg-primary transition-[width] duration-300",
+                    phase === 'processing' && "animate-pulse"
+                  )}
+                  style={{ width: `${progress}%` }}
+                />
+              </div>
+              <div className="flex justify-between text-xs text-slate-400 tabular-nums">
+                <span>{((fileSizeMb * progress) / 100).toFixed(1)} MB de {fileSizeMb.toFixed(1)} MB</span>
+                <span className="font-semibold text-white/80">{progress}%</span>
+              </div>
+            </div>
+
+            <p className="text-xs text-slate-500 truncate">{file?.name}</p>
+          </div>
+        </div>
+      )}
       <header className="flex items-center gap-4">
         <div className="p-3 rounded-2xl bg-primary/10 text-primary">
           <Upload size={32} />
