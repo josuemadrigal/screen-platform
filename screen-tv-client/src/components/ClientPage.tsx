@@ -619,7 +619,7 @@ export function ClientPage() {
           </form>
 
           <p className="text-center text-slate-600 text-xs tracking-widest uppercase">
-            Usa el control remoto · Presiona <kbd className="bg-white/10 px-2 py-0.5 rounded">OK</kbd> para continuar
+            Usa el control remoto · Presiona <kbd className="bg-white/10 px-2 py-0.5 rounded">OK</kbd> para pantalla completa
           </p>
           {/* Version of the web bundle in use: changes by itself after a live update. */}
           <p className="text-center text-slate-700 text-[10px] tracking-[0.3em] uppercase">
