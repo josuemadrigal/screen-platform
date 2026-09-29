@@ -210,7 +210,8 @@ export function ClientPage() {
       return
     }
     const success = await fetchScreenData(screenCode)
-    if (success) toggleFullscreen()
+    // enterFullscreen is idempotent: a second call never exits fullscreen.
+    if (success) enterFullscreen()
   }
 
   // ─── Desvincular ──────────────────────────────────────────────────────────
@@ -241,9 +242,14 @@ export function ClientPage() {
   // ─── Soporte Control Remoto / D-pad ───────────────────────────────────────
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
+      // Enter inside the code field or on a button belongs to the form (it submits and goes
+      // fullscreen itself). Handling it here too toggled fullscreen twice: on, then off.
+      const tag = (e.target as HTMLElement | null)?.tagName
+      const inFormField = tag === 'INPUT' || tag === 'BUTTON' || tag === 'TEXTAREA'
       switch (e.keyCode) {
         case 13:  // Enter / OK — entrar en fullscreen o confirmar
         case 179: // Play/Pause (Media key)
+          if (e.keyCode === 13 && inFormField) break
           if (!isFullscreen && isRegistered) {
             toggleFullscreen()
           } else if (isFullscreen) {
@@ -268,7 +274,7 @@ export function ClientPage() {
 
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [isFullscreen, isRegistered, videoList, handleNext, toggleFullscreen])
+  }, [isFullscreen, isRegistered, videoList, handleNext, toggleFullscreen, enterFullscreen])
 
   // ─── Auto-enfocar input en formulario ─────────────────────────────────────
   useEffect(() => {
