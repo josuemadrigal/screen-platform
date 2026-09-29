@@ -2,7 +2,7 @@
 //  - Android TV manifest (leanback launcher, banner, optional touchscreen) + banner image
 //  - compileSdk/targetSdk 35 and a newer Android Gradle Plugin (required by @capgo/capacitor-updater)
 // Usage: npm run android:setup
-import { readFileSync, writeFileSync, mkdirSync, copyFileSync, existsSync } from 'node:fs'
+import { readFileSync, writeFileSync, copyFileSync, cpSync, existsSync } from 'node:fs'
 import { join, dirname } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
@@ -15,8 +15,8 @@ if (!existsSync(android)) {
 
 // Manifest + banner
 copyFileSync(join(root, 'android-config/AndroidManifest.xml'), join(android, 'app/src/main/AndroidManifest.xml'))
-mkdirSync(join(android, 'app/src/main/res/drawable'), { recursive: true })
-copyFileSync(join(root, 'android-config/res/drawable/tv_banner.png'), join(android, 'app/src/main/res/drawable/tv_banner.png'))
+// Every resource under android-config/res (TV banner, launcher icons in all densities)
+cpSync(join(root, 'android-config/res'), join(android, 'app/src/main/res'), { recursive: true })
 
 // SDK 35 + AGP 8.7 + Gradle 8.9
 const patch = (file, edits) => {
@@ -50,4 +50,4 @@ patch(join(android, 'app/build.gradle'), [
   [/(    defaultConfig \{\n)/, `$1        ndk { abiFilters 'arm64-v8a', 'armeabi-v7a' }\n`],
 ])
 
-console.log('Android project configured: TV manifest, banner, minSdk 23, SDK 35, AGP 8.7.2, Gradle 8.9')
+console.log('Android project configured: TV manifest, banner, launcher icons, minSdk 23, SDK 35, AGP 8.7.2, Gradle 8.9')
