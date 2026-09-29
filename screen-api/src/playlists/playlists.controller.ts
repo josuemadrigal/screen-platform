@@ -8,6 +8,9 @@ import { getUserIdFromRequest } from '../auth/get-user-id';
 import { CreatePlaylistDto } from './dto/create-playlist.dto';
 import { UpdatePlaylistDto } from './dto/update-playlist.dto';
 import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
+import { RequirePermission } from '../auth/permissions.guard';
+import { PERMISSIONS } from '../auth/permissions';
+
 
 @ApiTags('playlists')
 @ApiBearerAuth()
@@ -21,6 +24,7 @@ export class PlaylistsController {
   ) {}
 
   @Post()
+  @RequirePermission(PERMISSIONS.CONTENT_MANAGE)
   @ApiOperation({ summary: 'Create a new playlist' })
   async create(@Body() dto: CreatePlaylistDto, @Req() req: Request) {
     const result = await this.playlistsService.create(dto);
@@ -42,6 +46,7 @@ export class PlaylistsController {
   }
 
   @Patch(':id')
+  @RequirePermission(PERMISSIONS.CONTENT_MANAGE)
   @ApiOperation({ summary: 'Update playlist' })
   async update(@Param('id', ParseIntPipe) id: number, @Body() dto: UpdatePlaylistDto, @Req() req: Request) {
     const previous = await this.playlistsService.findOne(id);
@@ -58,6 +63,7 @@ export class PlaylistsController {
   }
 
   @Delete(':id')
+  @RequirePermission(PERMISSIONS.CONTENT_MANAGE)
   @ApiOperation({ summary: 'Delete playlist' })
   async remove(@Param('id', ParseIntPipe) id: number, @Req() req: Request) {
     const playlist = await this.playlistsService.findOne(id);

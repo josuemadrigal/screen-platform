@@ -7,6 +7,9 @@ import { EventsGateway } from '../events/events.gateway';
 import { JwtService } from '@nestjs/jwt';
 import { getUserIdFromRequest } from '../auth/get-user-id';
 import { ApiTags, ApiOperation, ApiConsumes, ApiBody, ApiBearerAuth } from '@nestjs/swagger';
+import { RequirePermission } from '../auth/permissions.guard';
+import { PERMISSIONS } from '../auth/permissions';
+
 import { diskStorage } from 'multer';
 import { extname } from 'path';
 
@@ -27,6 +30,7 @@ export class StorageController {
   }
 
   @Post('upload')
+  @RequirePermission(PERMISSIONS.CONTENT_MANAGE)
   @ApiOperation({ summary: 'Upload a video file' })
   @ApiConsumes('multipart/form-data')
   @ApiBody({
@@ -85,6 +89,7 @@ export class StorageController {
   }
 
   @Patch(':id')
+  @RequirePermission(PERMISSIONS.CONTENT_MANAGE)
   @ApiOperation({ summary: 'Update video metadata' })
   async update(@Param('id', ParseIntPipe) id: number, @Body() body: any, @Req() req: Request) {
     const result = await this.storageService.update(id, body);
@@ -96,6 +101,7 @@ export class StorageController {
   }
 
   @Delete(':id')
+  @RequirePermission(PERMISSIONS.CONTENT_MANAGE)
   @ApiOperation({ summary: 'Delete video' })
   async remove(@Param('id', ParseIntPipe) id: number, @Req() req: Request) {
     const video = await this.storageService.findOne(id);

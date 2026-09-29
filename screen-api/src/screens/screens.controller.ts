@@ -8,6 +8,9 @@ import { getUserIdFromRequest } from '../auth/get-user-id';
 import { CreateScreenDto } from './dto/create-screen.dto';
 import { UpdateScreenDto } from './dto/update-screen.dto';
 import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
+import { RequirePermission } from '../auth/permissions.guard';
+import { PERMISSIONS } from '../auth/permissions';
+
 import { Public } from '../auth/public.decorator';
 
 @ApiTags('screens')
@@ -22,6 +25,7 @@ export class ScreensController {
   ) {}
 
   @Post()
+  @RequirePermission(PERMISSIONS.CONTENT_MANAGE)
   @ApiOperation({ summary: 'Create a new screen' })
   async create(@Body() dto: CreateScreenDto, @Req() req: Request) {
     const result = await this.screensService.create(dto);
@@ -50,6 +54,7 @@ export class ScreensController {
   }
 
   @Patch(':id')
+  @RequirePermission(PERMISSIONS.CONTENT_MANAGE)
   @ApiOperation({ summary: 'Update screen' })
   async update(@Param('id', ParseIntPipe) id: number, @Body() dto: UpdateScreenDto, @Req() req: Request) {
     const result = await this.screensService.update(id, dto);
@@ -61,6 +66,7 @@ export class ScreensController {
   }
 
   @Delete(':id')
+  @RequirePermission(PERMISSIONS.CONTENT_MANAGE)
   @ApiOperation({ summary: 'Delete screen' })
   async remove(@Param('id', ParseIntPipe) id: number, @Req() req: Request) {
     const screen = await this.screensService.findOne(id);

@@ -11,6 +11,7 @@ import { Logger } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { Server, Socket } from 'socket.io';
 import { PrismaService } from '../prisma/prisma.service';
+import { PERMISSIONS } from '../auth/permissions';
 
 interface ScreenConnection {
   socketId: string;
@@ -30,6 +31,10 @@ interface ScreenConnection {
 interface SocketState {
   /** True when the handshake carried a valid admin JWT (panel). */
   isAdmin: boolean;
+  /** Panel user behind this socket, when isAdmin. */
+  userId?: number;
+  /** Permission keys of that user's role. */
+  permissions: string[];
   /** True once the socket registered as a TV with a valid screen code. */
   isScreen: boolean;
 }
@@ -54,6 +59,8 @@ export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
   private readonly logger = new Logger(EventsGateway.name);
   private screens: Map<string, ScreenConnection> = new Map();
+  /** Live panel sockets per user id, for the online indicator in user management. */
+  private adminSockets: Map<number, Set<string>> = new Map();
 
   constructor(
     private readonly jwtService: JwtService,
@@ -61,7 +68,7 @@ export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect {
   ) {}
 
   private state(socket: Socket): SocketState {
-    if (!socket.data.state) socket.data.state = { isAdmin: false, isScreen: false } as SocketState;
+    if (!socket.data.state) socket.data.state = { isAdmin: false, isScreen: false, permissions: [] } as SocketState;
     return socket.data.state as SocketState;
   }
 
@@ -76,9 +83,16 @@ export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect {
     if (token) {
       try {
         const payload = this.jwtService.verify(token);
-        const user = await this.prisma.user.findUnique({ where: { id: payload.sub } });
-        if (user) {
+        const user = await this.prisma.user.findUnique({
+          where: { id: payload.sub },
+          include: { role: { include: { permissions: { include: { permission: true } } } } },
+        });
+        if (user && user.status === '1') {
           state.isAdmin = true;
+          state.userId = user.id;
+          state.permissions = (user.role?.permissions ?? []).map((rp) => rp.permission.key);
+          if (!this.adminSockets.has(user.id)) this.adminSockets.set(user.id, new Set());
+          this.adminSockets.get(user.id)!.add(socket.id);
           socket.join(ADMIN_ROOM);
           // New admin gets the current list right away.
           socket.emit('update-screens', Array.from(this.screens.values()));
@@ -93,6 +107,12 @@ export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect {
   }
 
   handleDisconnect(socket: Socket) {
+    const state = this.state(socket);
+    if (state.userId !== undefined) {
+      const set = this.adminSockets.get(state.userId);
+      set?.delete(socket.id);
+      if (set && set.size === 0) this.adminSockets.delete(state.userId);
+    }
     if (this.screens.delete(socket.id)) {
       this.logger.log(`Pantalla desconectada: ${socket.id}`);
       this.broadcastScreenList();
@@ -146,9 +166,14 @@ export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect {
     @ConnectedSocket() socket: Socket,
     @MessageBody() data: { action: string; data?: any; screenId: string },
   ) {
-    if (!this.state(socket).isAdmin) {
+    const state = this.state(socket);
+    if (!state.isAdmin) {
       this.logger.warn(`control-screen rechazado: socket ${socket.id} no es admin`);
       socket.emit('unauthorized', { message: 'Se requiere sesión de administrador' });
+      return;
+    }
+    if (!state.permissions.includes(PERMISSIONS.SCREENS_CONTROL)) {
+      socket.emit('unauthorized', { message: 'Tu rol no permite controlar pantallas' });
       return;
     }
     const { action, data: actionData, screenId } = data || ({} as any);
@@ -166,6 +191,11 @@ export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect {
   handleGetOneScreen(@ConnectedSocket() socket: Socket) {
     const screen = this.screens.get(socket.id);
     socket.emit('one-screen-update', screen || null);
+  }
+
+  /** True while the user has at least one panel socket connected. */
+  isUserOnline(userId: number): boolean {
+    return (this.adminSockets.get(userId)?.size ?? 0) > 0;
   }
 
   /**

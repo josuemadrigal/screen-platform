@@ -1,12 +1,37 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { Settings, Shield, Bell, Palette, Globe, Smartphone, Save, Lock } from 'lucide-react'
+import { useState } from 'react'
+import { Settings, Shield, Bell, Palette, Globe, Smartphone, Save, Lock, KeyRound } from 'lucide-react'
+import Swal from 'sweetalert2'
 import { cn } from '../lib/utils'
+import { API_URL } from '../lib/config'
+import { useAuthStore } from '../store/authStore'
+import { useChangePassword, apiError } from '../services/userService'
 
 export const Route = createFileRoute('/ajustes')({
   component: SettingsPage,
 })
 
 function SettingsPage() {
+  const me = useAuthStore((s) => s.user)
+  const changePassword = useChangePassword()
+  const [pw, setPw] = useState({ currentPassword: '', newPassword: '', confirm: '' })
+
+  const submitPassword = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!me) return
+    if (pw.newPassword.length < 6) return Swal.fire('Atención', 'La contraseña nueva debe tener al menos 6 caracteres', 'warning')
+    if (pw.newPassword !== pw.confirm) return Swal.fire('Atención', 'Las contraseñas no coinciden', 'warning')
+    try {
+      await changePassword.mutateAsync({ id: me.id, currentPassword: pw.currentPassword, newPassword: pw.newPassword })
+      setPw({ currentPassword: '', newPassword: '', confirm: '' })
+      Swal.fire({ icon: 'success', title: 'Contraseña actualizada', timer: 1400, showConfirmButton: false, background: '#0f172a', color: '#f8fafc' })
+    } catch (error) {
+      Swal.fire('Error', apiError(error, 'No se pudo cambiar la contraseña'), 'error')
+    }
+  }
+
+  const pwInput = 'w-full px-6 py-4 rounded-2xl bg-white/5 border border-white/10 focus:ring-2 focus:ring-primary/50 focus:border-primary outline-none transition-all'
+
   const sections = [
     { id: 'general', name: 'General', icon: Globe, description: 'Idioma, zona horaria y moneda.' },
     { id: 'security', name: 'Seguridad', icon: Shield, description: 'Autenticación de dos factores y sesiones.' },
@@ -44,6 +69,37 @@ function SettingsPage() {
         </aside>
 
         <div className="lg:col-span-3 space-y-8">
+          <form onSubmit={submitPassword} className="glass p-8 rounded-[32px] space-y-6">
+            <h3 className="text-xl font-bold flex items-center gap-2">
+              <KeyRound size={20} className="text-amber-400" />
+              Mi cuenta · cambiar contraseña
+            </h3>
+            <p className="text-sm text-slate-400">
+              Sesión iniciada como <span className="text-white font-bold">{me?.name}</span>
+              {me?.role && <span className="ml-2 uppercase tracking-widest text-[10px] text-primary">{me.role.name}</span>}
+            </p>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div className="space-y-2">
+                <label className="text-xs font-bold text-slate-500 uppercase tracking-widest ml-1">Contraseña actual</label>
+                <input type="password" className={pwInput} value={pw.currentPassword} onChange={(e) => setPw({ ...pw, currentPassword: e.target.value })} required autoComplete="current-password" />
+              </div>
+              <div className="space-y-2">
+                <label className="text-xs font-bold text-slate-500 uppercase tracking-widest ml-1">Nueva contraseña</label>
+                <input type="password" className={pwInput} value={pw.newPassword} onChange={(e) => setPw({ ...pw, newPassword: e.target.value })} required minLength={6} autoComplete="new-password" />
+              </div>
+              <div className="space-y-2">
+                <label className="text-xs font-bold text-slate-500 uppercase tracking-widest ml-1">Confirmar</label>
+                <input type="password" className={pwInput} value={pw.confirm} onChange={(e) => setPw({ ...pw, confirm: e.target.value })} required autoComplete="new-password" />
+              </div>
+            </div>
+            <div className="flex justify-end">
+              <button type="submit" disabled={changePassword.isPending} className="px-8 py-3 rounded-2xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold transition-all flex items-center gap-2 disabled:opacity-50">
+                <KeyRound size={18} />
+                Cambiar contraseña
+              </button>
+            </div>
+          </form>
+
           <div className="glass p-8 rounded-[32px] space-y-8">
             <div className="space-y-6">
                <h3 className="text-xl font-bold flex items-center gap-2">
@@ -56,7 +112,7 @@ function SettingsPage() {
                    <label className="text-xs font-bold text-slate-500 uppercase tracking-widest ml-1">URL de la API</label>
                    <input 
                      type="text" 
-                     value="http://localhost:4006"
+                     value={API_URL}
                      readOnly
                      className="w-full px-6 py-4 rounded-2xl bg-white/5 border border-white/10 text-slate-400 font-mono text-sm cursor-not-allowed"
                    />
@@ -65,7 +121,7 @@ function SettingsPage() {
                    <label className="text-xs font-bold text-slate-500 uppercase tracking-widest ml-1">Puerto Socket.IO</label>
                    <input 
                      type="text" 
-                     value="4006"
+                     value={(() => { try { return new URL(API_URL).port || (API_URL.startsWith('https') ? '443' : '80') } catch { return '' } })()}
                      readOnly
                      className="w-full px-6 py-4 rounded-2xl bg-white/5 border border-white/10 text-slate-400 font-mono text-sm cursor-not-allowed"
                    />

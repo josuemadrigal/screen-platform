@@ -1,5 +1,6 @@
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import { useState } from 'react'
+import { useRoles } from '../services/userService'
 import { api } from '../lib/api'
 import { UserPlus, Mail, Lock, User, Eye, EyeOff, ShieldCheck } from 'lucide-react'
 import { cn } from '../lib/utils'
@@ -16,8 +17,10 @@ function UserAddPage() {
     email: '',
     password: '',
     password2: '',
+    roleId: '' as string,
   })
   const [showPassword, setShowPassword] = useState(false)
+  const { data: roles = [] } = useRoles()
   const [isSaving, setIsSaving] = useState(false)
   
   const navigate = useNavigate()
@@ -31,7 +34,9 @@ function UserAddPage() {
 
     setIsSaving(true)
     try {
-      await api.post('/auth/register', formData)
+      // The API rejects unknown fields: send only what it expects (the confirmation stays local).
+      const { name, user, email, password, roleId } = formData
+      await api.post('/auth/register', { name, user, email, password, ...(roleId ? { roleId: Number(roleId) } : {}) })
       
       Swal.fire({
         icon: 'success',
@@ -40,10 +45,13 @@ function UserAddPage() {
         timer: 1500
       })
       
-      setTimeout(() => navigate({ to: '/' }), 1500)
-    } catch (error) {
+      setTimeout(() => navigate({ to: '/users' }), 1500)
+    } catch (error: any) {
       console.error(error)
-      Swal.fire('Error', 'No se pudo crear el usuario', 'error')
+      // Show the API's reason when it gives one (e.g. "Email or username already exists").
+      const apiMessage = error?.response?.data?.message
+      const detail = Array.isArray(apiMessage) ? apiMessage.join('. ') : apiMessage
+      Swal.fire('Error', detail || 'No se pudo crear el usuario', 'error')
     } finally {
       setIsSaving(false)
     }
@@ -105,6 +113,22 @@ function UserAddPage() {
                   className="w-full px-6 py-4 rounded-2xl bg-white/5 border border-white/10 focus:ring-2 focus:ring-primary/50 focus:border-primary outline-none transition-all"
                   required
                 />
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-slate-400 ml-1 flex items-center gap-2">
+                  <ShieldCheck size={14} /> Rol
+                </label>
+                <select
+                  value={formData.roleId}
+                  onChange={(e) => setFormData({ ...formData, roleId: e.target.value })}
+                  className="w-full px-6 py-4 rounded-2xl bg-white/5 border border-white/10 focus:ring-2 focus:ring-primary/50 focus:border-primary outline-none transition-all appearance-none"
+                >
+                  <option value="">Por defecto (viewer, solo lectura)</option>
+                  {roles.map((r) => (
+                    <option key={r.id} value={r.id}>{r.name}{r.description ? ` — ${r.description}` : ''}</option>
+                  ))}
+                </select>
               </div>
             </div>
           </div>

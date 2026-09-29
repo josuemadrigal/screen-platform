@@ -8,6 +8,8 @@ import { StorageModule } from './storage/storage.module';
 import { EventsModule } from './events/events.module';
 import { TasksModule } from './tasks/tasks.module';
 import { HistoryModule } from './history/history.module';
+import { UsersModule } from './users/users.module';
+import { RolesModule } from './roles/roles.module';
 
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { HealthController } from './health.controller';
@@ -35,6 +37,8 @@ import { join } from 'path';
     EventsModule,
     TasksModule,
     HistoryModule,
+    UsersModule,
+    RolesModule,
   ],
   controllers: [HealthController],
   providers: [],

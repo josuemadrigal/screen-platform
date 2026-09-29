@@ -7,6 +7,7 @@ import {
 } from 'lucide-react'
 import { useScreen } from '../hooks/useScreen'
 import { api } from '../lib/api'
+import { useAuthStore, PERM } from '../store/authStore'
 import { cn } from '../lib/utils'
 
 export const Route = createFileRoute('/')({
@@ -32,10 +33,12 @@ function Dashboard() {
     refetchInterval: 15000
   })
 
+  const canViewUsers = useAuthStore(s => s.hasPermission(PERM.USERS_VIEW))
   const { data: users = [], isLoading: loadingUsers } = useQuery({
     queryKey: ['users'],
     queryFn: () => api.get('/users').then(res => res.data),
-    refetchInterval: 15000
+    refetchInterval: 15000,
+    enabled: canViewUsers,
   })
 
   // Derivar videos por caducar (próximos 30 días)

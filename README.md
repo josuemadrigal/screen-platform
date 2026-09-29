@@ -22,7 +22,19 @@ npx prisma migrate deploy
 npm run start:dev
 ```
 
-Register the first user through Swagger (`POST /auth/register`) or from the panel's "Usuarios" page.
+Register the first user through Swagger (`POST /auth/register`) or from the panel's login page: the very first account becomes **admin**. After that, only users whose role has `users.manage` can create accounts (panel → Usuarios).
+
+**Roles and permissions.** Every user has one role; a role is a set of permission keys:
+
+| Key | Grants |
+|---|---|
+| `users.view` | see the users list and roles |
+| `users.manage` | create/edit/delete users, reset passwords, manage roles |
+| `content.manage` | create/edit/delete screens, playlists and videos |
+| `screens.control` | send commands to TVs (play, pause, reload) |
+| `history.view` | see the activity history |
+
+The migration seeds three roles (`admin` = everything, `editor` = content + screens + history, `viewer` = read-only) and assigns `admin` to every pre-existing user. Custom roles can be created in the panel (Roles). Users can always change their own password from Ajustes; the users list shows who is online and each user's last login.
 
 ### 2. Admin panel
 

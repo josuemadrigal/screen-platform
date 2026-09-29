@@ -10,11 +10,13 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as VideosRouteImport } from './routes/videos'
+import { Route as UsersRouteImport } from './routes/users'
 import { Route as UserNewRouteImport } from './routes/user-new'
 import { Route as UploadRouteImport } from './routes/upload'
 import { Route as StatusRouteImport } from './routes/status'
 import { Route as ScreensRouteImport } from './routes/screens'
 import { Route as ScreenAddRouteImport } from './routes/screen-add'
+import { Route as RolesRouteImport } from './routes/roles'
 import { Route as PlaylistsRouteImport } from './routes/playlists'
 import { Route as PlaylistNewRouteImport } from './routes/playlist-new'
 import { Route as PlaylistRouteImport } from './routes/playlist'
@@ -27,6 +29,7 @@ import { Route as ClientRouteImport } from './routes/client'
 import { Route as AjustesRouteImport } from './routes/ajustes'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as VideoEditIdRouteImport } from './routes/video-edit.$id'
+import { Route as UserEditIdRouteImport } from './routes/user-edit.$id'
 import { Route as ScreenEditIdRouteImport } from './routes/screen-edit.$id'
 import { Route as PlaylistViewIdRouteImport } from './routes/playlist-view.$id'
 import { Route as PlaylistEditIdRouteImport } from './routes/playlist-edit.$id'
@@ -35,6 +38,11 @@ import { Route as EditIdRouteImport } from './routes/edit.$id'
 const VideosRoute = VideosRouteImport.update({
   id: '/videos',
   path: '/videos',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const UsersRoute = UsersRouteImport.update({
+  id: '/users',
+  path: '/users',
   getParentRoute: () => rootRouteImport,
 } as any)
 const UserNewRoute = UserNewRouteImport.update({
@@ -60,6 +68,11 @@ const ScreensRoute = ScreensRouteImport.update({
 const ScreenAddRoute = ScreenAddRouteImport.update({
   id: '/screen-add',
   path: '/screen-add',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RolesRoute = RolesRouteImport.update({
+  id: '/roles',
+  path: '/roles',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PlaylistsRoute = PlaylistsRouteImport.update({
@@ -122,6 +135,11 @@ const VideoEditIdRoute = VideoEditIdRouteImport.update({
   path: '/video-edit/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
+const UserEditIdRoute = UserEditIdRouteImport.update({
+  id: '/user-edit/$id',
+  path: '/user-edit/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ScreenEditIdRoute = ScreenEditIdRouteImport.update({
   id: '/screen-edit/$id',
   path: '/screen-edit/$id',
@@ -155,16 +173,19 @@ export interface FileRoutesByFullPath {
   '/playlist': typeof PlaylistRoute
   '/playlist-new': typeof PlaylistNewRoute
   '/playlists': typeof PlaylistsRoute
+  '/roles': typeof RolesRoute
   '/screen-add': typeof ScreenAddRoute
   '/screens': typeof ScreensRoute
   '/status': typeof StatusRoute
   '/upload': typeof UploadRoute
   '/user-new': typeof UserNewRoute
+  '/users': typeof UsersRoute
   '/videos': typeof VideosRoute
   '/edit/$id': typeof EditIdRoute
   '/playlist-edit/$id': typeof PlaylistEditIdRoute
   '/playlist-view/$id': typeof PlaylistViewIdRoute
   '/screen-edit/$id': typeof ScreenEditIdRoute
+  '/user-edit/$id': typeof UserEditIdRoute
   '/video-edit/$id': typeof VideoEditIdRoute
 }
 export interface FileRoutesByTo {
@@ -179,16 +200,19 @@ export interface FileRoutesByTo {
   '/playlist': typeof PlaylistRoute
   '/playlist-new': typeof PlaylistNewRoute
   '/playlists': typeof PlaylistsRoute
+  '/roles': typeof RolesRoute
   '/screen-add': typeof ScreenAddRoute
   '/screens': typeof ScreensRoute
   '/status': typeof StatusRoute
   '/upload': typeof UploadRoute
   '/user-new': typeof UserNewRoute
+  '/users': typeof UsersRoute
   '/videos': typeof VideosRoute
   '/edit/$id': typeof EditIdRoute
   '/playlist-edit/$id': typeof PlaylistEditIdRoute
   '/playlist-view/$id': typeof PlaylistViewIdRoute
   '/screen-edit/$id': typeof ScreenEditIdRoute
+  '/user-edit/$id': typeof UserEditIdRoute
   '/video-edit/$id': typeof VideoEditIdRoute
 }
 export interface FileRoutesById {
@@ -204,16 +228,19 @@ export interface FileRoutesById {
   '/playlist': typeof PlaylistRoute
   '/playlist-new': typeof PlaylistNewRoute
   '/playlists': typeof PlaylistsRoute
+  '/roles': typeof RolesRoute
   '/screen-add': typeof ScreenAddRoute
   '/screens': typeof ScreensRoute
   '/status': typeof StatusRoute
   '/upload': typeof UploadRoute
   '/user-new': typeof UserNewRoute
+  '/users': typeof UsersRoute
   '/videos': typeof VideosRoute
   '/edit/$id': typeof EditIdRoute
   '/playlist-edit/$id': typeof PlaylistEditIdRoute
   '/playlist-view/$id': typeof PlaylistViewIdRoute
   '/screen-edit/$id': typeof ScreenEditIdRoute
+  '/user-edit/$id': typeof UserEditIdRoute
   '/video-edit/$id': typeof VideoEditIdRoute
 }
 export interface FileRouteTypes {
@@ -230,16 +257,19 @@ export interface FileRouteTypes {
     | '/playlist'
     | '/playlist-new'
     | '/playlists'
+    | '/roles'
     | '/screen-add'
     | '/screens'
     | '/status'
     | '/upload'
     | '/user-new'
+    | '/users'
     | '/videos'
     | '/edit/$id'
     | '/playlist-edit/$id'
     | '/playlist-view/$id'
     | '/screen-edit/$id'
+    | '/user-edit/$id'
     | '/video-edit/$id'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -254,16 +284,19 @@ export interface FileRouteTypes {
     | '/playlist'
     | '/playlist-new'
     | '/playlists'
+    | '/roles'
     | '/screen-add'
     | '/screens'
     | '/status'
     | '/upload'
     | '/user-new'
+    | '/users'
     | '/videos'
     | '/edit/$id'
     | '/playlist-edit/$id'
     | '/playlist-view/$id'
     | '/screen-edit/$id'
+    | '/user-edit/$id'
     | '/video-edit/$id'
   id:
     | '__root__'
@@ -278,16 +311,19 @@ export interface FileRouteTypes {
     | '/playlist'
     | '/playlist-new'
     | '/playlists'
+    | '/roles'
     | '/screen-add'
     | '/screens'
     | '/status'
     | '/upload'
     | '/user-new'
+    | '/users'
     | '/videos'
     | '/edit/$id'
     | '/playlist-edit/$id'
     | '/playlist-view/$id'
     | '/screen-edit/$id'
+    | '/user-edit/$id'
     | '/video-edit/$id'
   fileRoutesById: FileRoutesById
 }
@@ -303,16 +339,19 @@ export interface RootRouteChildren {
   PlaylistRoute: typeof PlaylistRoute
   PlaylistNewRoute: typeof PlaylistNewRoute
   PlaylistsRoute: typeof PlaylistsRoute
+  RolesRoute: typeof RolesRoute
   ScreenAddRoute: typeof ScreenAddRoute
   ScreensRoute: typeof ScreensRoute
   StatusRoute: typeof StatusRoute
   UploadRoute: typeof UploadRoute
   UserNewRoute: typeof UserNewRoute
+  UsersRoute: typeof UsersRoute
   VideosRoute: typeof VideosRoute
   EditIdRoute: typeof EditIdRoute
   PlaylistEditIdRoute: typeof PlaylistEditIdRoute
   PlaylistViewIdRoute: typeof PlaylistViewIdRoute
   ScreenEditIdRoute: typeof ScreenEditIdRoute
+  UserEditIdRoute: typeof UserEditIdRoute
   VideoEditIdRoute: typeof VideoEditIdRoute
 }
 
@@ -323,6 +362,13 @@ declare module '@tanstack/react-router' {
       path: '/videos'
       fullPath: '/videos'
       preLoaderRoute: typeof VideosRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/users': {
+      id: '/users'
+      path: '/users'
+      fullPath: '/users'
+      preLoaderRoute: typeof UsersRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/user-new': {
@@ -358,6 +404,13 @@ declare module '@tanstack/react-router' {
       path: '/screen-add'
       fullPath: '/screen-add'
       preLoaderRoute: typeof ScreenAddRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/roles': {
+      id: '/roles'
+      path: '/roles'
+      fullPath: '/roles'
+      preLoaderRoute: typeof RolesRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/playlists': {
@@ -444,6 +497,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof VideoEditIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/user-edit/$id': {
+      id: '/user-edit/$id'
+      path: '/user-edit/$id'
+      fullPath: '/user-edit/$id'
+      preLoaderRoute: typeof UserEditIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/screen-edit/$id': {
       id: '/screen-edit/$id'
       path: '/screen-edit/$id'
@@ -487,16 +547,19 @@ const rootRouteChildren: RootRouteChildren = {
   PlaylistRoute: PlaylistRoute,
   PlaylistNewRoute: PlaylistNewRoute,
   PlaylistsRoute: PlaylistsRoute,
+  RolesRoute: RolesRoute,
   ScreenAddRoute: ScreenAddRoute,
   ScreensRoute: ScreensRoute,
   StatusRoute: StatusRoute,
   UploadRoute: UploadRoute,
   UserNewRoute: UserNewRoute,
+  UsersRoute: UsersRoute,
   VideosRoute: VideosRoute,
   EditIdRoute: EditIdRoute,
   PlaylistEditIdRoute: PlaylistEditIdRoute,
   PlaylistViewIdRoute: PlaylistViewIdRoute,
   ScreenEditIdRoute: ScreenEditIdRoute,
+  UserEditIdRoute: UserEditIdRoute,
   VideoEditIdRoute: VideoEditIdRoute,
 }
 export const routeTree = rootRouteImport

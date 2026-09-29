@@ -1,4 +1,7 @@
-import { Controller, Post, Body, HttpCode, HttpStatus } from '@nestjs/common';
+import { Controller, Post, Get, Body, HttpCode, HttpStatus, Req } from '@nestjs/common';
+import { Request } from 'express';
+import { RequirePermission } from './permissions.guard';
+import { PERMISSIONS, AuthUser } from './permissions';
 import { AuthService } from './auth.service';
 import { HistoryService } from '../history/history.service';
 import { LoginDto } from './dto/login.dto';
@@ -16,8 +19,9 @@ export class AuthController {
 
   @Post('register')
   @BootstrapPublic()
+  @RequirePermission(PERMISSIONS.USERS_MANAGE)
   @ApiBearerAuth()
-  @ApiOperation({ summary: 'Register a new user (no token needed only while no user exists)' })
+  @ApiOperation({ summary: 'Create a user (users.manage; no token needed only while no user exists)' })
   async register(@Body() registerDto: RegisterDto) {
     const result = await this.authService.register(registerDto);
     await this.historyService.create({
@@ -25,6 +29,13 @@ export class AuthController {
       action: `Usuario registrado: ${registerDto.name} (${registerDto.user})`,
     });
     return result;
+  }
+
+  @Get('me')
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Current user with role and permissions' })
+  me(@Req() req: Request) {
+    return req.user as AuthUser;
   }
 
   @Post('login')

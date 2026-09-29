@@ -14,6 +14,12 @@ function RootLayout() {
   const location = useLocation()
   const navigate = useNavigate()
   const token = useAuthStore(state => state.token)
+  const refreshMe = useAuthStore(state => state.refreshMe)
+
+  // Role or permissions may have changed since login; a 401 here sends back to /login.
+  useEffect(() => {
+    if (token) refreshMe()
+  }, [token])
 
   const isPublic = PUBLIC_PATHS.some(p => location.pathname.startsWith(p))
   const isClient = location.pathname.startsWith('/client')
