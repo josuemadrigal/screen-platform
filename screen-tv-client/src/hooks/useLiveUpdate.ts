@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Capacitor } from '@capacitor/core'
 import { CapacitorUpdater } from '@capgo/capacitor-updater'
-import { API_URL } from '../lib/config'
+import { API_URL, rememberApiUrl } from '../lib/config'
 
 /**
  * Self-hosted live updates for the native app (Android/iOS).
@@ -73,6 +73,8 @@ export function useLiveUpdate() {
         }
         if (cancelled) return
         console.log(`[TV] Aplicando actualización ${latest.version}`)
+        // The new bundle has no API URL baked in: make sure it can read ours.
+        rememberApiUrl()
         setStatus(`Aplicando ${latest.version.slice(0, 7)}…`)
         // Switches to the new bundle and reloads the app (a couple of seconds of black screen).
         await CapacitorUpdater.set({ id: bundle.id })
