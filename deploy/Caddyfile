@@ -7,7 +7,8 @@
 #   PUBLIC_PORT        port the sites listen on (443 by default; e.g. 8443 when 443 is taken)
 #   PUBLIC_URL_SUFFIX  ":8443" when PUBLIC_PORT is not 443, empty otherwise (used in URLs)
 #   TLS_MODE           how certificates are validated: http (ports 80/443 reachable) or
-#                      namecheap / cloudflare / duckdns (DNS challenge, no ports needed)
+#                      namecheap / cloudflare / duckdns (DNS challenge, no ports needed) or
+#                      duckdns-delegated (customer domain, validation delegated to DuckDNS by CNAME)
 #
 # The frontends read the API URL at runtime from /config.js (generated here),
 # so the same image works for any domain.

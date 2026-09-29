@@ -1,0 +1,12 @@
+# TLS_MODE=duckdns-delegated: the customer's domain lives on a DNS host without an API
+# (Squarespace, cPanel, Google...). Only the ACME validation is delegated to DuckDNS:
+#   _acme-challenge.DOMAIN  CNAME  _acme-challenge.<name>.duckdns.org
+# Caddy then writes the validation record on DuckDNS and Let's Encrypt follows the CNAME.
+# One wildcard certificate (*.DOMAIN) covers every hostname. Env: DUCKDNS_TOKEN, ACME_OVERRIDE_DOMAIN.
+(tls-issuer) {
+	tls {
+		dns duckdns {$DUCKDNS_TOKEN}
+		dns_challenge_override_domain {$ACME_OVERRIDE_DOMAIN}
+		resolvers 1.1.1.1 8.8.8.8
+	}
+}

@@ -69,6 +69,8 @@ services:
       NAMECHEAP_API_KEY: ${NAMECHEAP_API_KEY:-}
       CLOUDFLARE_API_TOKEN: ${CLOUDFLARE_API_TOKEN:-}
       DUCKDNS_TOKEN: ${DUCKDNS_TOKEN:-}
+      # TLS_MODE=duckdns-delegated: DuckDNS name that _acme-challenge.DOMAIN points to (CNAME)
+      ACME_OVERRIDE_DOMAIN: ${ACME_OVERRIDE_DOMAIN:-}
     ports:
       - '80:80'
       - '${PUBLIC_PORT:-443}:${PUBLIC_PORT:-443}'
