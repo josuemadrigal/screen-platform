@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { Capacitor } from '@capacitor/core'
 import { CapacitorUpdater } from '@capgo/capacitor-updater'
 import { API_URL } from '../lib/config'
@@ -28,6 +28,9 @@ interface LatestManifest {
 }
 
 export function useLiveUpdate() {
+  // Human-readable state of the last check, shown on the link screen for diagnostics.
+  const [status, setStatus] = useState<string>('')
+
   useEffect(() => {
     if (!Capacitor.isNativePlatform() || !Capacitor.isPluginAvailable('CapacitorUpdater')) return
     let cancelled = false
@@ -43,25 +46,39 @@ export function useLiveUpdate() {
             ? BUILT_VERSION
             : current.bundle.version
         console.log(`[TV] Interfaz ${running} (bundle ${current.bundle.id}, app ${current.native})`)
+        setStatus('Buscando actualización…')
 
         const res = await fetch(`${API_URL}/updates/latest.json`, { cache: 'no-store' })
-        if (!res.ok) return
+        if (!res.ok) {
+          setStatus(`Servidor de actualizaciones: HTTP ${res.status}`)
+          return
+        }
         const latest = (await res.json()) as LatestManifest
-        if (!latest?.version || !latest?.path || latest.version === running) return
+        if (!latest?.version || !latest?.path) {
+          setStatus('Manifiesto de actualización inválido')
+          return
+        }
+        if (latest.version === running) {
+          setStatus(`Al día (${running.slice(0, 7)}) · app ${current.native}`)
+          return
+        }
 
         const { bundles } = await CapacitorUpdater.list()
         let bundle = bundles.find((b) => b.version === latest.version)
         if (!bundle) {
           const url = new URL(latest.path, `${API_URL}/updates/`).toString()
           console.log(`[TV] Descargando actualización ${latest.version}`)
+          setStatus(`Descargando ${latest.version.slice(0, 7)}…`)
           bundle = await CapacitorUpdater.download({ url, version: latest.version, checksum: latest.checksum })
         }
         if (cancelled) return
         console.log(`[TV] Aplicando actualización ${latest.version}`)
+        setStatus(`Aplicando ${latest.version.slice(0, 7)}…`)
         // Switches to the new bundle and reloads the app (a couple of seconds of black screen).
         await CapacitorUpdater.set({ id: bundle.id })
       } catch (err) {
         console.warn('[TV] Actualización no disponible:', err)
+        setStatus(`Actualización fallida: ${err instanceof Error ? err.message : String(err)}`.slice(0, 120))
       }
     }
 
@@ -72,4 +89,6 @@ export function useLiveUpdate() {
       clearInterval(timer)
     }
   }, [])
+
+  return status
 }

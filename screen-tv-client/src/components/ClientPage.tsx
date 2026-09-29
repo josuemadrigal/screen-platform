@@ -38,7 +38,7 @@ const msUntilNextMidnight = () => {
 // ─── Component ────────────────────────────────────────────────────────────────
 export function ClientPage() {
   // Native app: fetch and apply web bundle updates published by the server.
-  useLiveUpdate()
+  const updateStatus = useLiveUpdate()
   const [screenCode, setScreenCode] = useState('')
   const [linkedCode, setLinkedCode] = useState('')
   const [isRegistered, setIsRegistered] = useState(false)
@@ -623,7 +623,7 @@ export function ClientPage() {
           </p>
           {/* Version of the web bundle in use: changes by itself after a live update. */}
           <p className="text-center text-slate-700 text-[10px] tracking-[0.3em] uppercase">
-            Interfaz {BUNDLE_VERSION}
+            Interfaz {BUNDLE_VERSION}{updateStatus ? ` · ${updateStatus}` : ''}
           </p>
         </div>
       )}
