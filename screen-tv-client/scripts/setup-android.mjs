@@ -32,4 +32,22 @@ patch(join(android, 'variables.gradle'), [
 patch(join(android, 'build.gradle'), [[/com\.android\.tools\.build:gradle:[\d.]+/, 'com.android.tools.build:gradle:8.7.2']])
 patch(join(android, 'gradle/wrapper/gradle-wrapper.properties'), [[/gradle-[\d.]+-all\.zip/, 'gradle-8.9-all.zip']])
 
+// Release build: TV ABIs only, R8 minified, signed with the debug keystore (see BUILD.md)
+patch(join(android, 'app/build.gradle'), [
+  [/    buildTypes \{\n        release \{\n            minifyEnabled false/, `    signingConfigs {
+        release {
+            storeFile file(System.getProperty("user.home") + "/.android/debug.keystore")
+            storePassword "android"
+            keyAlias "androiddebugkey"
+            keyPassword "android"
+        }
+    }
+    buildTypes {
+        release {
+            signingConfig signingConfigs.release
+            minifyEnabled true
+            shrinkResources true`],
+  [/(    defaultConfig \{\n)/, `$1        ndk { abiFilters 'arm64-v8a', 'armeabi-v7a' }\n`],
+])
+
 console.log('Android project configured: TV manifest, banner, minSdk 23, SDK 35, AGP 8.7.2, Gradle 8.9')

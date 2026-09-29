@@ -25,7 +25,8 @@ export interface DownloadProgress {
 const fileNameOf = (path: string) => path.split('/').pop() || path
 
 export function useVideoStore() {
-  const isNative = Capacitor.isNativePlatform()
+  // Only when the installed APK ships the Filesystem plugin (older builds may receive this code via live update).
+  const isNative = Capacitor.isNativePlatform() && Capacitor.isPluginAvailable('Filesystem')
   const [isReady, setIsReady] = useState(!isNative)
   const [progress, setProgress] = useState<DownloadProgress | null>(null)
   // fileName -> URL the WebView can play (capacitor://localhost/_capacitor_file_/...)

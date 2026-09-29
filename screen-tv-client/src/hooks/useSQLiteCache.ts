@@ -1,53 +1,19 @@
 import { useEffect, useState, useCallback } from 'react'
 import { Capacitor } from '@capacitor/core'
-import { CapacitorSQLite, SQLiteConnection, SQLiteDBConnection } from '@capacitor-community/sqlite'
+import { Preferences } from '@capacitor/preferences'
 
-const DB_NAME = 'screen_tv_cache'
-const DB_VERSION = 1
+/**
+ * Small persistent cache for the TV client: the linked screen code and the last playlist
+ * received, so the app can start and play without the server (the video files themselves
+ * live in useVideoStore).
+ *
+ * Backed by Capacitor Preferences (Android SharedPreferences) in the app and by localStorage
+ * in a browser. It replaced an SQLite plugin that shipped 12 MB of native libraries to store
+ * these two values.
+ */
 
-let dbInstance: SQLiteDBConnection | null = null
-
-const SQL_CREATE_TABLES = `
-  CREATE TABLE IF NOT EXISTS screen_config (
-    key TEXT PRIMARY KEY NOT NULL,
-    value TEXT NOT NULL,
-    updated_at INTEGER NOT NULL
-  );
-  CREATE TABLE IF NOT EXISTS video_cache (
-    id INTEGER PRIMARY KEY NOT NULL,
-    screen_code TEXT NOT NULL,
-    path TEXT NOT NULL,
-    title TEXT,
-    thumbnail TEXT,
-    duration INTEGER,
-    dateout TEXT,
-    cached_at INTEGER NOT NULL
-  );
-  CREATE INDEX IF NOT EXISTS idx_video_screen ON video_cache(screen_code);
-`
-
-async function getDB(): Promise<SQLiteDBConnection | null> {
-  // En navegador web (dev) no hay SQLite nativo
-  if (!Capacitor.isNativePlatform()) {
-    return null
-  }
-
-  if (dbInstance) return dbInstance
-
-  try {
-    const sqlite = new SQLiteConnection(CapacitorSQLite)
-    const db = await sqlite.createConnection(DB_NAME, false, 'no-encryption', DB_VERSION, false)
-    await db.open()
-    await db.execute(SQL_CREATE_TABLES)
-    // Databases created before the column existed: add it (no-op when already present).
-    await db.execute('ALTER TABLE video_cache ADD COLUMN dateout TEXT').catch(() => {})
-    dbInstance = db
-    return db
-  } catch (err) {
-    console.error('[SQLite] Error al inicializar DB:', err)
-    return null
-  }
-}
+const KEY_SCREEN = 'screenName'
+const keyVideos = (screenCode: string) => `videos:${screenCode}`
 
 export interface VideoData {
   id: number
@@ -59,78 +25,59 @@ export interface VideoData {
   dateout?: string | null
 }
 
+// Use the native store only when the installed app actually ships the plugin. A live update
+// can deliver this code to an older APK built without it; localStorage then keeps working.
+const isNative = Capacitor.isNativePlatform() && Capacitor.isPluginAvailable('Preferences')
+
+async function read(key: string): Promise<string | null> {
+  if (!isNative) return localStorage.getItem(key)
+  const { value } = await Preferences.get({ key })
+  return value ?? null
+}
+
+async function write(key: string, value: string): Promise<void> {
+  localStorage.setItem(key, value)
+  if (isNative) await Preferences.set({ key, value })
+}
+
+async function erase(key: string): Promise<void> {
+  localStorage.removeItem(key)
+  if (isNative) await Preferences.remove({ key })
+}
+
 export function useSQLiteCache() {
   const [isReady, setIsReady] = useState(false)
 
   useEffect(() => {
-    getDB().then((db) => {
-      setIsReady(!!db || !Capacitor.isNativePlatform())
-    })
+    // Nothing to open; kept for API compatibility with the previous SQLite implementation.
+    setIsReady(true)
   }, [])
 
   /** Guarda el código de pantalla activo */
   const saveScreenCode = useCallback(async (code: string) => {
-    // Siempre guardar en localStorage como fallback
-    localStorage.setItem('screenName', code)
-    
-    const db = await getDB()
-    if (!db) return
-
-    await db.run(
-      `INSERT OR REPLACE INTO screen_config (key, value, updated_at) VALUES (?, ?, ?)`,
-      ['screenName', code, Date.now()]
-    )
+    await write(KEY_SCREEN, code)
   }, [])
 
   /** Lee el código de pantalla guardado */
   const loadScreenCode = useCallback(async (): Promise<string | null> => {
-    const db = await getDB()
-    if (!db) {
-      return localStorage.getItem('screenName')
-    }
-
-    try {
-      const result = await db.query(
-        `SELECT value FROM screen_config WHERE key = ? LIMIT 1`,
-        ['screenName']
-      )
-      if (result.values && result.values.length > 0) {
-        return result.values[0].value
-      }
-    } catch {
-      /* fallback */
-    }
-    return localStorage.getItem('screenName')
+    return read(KEY_SCREEN)
   }, [])
 
-  /** Cachea los videos de una pantalla para uso offline */
+  /** Guarda la playlist de una pantalla para uso sin conexión */
   const cacheVideos = useCallback(async (screenCode: string, videos: VideoData[]) => {
-    const db = await getDB()
-    if (!db) return
-
-    // Eliminar cache anterior de esta pantalla
-    await db.run(`DELETE FROM video_cache WHERE screen_code = ?`, [screenCode])
-
-    for (const v of videos) {
-      await db.run(
-        `INSERT OR REPLACE INTO video_cache (id, screen_code, path, title, thumbnail, duration, dateout, cached_at)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-        [v.id, screenCode, v.path, v.title ?? null, v.thumbnail ?? null, v.duration ?? null, v.dateout ?? null, Date.now()]
-      )
-    }
+    const slim = videos.map(({ id, path, title, thumbnail, duration, dateout }) => ({
+      id, path, title, thumbnail, duration, dateout: dateout ?? null,
+    }))
+    await write(keyVideos(screenCode), JSON.stringify({ savedAt: Date.now(), videos: slim }))
   }, [])
 
-  /** Recupera videos cacheados para reproducción offline */
+  /** Recupera la playlist guardada para reproducción sin conexión */
   const getCachedVideos = useCallback(async (screenCode: string): Promise<VideoData[]> => {
-    const db = await getDB()
-    if (!db) return []
-
     try {
-      const result = await db.query(
-        `SELECT id, path, title, thumbnail, duration, dateout FROM video_cache WHERE screen_code = ? ORDER BY id`,
-        [screenCode]
-      )
-      return result.values ?? []
+      const raw = await read(keyVideos(screenCode))
+      if (!raw) return []
+      const parsed = JSON.parse(raw) as { videos?: VideoData[] }
+      return Array.isArray(parsed.videos) ? parsed.videos : []
     } catch {
       return []
     }
@@ -138,10 +85,7 @@ export function useSQLiteCache() {
 
   /** Elimina código guardado (desvincular) */
   const clearScreenCode = useCallback(async () => {
-    localStorage.removeItem('screenName')
-    const db = await getDB()
-    if (!db) return
-    await db.run(`DELETE FROM screen_config WHERE key = ?`, ['screenName'])
+    await erase(KEY_SCREEN)
   }, [])
 
   return {

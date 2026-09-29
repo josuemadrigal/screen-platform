@@ -29,7 +29,7 @@ interface LatestManifest {
 
 export function useLiveUpdate() {
   useEffect(() => {
-    if (!Capacitor.isNativePlatform()) return
+    if (!Capacitor.isNativePlatform() || !Capacitor.isPluginAvailable('CapacitorUpdater')) return
     let cancelled = false
 
     // Tell the plugin this bundle booted fine; otherwise it rolls back to the previous one.

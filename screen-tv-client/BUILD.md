@@ -168,7 +168,7 @@ npm run cap:sync
 
 En la app de Android los videos de la playlist se descargan una vez al almacenamiento privado
 de la app (`files/videos/`) y se reproducen desde ahí. Si la TV pierde internet, arranca con la
-lista guardada en SQLite y reproduce todo desde disco. Los videos que salen de la playlist se
+lista guardada en las preferencias de la app (`@capacitor/preferences`) y reproduce todo desde disco. Los videos que salen de la playlist se
 borran automáticamente. Ver `src/hooks/useVideoStore.ts`.
 
 ### Probar contra un API local (HTTP) en el emulador
@@ -191,14 +191,19 @@ sin `CAP_CLEARTEXT` y quita `usesCleartextTraffic` del manifest.
 
 1. Edita el código en `src/` y pruébalo en el navegador con `npm run dev`.
 2. Comprueba que `.env` apunta al API público (`https://api.<dominio>:<puerto>`).
-3. Genera el APK con un solo comando; sube solo el número de versión para que Android lo
+3. Genera el APK con un solo comando; sube el número de versión para que Android lo
    instale como actualización:
 
 ```bash
 npm run apk
 ```
 
-4. Instala en cada TV por USB o con `adb install -r android/app/build/outputs/apk/debug/app-debug.apk`.
+   Es un build *release*: código reducido con R8, solo arquitecturas ARM (las de TVs y
+   teléfonos) y firmado con la clave de depuración local (`~/.android/debug.keystore`), que
+   basta para instalar a mano. Para publicar en Google Play habría que crear una clave propia
+   y ponerla en `signingConfigs.release` de `android/app/build.gradle`. Pesa unos 2 MB.
+
+4. Instala en cada TV por USB o con `adb install -r android/app/build/outputs/apk/release/app-release.apk`.
    La app conserva el código vinculado y los videos descargados.
 
 ---
