@@ -122,7 +122,10 @@ reinstall. Only native changes (Capacitor plugins) require a new APK; see `scree
 
 ## 3. Updating
 
-Push to `main` (GitHub Actions publishes the new images, ~5 minutes). Then on the server:
+Push to `main`. GitHub Actions publishes the new images (~5 minutes) and Watchtower, running on
+the server, pulls them and recreates `api`/`web` within the next 5 minutes. Nothing to run.
+
+To force it right away, or if Watchtower is not running:
 
 ```bash
 cd /opt/screen-platform && docker compose pull && docker compose up -d

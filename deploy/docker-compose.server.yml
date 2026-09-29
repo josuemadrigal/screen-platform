@@ -4,6 +4,8 @@
 #
 # On the server, in a folder with this file and a .env (see .env.example):
 #   docker compose pull && docker compose up -d
+# After that, Watchtower pulls new :latest images from Docker Hub by itself (every 5 minutes)
+# and recreates the api/web containers, so a push to main reaches the server with no manual step.
 #
 # Only ports 80 and 443 are published. The API and the database stay on the internal network.
 
@@ -29,6 +31,8 @@ services:
   api:
     image: ${IMAGE_API:-josueahp/screen-api}:${IMAGE_TAG:-latest}
     restart: unless-stopped
+    labels:
+      com.centurylinklabs.watchtower.enable: "true"
     environment:
       NODE_ENV: production
       PORT: 4006
@@ -52,6 +56,8 @@ services:
   web:
     image: ${IMAGE_WEB:-josueahp/screen-web}:${IMAGE_TAG:-latest}
     restart: unless-stopped
+    labels:
+      com.centurylinklabs.watchtower.enable: "true"
     environment:
       DOMAIN: ${DOMAIN:?Set DOMAIN in .env}
       ACME_EMAIL: ${ACME_EMAIL:?Set ACME_EMAIL in .env}
@@ -105,6 +111,17 @@ services:
         fi;
         r=$$(curl -s "https://www.duckdns.org/update?domains=$${DUCKDNS_DOMAIN%%.duckdns.org}&token=$${DUCKDNS_TOKEN}&ip=$${ip}");
         echo "$$(date -u +%FT%TZ) duckdns update ip=$${ip:-auto}: $$r"; sleep 300; done'
+
+  # Auto-deploy: checks Docker Hub every 5 minutes and recreates api/web when their :latest
+  # image changed. Only containers with the watchtower.enable label are touched (never postgres).
+  watchtower:
+    image: containrrr/watchtower:1.7.1
+    restart: unless-stopped
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    environment:
+      TZ: ${TZ:-America/Santo_Domingo}
+    command: --label-enable --cleanup --interval ${WATCHTOWER_INTERVAL:-300}
 
 volumes:
   postgres_data:
