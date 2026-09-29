@@ -47,7 +47,7 @@ function RootLayout() {
           <Outlet />
         </div>
       </main>
-      {!isClient && <TanStackRouterDevtools />}
+      {import.meta.env.DEV && !isClient && <TanStackRouterDevtools />}
     </div>
   )
 }
