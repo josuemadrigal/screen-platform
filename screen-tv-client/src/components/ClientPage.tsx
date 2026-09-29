@@ -13,6 +13,22 @@ interface VideoData {
   path: string
   title?: string
   thumbnail?: string
+  dateout?: string | null
+}
+
+// ─── Caducidad ────────────────────────────────────────────────────────────────
+// The server drops expired videos from the playlist every night, but the TV only refreshes
+// on reload. Filter locally as well, by the device's date, so expiry also works offline.
+const todayLocal = () => {
+  const d = new Date()
+  const pad = (n: number) => String(n).padStart(2, '0')
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`
+}
+const isVideoActive = (v: VideoData) => !v.dateout || v.dateout >= todayLocal()
+const msUntilNextMidnight = () => {
+  const now = new Date()
+  const next = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1, 0, 0, 5)
+  return next.getTime() - now.getTime()
 }
 
 // ─── Component ────────────────────────────────────────────────────────────────
@@ -61,11 +77,13 @@ export function ClientPage() {
     }
     const v0 = videoList[activePlayer === 0 ? currentIndex : nextIndex]
     const v1 = videoList[activePlayer === 1 ? currentIndex : nextIndex]
-    setSrcs([
+    const next: [string, string] = [
       v0 ? store.resolveSrc(v0.path, servidor) : '',
       v1 ? store.resolveSrc(v1.path, servidor) : '',
-    ])
-  }, [videoList, currentIndex, activePlayer, nextIndex, store, servidor])
+    ]
+    // Only update when something actually changed, so React does not re-render in a loop.
+    setSrcs((prev) => (prev[0] === next[0] && prev[1] === next[1] ? prev : next))
+  }, [videoList, currentIndex, activePlayer, nextIndex, store.resolveSrc, servidor])
 
   // ─── Fetch desde API + cache offline ──────────────────────────────────────
   const fetchScreenData = useCallback(async (code: string): Promise<boolean> => {
@@ -74,21 +92,22 @@ export function ClientPage() {
     try {
       const { data } = await api.get(`/screens/code/${codeToUse}`)
       if (data?.videosData) {
-        setVideoList(data.videosData)
+        const active = (data.videosData as VideoData[]).filter(isVideoActive)
+        setVideoList(active)
         setLinkedCode(codeToUse)
         setIsRegistered(true)
         setIsOffline(false)
         await cache.saveScreenCode(codeToUse)
         await cache.cacheVideos(codeToUse, data.videosData)
         // Fire and forget: downloads missing videos in the background, deletes unused ones.
-        store.sync(data.videosData, servidor)
+        store.sync(active, servidor)
         return true
       }
       return false
     } catch (err) {
       console.warn('[TV] Sin conexión, intentando cache SQLite...')
       // Intentar cargar desde cache SQLite
-      const cachedVideos = await cache.getCachedVideos(codeToUse)
+      const cachedVideos = (await cache.getCachedVideos(codeToUse)).filter(isVideoActive)
       if (cachedVideos.length > 0) {
         setVideoList(cachedVideos)
         setLinkedCode(codeToUse)
@@ -118,6 +137,28 @@ export function ClientPage() {
     // Wait for the local video index too, so the first video already plays from disk when present.
     if (cache.isReady && store.isReady) init()
   }, [cache.isReady, store.isReady])
+
+  // ─── Caducidad a medianoche: quitar de la lista los videos que vencen hoy ──────
+  useEffect(() => {
+    let timer: ReturnType<typeof setTimeout>
+    const schedule = () => {
+      timer = setTimeout(() => {
+        setVideoList((prev) => {
+          const next = prev.filter(isVideoActive)
+          if (next.length !== prev.length) console.log(`[TV] ${prev.length - next.length} video(s) vencido(s) retirado(s)`)
+          return next
+        })
+        schedule()
+      }, msUntilNextMidnight())
+    }
+    schedule()
+    return () => clearTimeout(timer)
+  }, [])
+
+  // Keep the index valid when the list shrinks.
+  useEffect(() => {
+    if (videoList.length > 0 && currentIndex >= videoList.length) setCurrentIndex(0)
+  }, [videoList.length, currentIndex])
 
   // ─── Fullscreen helpers ────────────────────────────────────────────────────
   const enterFullscreen = useCallback(async () => {

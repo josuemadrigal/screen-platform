@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Capacitor } from '@capacitor/core'
 import { Directory, Filesystem } from '@capacitor/filesystem'
 
@@ -140,5 +140,9 @@ export function useVideoStore() {
 
   const isLocal = useCallback((path: string) => fileNameOf(path) in localRef.current, [])
 
-  return { isNative, isReady, progress, sync, resolveSrc, isLocal }
+  // Stable object: consumers can list it in effect dependencies without re-running every render.
+  return useMemo(
+    () => ({ isNative, isReady, progress, sync, resolveSrc, isLocal }),
+    [isNative, isReady, progress, sync, resolveSrc, isLocal],
+  )
 }

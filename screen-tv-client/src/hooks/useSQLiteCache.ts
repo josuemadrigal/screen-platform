@@ -20,6 +20,7 @@ const SQL_CREATE_TABLES = `
     title TEXT,
     thumbnail TEXT,
     duration INTEGER,
+    dateout TEXT,
     cached_at INTEGER NOT NULL
   );
   CREATE INDEX IF NOT EXISTS idx_video_screen ON video_cache(screen_code);
@@ -38,6 +39,8 @@ async function getDB(): Promise<SQLiteDBConnection | null> {
     const db = await sqlite.createConnection(DB_NAME, false, 'no-encryption', DB_VERSION, false)
     await db.open()
     await db.execute(SQL_CREATE_TABLES)
+    // Databases created before the column existed: add it (no-op when already present).
+    await db.execute('ALTER TABLE video_cache ADD COLUMN dateout TEXT').catch(() => {})
     dbInstance = db
     return db
   } catch (err) {
@@ -52,6 +55,8 @@ export interface VideoData {
   title?: string
   thumbnail?: string
   duration?: number
+  /** Expiry date as YYYY-MM-DD; the video must not play after this day. */
+  dateout?: string | null
 }
 
 export function useSQLiteCache() {
@@ -108,9 +113,9 @@ export function useSQLiteCache() {
 
     for (const v of videos) {
       await db.run(
-        `INSERT OR REPLACE INTO video_cache (id, screen_code, path, title, thumbnail, duration, cached_at)
-         VALUES (?, ?, ?, ?, ?, ?, ?)`,
-        [v.id, screenCode, v.path, v.title ?? null, v.thumbnail ?? null, v.duration ?? null, Date.now()]
+        `INSERT OR REPLACE INTO video_cache (id, screen_code, path, title, thumbnail, duration, dateout, cached_at)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+        [v.id, screenCode, v.path, v.title ?? null, v.thumbnail ?? null, v.duration ?? null, v.dateout ?? null, Date.now()]
       )
     }
   }, [])
@@ -122,7 +127,7 @@ export function useSQLiteCache() {
 
     try {
       const result = await db.query(
-        `SELECT id, path, title, thumbnail, duration FROM video_cache WHERE screen_code = ? ORDER BY id`,
+        `SELECT id, path, title, thumbnail, duration, dateout FROM video_cache WHERE screen_code = ? ORDER BY id`,
         [screenCode]
       )
       return result.values ?? []
