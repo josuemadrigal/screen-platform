@@ -260,6 +260,16 @@ export function ClientPage() {
           break
         case 'toggle-fullscreen':
           toggleFullscreen()
+          // Browsers only allow fullscreen from a user gesture on the device itself, so a remote
+          // command may be refused. If it was, ask the person at the TV to press OK once.
+          setTimeout(() => {
+            const active = !!(document.fullscreenElement || (document as any).webkitFullscreenElement)
+            if (!active) {
+              setBannerText('Pulsa OK en el control para pantalla completa')
+              setShowBanner(true)
+              setTimeout(() => setShowBanner(false), 15000)
+            }
+          }, 400)
           break
         case 'change-video':
           if (actionData?.direction === 'next') handleNext()
