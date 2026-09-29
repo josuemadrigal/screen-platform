@@ -34,6 +34,10 @@ npm install
 
 ## 3. Inicializar Capacitor (solo la primera vez)
 
+> Atajo: los pasos 4 y 5 ya están hechos en `android-config/`. Tras `npx cap add android`,
+> copia `android-config/AndroidManifest.xml` y `android-config/res/drawable/tv_banner.png`
+> sobre los generados (ver `android-config/README.md`).
+
 ```bash
 npx cap init "Screen TV" com.screenmanager.tvclient --web-dir dist
 npx cap add android

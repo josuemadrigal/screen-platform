@@ -35,8 +35,9 @@ services:
       DATABASE_URL: postgresql://${POSTGRES_USER:-screen_user}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-screen_db}?schema=public
       JWT_SECRET: ${JWT_SECRET:?Set JWT_SECRET in .env}
       JWT_EXPIRATION: ${JWT_EXPIRATION:-24h}
-      # Browser origins allowed for HTTP and Socket.IO: the two frontends served by Caddy.
-      CORS_ORIGIN: https://${PANEL_HOST:-${DOMAIN}}${PUBLIC_URL_SUFFIX:-},https://${TV_HOST:-tv.${DOMAIN}}${PUBLIC_URL_SUFFIX:-}
+      # Browser origins allowed for HTTP and Socket.IO: the two frontends served by Caddy, plus the
+      # Capacitor app (its WebView runs the TV client from https://localhost on Android, capacitor://localhost on iOS).
+      CORS_ORIGIN: https://${PANEL_HOST:-${DOMAIN}}${PUBLIC_URL_SUFFIX:-},https://${TV_HOST:-tv.${DOMAIN}}${PUBLIC_URL_SUFFIX:-},https://localhost,capacitor://localhost
       TZ: ${TZ:-America/Santo_Domingo}
       BOT_URL: ${BOT_URL:-}
       BOT_IMG_screen: ${BOT_IMG_screen:-}
