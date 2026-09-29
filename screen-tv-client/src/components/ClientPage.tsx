@@ -351,6 +351,62 @@ export function ClientPage() {
     }
   }, [socket, videoList, activePlayer, handleNext, toggleFullscreen])
 
+  // ─── Reanudar reproducción ────────────────────────────────────────────────
+  // Android pauses the video when the app goes to the background or the screen turns off,
+  // and does not resume it. Resume when we come back, and keep a watchdog for any other
+  // silent pause (decoder hiccup, blocked play() promise, etc.).
+  useEffect(() => {
+    const resume = () => {
+      if (document.visibilityState !== 'visible' || !isPlaying) return
+      refs[activePlayer].current?.play().catch(() => { })
+    }
+    document.addEventListener('visibilitychange', resume)
+    window.addEventListener('focus', resume)
+    return () => {
+      document.removeEventListener('visibilitychange', resume)
+      window.removeEventListener('focus', resume)
+    }
+  }, [isPlaying, activePlayer])
+
+  const stalledSince = useRef<number | null>(null)
+  useEffect(() => {
+    if (!isRegistered || videoList.length === 0) return
+    const tick = setInterval(() => {
+      const el = refs[activePlayer].current
+      if (!el || !isPlaying || document.visibilityState !== 'visible') return
+      if (el.readyState >= 2) {
+        stalledSince.current = null
+        if (el.paused && !el.ended) el.play().catch(() => { })
+        return
+      }
+      // No data for this source: give it 20 s, then move on so the screen never freezes.
+      stalledSince.current ??= Date.now()
+      if (Date.now() - stalledSince.current > 20000) {
+        console.warn('[TV] Video sin datos durante 20 s, saltando al siguiente')
+        stalledSince.current = null
+        handleNext()
+      }
+    }, 3000)
+    return () => clearInterval(tick)
+  }, [isRegistered, videoList.length, activePlayer, isPlaying, handleNext])
+
+  // A source that fails to load: if it was the local copy, drop it and fall back to the API.
+  const handleVideoError = useCallback((slot: 0 | 1) => {
+    const video = videoList[slot === activePlayer ? currentIndex : nextIndex]
+    const el = refs[slot].current
+    console.warn('[TV] Error de reproducción en', el?.currentSrc, el?.error?.code)
+    if (video && store.isLocal(video.path)) {
+      store.discard(video.path)
+      setSrcs((prev) => {
+        const next: [string, string] = [...prev] as [string, string]
+        next[slot] = `${servidor}${video.path}`
+        return next
+      })
+      return
+    }
+    if (slot === activePlayer) setTimeout(() => handleNext(), 3000)
+  }, [videoList, activePlayer, currentIndex, nextIndex, store, servidor, handleNext])
+
   // ─── Screenshot periódico ──────────────────────────────────────────────────
   const takeScreenshot = () => {
     const activeRef = refs[activePlayer]
@@ -420,6 +476,7 @@ export function ClientPage() {
               autoPlay={activePlayer === 0 && isPlaying}
               muted={activePlayer !== 0 || !hasInteracted}
               onEnded={() => activePlayer === 0 && handleNext()}
+              onError={() => handleVideoError(0)}
               preload="auto"
               playsInline
             />
@@ -433,6 +490,7 @@ export function ClientPage() {
               autoPlay={activePlayer === 1 && isPlaying}
               muted={activePlayer !== 1 || !hasInteracted}
               onEnded={() => activePlayer === 1 && handleNext()}
+              onError={() => handleVideoError(1)}
               preload="auto"
               playsInline
             />

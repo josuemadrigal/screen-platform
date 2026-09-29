@@ -140,9 +140,19 @@ export function useVideoStore() {
 
   const isLocal = useCallback((path: string) => fileNameOf(path) in localRef.current, [])
 
+  /** Drop a local copy that failed to play; the next sync downloads it again. */
+  const discard = useCallback(async (path: string) => {
+    const name = fileNameOf(path)
+    if (!(name in localRef.current)) return
+    delete localRef.current[name]
+    bump((n) => n + 1)
+    await Filesystem.deleteFile({ path: `${DIR}/${name}`, directory: Directory.Data }).catch(() => {})
+    console.warn(`[TV] Copia local descartada: ${name}`)
+  }, [])
+
   // Stable object: consumers can list it in effect dependencies without re-running every render.
   return useMemo(
-    () => ({ isNative, isReady, progress, sync, resolveSrc, isLocal }),
-    [isNative, isReady, progress, sync, resolveSrc, isLocal],
+    () => ({ isNative, isReady, progress, sync, resolveSrc, isLocal, discard }),
+    [isNative, isReady, progress, sync, resolveSrc, isLocal, discard],
   )
 }

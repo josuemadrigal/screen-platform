@@ -185,3 +185,19 @@ cd android && ./gradlew assembleDebug
 
 Antes del build de producción vuelve a poner la URL HTTPS, ejecuta `npx cap sync android`
 sin `CAP_CLEARTEXT` y quita `usesCleartextTraffic` del manifest.
+
+---
+
+## Actualizar la app (interfaz o lógica)
+
+1. Edita el código en `src/` y pruébalo en el navegador con `npm run dev`.
+2. Comprueba que `.env` apunta al API público (`https://api.<dominio>:<puerto>`).
+3. Genera el APK con un solo comando; sube solo el número de versión para que Android lo
+   instale como actualización:
+
+```bash
+npm run apk
+```
+
+4. Instala en cada TV por USB o con `adb install -r android/app/build/outputs/apk/debug/app-debug.apk`.
+   La app conserva el código vinculado y los videos descargados.
