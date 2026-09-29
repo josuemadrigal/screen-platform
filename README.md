@@ -50,6 +50,7 @@ For Android, see `screen-tv-client/BUILD.md`.
 - The panel and the TV clients call the API over HTTP and keep a Socket.IO connection to it.
 - Each TV client joins with its screen code. The panel's "Monitor de Estado" shows who is online and can send play, pause and reload commands.
 - Saving a screen, a playlist or a video in the panel makes the API send a reload to every TV client affected, so changes show up without touching the TVs.
+- The Android app downloads the playlist videos to the device and plays them from disk, so screens keep running without Internet; the web TV client relies on the browser cache instead.
 
 ## Database changes
 

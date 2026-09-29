@@ -2,7 +2,8 @@ import { useState, useEffect, useRef, useCallback } from 'react'
 import { api } from '../lib/api'
 import { useScreen } from '../hooks/useScreen'
 import { useSQLiteCache } from '../hooks/useSQLiteCache'
-import { Monitor, Cast, AlertCircle, XCircle, Wifi, WifiOff, Play, Tv2 } from 'lucide-react'
+import { useVideoStore } from '../hooks/useVideoStore'
+import { Monitor, Cast, AlertCircle, XCircle, Wifi, WifiOff, Play, Tv2, Download, HardDrive } from 'lucide-react'
 import { cn } from '../lib/utils'
 import { API_URL } from '../lib/config'
 
@@ -42,10 +43,29 @@ export function ClientPage() {
   const activeCode = linkedCode || 'GENERIC'
   const { socket, isConnected } = useScreen({ screenName: isRegistered ? activeCode : undefined })
   const cache = useSQLiteCache()
+  // Native app: videos are downloaded once to the device and played from disk.
+  const store = useVideoStore()
   const servidor = API_URL
 
   const currentVideo = videoList[currentIndex]
   const nextIndex = videoList.length > 0 ? (currentIndex + 1) % videoList.length : 0
+
+  // Source of each player slot. Resolved when the slot is assigned a video (local file if
+  // already downloaded, API otherwise) and kept until the slot changes, so a finished
+  // download never interrupts the video that is playing.
+  const [srcs, setSrcs] = useState<[string, string]>(['', ''])
+  useEffect(() => {
+    if (videoList.length === 0) {
+      setSrcs(['', ''])
+      return
+    }
+    const v0 = videoList[activePlayer === 0 ? currentIndex : nextIndex]
+    const v1 = videoList[activePlayer === 1 ? currentIndex : nextIndex]
+    setSrcs([
+      v0 ? store.resolveSrc(v0.path, servidor) : '',
+      v1 ? store.resolveSrc(v1.path, servidor) : '',
+    ])
+  }, [videoList, currentIndex, activePlayer, nextIndex, store, servidor])
 
   // ─── Fetch desde API + cache offline ──────────────────────────────────────
   const fetchScreenData = useCallback(async (code: string): Promise<boolean> => {
@@ -60,6 +80,8 @@ export function ClientPage() {
         setIsOffline(false)
         await cache.saveScreenCode(codeToUse)
         await cache.cacheVideos(codeToUse, data.videosData)
+        // Fire and forget: downloads missing videos in the background, deletes unused ones.
+        store.sync(data.videosData, servidor)
         return true
       }
       return false
@@ -77,7 +99,7 @@ export function ClientPage() {
       setError('Sin conexión y sin datos en caché.')
       return false
     }
-  }, [cache])
+  }, [cache, store, servidor])
 
   // ─── Inicialización: leer código guardado ──────────────────────────────────
   useEffect(() => {
@@ -93,8 +115,9 @@ export function ClientPage() {
       }
       setLoadingInit(false)
     }
-    if (cache.isReady) init()
-  }, [cache.isReady])
+    // Wait for the local video index too, so the first video already plays from disk when present.
+    if (cache.isReady && store.isReady) init()
+  }, [cache.isReady, store.isReady])
 
   // ─── Fullscreen helpers ────────────────────────────────────────────────────
   const enterFullscreen = useCallback(async () => {
@@ -348,7 +371,7 @@ export function ClientPage() {
           <>
             <video
               ref={videoRef0}
-              src={`${servidor}${videoList[activePlayer === 0 ? currentIndex : nextIndex]?.path}`}
+              src={srcs[0]}
               className={cn(
                 'absolute inset-0 w-full h-full object-cover transition-opacity duration-700',
                 activePlayer === 0 ? 'opacity-100 z-10' : 'opacity-0 z-0'
@@ -361,7 +384,7 @@ export function ClientPage() {
             />
             <video
               ref={videoRef1}
-              src={`${servidor}${videoList[activePlayer === 1 ? currentIndex : nextIndex]?.path}`}
+              src={srcs[1]}
               className={cn(
                 'absolute inset-0 w-full h-full object-cover transition-opacity duration-700',
                 activePlayer === 1 ? 'opacity-100 z-10' : 'opacity-0 z-0'
@@ -398,6 +421,20 @@ export function ClientPage() {
               {isConnected ? <Wifi size={10} /> : <WifiOff size={10} />}
               {isConnected ? 'Conectado' : 'Sin conexión'}
             </div>
+            {/* Descarga de videos al dispositivo (solo app nativa) */}
+            {store.progress && (
+              <div className="bg-black/60 backdrop-blur-md px-4 py-2 rounded-full border border-indigo-500/30 text-indigo-300 flex items-center gap-2 shadow-xl text-[10px] font-black uppercase tracking-widest">
+                <Download size={10} className="animate-bounce" />
+                Descargando {Math.min(store.progress.done + 1, store.progress.total)}/{store.progress.total}
+              </div>
+            )}
+            {/* Reproduciendo desde el almacenamiento de la TV */}
+            {store.isNative && !store.progress && currentVideo && store.isLocal(currentVideo.path) && (
+              <div className="bg-black/60 backdrop-blur-md px-4 py-2 rounded-full border border-white/10 text-slate-400 flex items-center gap-2 shadow-xl text-[10px] font-black uppercase tracking-widest">
+                <HardDrive size={10} />
+                Local
+              </div>
+            )}
             {/* Badge offline cache */}
             {isOffline && (
               <div className="bg-amber-500/20 backdrop-blur-md px-4 py-2 rounded-full border border-amber-500/30 text-amber-400 text-[10px] font-black uppercase tracking-widest">

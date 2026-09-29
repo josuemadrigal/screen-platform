@@ -162,3 +162,26 @@ npm run dev
 # Cambios → rebuild → sync en un solo comando
 npm run cap:sync
 ```
+
+---
+
+## Videos sin internet (app nativa)
+
+En la app de Android los videos de la playlist se descargan una vez al almacenamiento privado
+de la app (`files/videos/`) y se reproducen desde ahí. Si la TV pierde internet, arranca con la
+lista guardada en SQLite y reproduce todo desde disco. Los videos que salen de la playlist se
+borran automáticamente. Ver `src/hooks/useVideoStore.ts`.
+
+### Probar contra un API local (HTTP) en el emulador
+
+Producción es HTTPS de extremo a extremo. Solo para pruebas con un API en tu máquina:
+
+```bash
+# .env -> VITE_API_URL=http://10.0.2.2:4006 (10.0.2.2 es el host visto desde el emulador)
+npm run build && CAP_CLEARTEXT=1 npx cap sync android
+# añade android:usesCleartextTraffic="true" al <application> del manifest generado
+cd android && ./gradlew assembleDebug
+```
+
+Antes del build de producción vuelve a poner la URL HTTPS, ejecuta `npx cap sync android`
+sin `CAP_CLEARTEXT` y quita `usesCleartextTraffic` del manifest.
