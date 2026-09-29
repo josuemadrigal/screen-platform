@@ -121,6 +121,8 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock
     environment:
       TZ: ${TZ:-America/Santo_Domingo}
+      # Docker Engine 25+ rejects the old API version Watchtower negotiates by default.
+      DOCKER_API_VERSION: "1.44"
     command: --label-enable --cleanup --interval ${WATCHTOWER_INTERVAL:-300}
 
 volumes:
