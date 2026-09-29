@@ -15,9 +15,12 @@
 {$API_HOST}:{$PUBLIC_PORT} {
 	import tls-issuer
 	encode gzip
-	# Uploads: no body size limit here; the API validates the file.
-	# WebSocket (Socket.IO) upgrade is handled automatically by reverse_proxy.
-	reverse_proxy api:4006 {
-		flush_interval -1
+	import app-updates
+	handle {
+		# Uploads: no body size limit here; the API validates the file.
+		# WebSocket (Socket.IO) upgrade is handled automatically by reverse_proxy.
+		reverse_proxy api:4006 {
+			flush_interval -1
+		}
 	}
 }

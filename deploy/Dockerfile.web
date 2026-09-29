@@ -8,6 +8,10 @@
 
 # ---------- Frontend build stage ----------
 FROM node:20-bookworm AS build
+# Version stamped into the TV client and published in /updates/latest.json (git sha in CI).
+ARG BUNDLE_VERSION=dev
+ENV VITE_BUNDLE_VERSION=${BUNDLE_VERSION}
+RUN apt-get update && apt-get install -y --no-install-recommends zip && rm -rf /var/lib/apt/lists/*
 WORKDIR /src
 
 COPY screenManager/package*.json ./screenManager/
@@ -21,6 +25,11 @@ RUN cd screenManager && npm run build
 
 COPY screen-tv-client ./screen-tv-client
 RUN cd screen-tv-client && npm run build
+
+# Live-update package for the Android app: zip of the built TV client + manifest.
+RUN mkdir -p /src/updates && cd screen-tv-client/dist && zip -qr /src/updates/tv-${BUNDLE_VERSION}.zip . \
+    && SUM=$(sha256sum /src/updates/tv-${BUNDLE_VERSION}.zip | cut -d' ' -f1) \
+    && printf '{"version":"%s","path":"tv-%s.zip","checksum":"%s"}\n' "${BUNDLE_VERSION}" "${BUNDLE_VERSION}" "${SUM}" > /src/updates/latest.json
 
 # ---------- Caddy build stage ----------
 # Custom Caddy with DNS-challenge modules, so certificates can be issued even when
@@ -44,3 +53,4 @@ RUN cd /etc/caddy/layout && ln -s hosts.caddyfile http.caddyfile && ln -s hosts.
     && ln -s wildcard.caddyfile duckdns-delegated.caddyfile
 COPY --from=build /src/screenManager/dist /srv/panel
 COPY --from=build /src/screen-tv-client/dist /srv/tv
+COPY --from=build /src/updates /srv/updates

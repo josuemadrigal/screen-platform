@@ -113,6 +113,13 @@ Router: translate TCP `PUBLIC_PORT` of the public IP to `PUBLIC_PORT` of this se
 are then reached at `https://DOMAIN:8443`, `https://tv.DOMAIN:8443` and
 `https://api.DOMAIN:8443`; the panel and TVs pick the port up from `/config.js` automatically.
 
+## Android app live updates
+
+Every web image also carries a live-update package for the Android app: `/updates/latest.json`
+and `/updates/tv-<commit>.zip`, served by Caddy on the API host. Installed apps check it on
+start and every 6 hours and switch to the new bundle by themselves, so UI changes need no APK
+reinstall. Only native changes (Capacitor plugins) require a new APK; see `screen-tv-client/BUILD.md`.
+
 ## 3. Updating
 
 Push to `main` (GitHub Actions publishes the new images, ~5 minutes). Then on the server:

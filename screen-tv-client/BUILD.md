@@ -34,9 +34,8 @@ npm install
 
 ## 3. Inicializar Capacitor (solo la primera vez)
 
-> Atajo: los pasos 4 y 5 ya están hechos en `android-config/`. Tras `npx cap add android`,
-> copia `android-config/AndroidManifest.xml` y `android-config/res/drawable/tv_banner.png`
-> sobre los generados (ver `android-config/README.md`).
+> Atajo: los pasos 4, 5 y 6 los aplica `npm run android:setup` tras `npx cap add android`
+> (manifest de TV, banner, SDK 35 y Gradle; ver `android-config/README.md`).
 
 ```bash
 npx cap init "Screen TV" com.screenmanager.tvclient --web-dir dist
@@ -201,3 +200,23 @@ npm run apk
 
 4. Instala en cada TV por USB o con `adb install -r android/app/build/outputs/apk/debug/app-debug.apk`.
    La app conserva el código vinculado y los videos descargados.
+
+---
+
+## Actualizaciones en vivo (sin reinstalar el APK)
+
+La app comprueba al arrancar, y cada 6 horas, `https://api.<dominio>:<puerto>/updates/latest.json`.
+Ese archivo y el paquete `tv-<commit>.zip` los genera `deploy/Dockerfile.web` en cada push a
+`main` (GitHub Actions pasa el commit como `BUNDLE_VERSION`) y los sirve Caddy desde el host del
+API. Si la versión publicada no es la que la app está ejecutando, descarga el paquete y se
+reinicia con él: un par de segundos de pantalla negra, una vez por actualización.
+
+- Cambios en `src/` (interfaz, lógica): solo `git push`. Las TVs se actualizan solas.
+- Cambios nativos (plugins de Capacitor, manifest, versión de Capacitor): hace falta un APK
+  nuevo con `npm run apk`. Al instalarlo, el plugin vuelve al paquete integrado en el APK y
+  sigue actualizándose desde ahí.
+- `npm run apk` sella el commit actual en el APK (`VITE_BUNDLE_VERSION`). Genera el APK desde un
+  commit ya subido; si no, la app verá una versión distinta en el servidor y se "actualizará"
+  a la del servidor en el primer arranque.
+- Implementación: `src/hooks/useLiveUpdate.ts` con el plugin de código abierto
+  `@capgo/capacitor-updater` en modo manual, sin servicios externos.

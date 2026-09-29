@@ -3,6 +3,7 @@ import { api } from '../lib/api'
 import { useScreen } from '../hooks/useScreen'
 import { useSQLiteCache } from '../hooks/useSQLiteCache'
 import { useVideoStore } from '../hooks/useVideoStore'
+import { useLiveUpdate } from '../hooks/useLiveUpdate'
 import { Monitor, Cast, AlertCircle, XCircle, Wifi, WifiOff, Play, Tv2, Download, HardDrive } from 'lucide-react'
 import { cn } from '../lib/utils'
 import { API_URL } from '../lib/config'
@@ -33,6 +34,8 @@ const msUntilNextMidnight = () => {
 
 // ─── Component ────────────────────────────────────────────────────────────────
 export function ClientPage() {
+  // Native app: fetch and apply web bundle updates published by the server.
+  useLiveUpdate()
   const [screenCode, setScreenCode] = useState('')
   const [linkedCode, setLinkedCode] = useState('')
   const [isRegistered, setIsRegistered] = useState(false)

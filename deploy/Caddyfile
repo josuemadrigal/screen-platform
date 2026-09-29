@@ -20,6 +20,17 @@
 # TLS issuance settings for the chosen mode (see deploy/tls/*.caddyfile)
 import /etc/caddy/tls/{$TLS_MODE}.caddyfile
 
+# Live-update packages for the Android app (see deploy/Dockerfile.web, screen-tv-client/src/hooks/useLiveUpdate.ts)
+(app-updates) {
+	handle /updates/* {
+		root * /srv
+		header Cache-Control "no-cache"
+		# The Android app fetches the manifest from its own origin (https://localhost).
+		header Access-Control-Allow-Origin "*"
+		file_server
+	}
+}
+
 (static-spa) {
 	encode gzip zstd
 

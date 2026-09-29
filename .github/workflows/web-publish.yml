@@ -61,3 +61,7 @@ jobs:
           tags: |
             josueahp/screen-web:latest
             josueahp/screen-web:sha-${{ github.sha }}
+          # Stamped into the TV client and published at /updates/latest.json so installed
+          # Android apps pick this build up as a live update.
+          build-args: |
+            BUNDLE_VERSION=${{ github.sha }}

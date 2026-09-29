@@ -15,6 +15,16 @@ const config: CapacitorConfig = {
   // Production builds talk HTTPS and must not set this.
   ...(process.env.CAP_CLEARTEXT ? { server: { cleartext: true } } : {}),
   plugins: {
+    // Live updates are driven by src/hooks/useLiveUpdate.ts against our own server.
+    CapacitorUpdater: {
+      autoUpdate: false,
+      resetWhenUpdate: true,
+      appReadyTimeout: 15000,
+      // No Capgo cloud: our server publishes the bundles, and no usage stats are sent anywhere.
+      updateUrl: '',
+      statsUrl: '',
+      channelUrl: '',
+    },
     CapacitorSQLite: {
       iosDatabaseLocation: 'Library/CapacitorDatabase',
       iosIsEncryption: false,
