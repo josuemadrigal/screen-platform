@@ -17,6 +17,9 @@ interface VideoData {
   dateout?: string | null
 }
 
+// Short git sha stamped at build time (see useLiveUpdate); 'dev' when running locally.
+const BUNDLE_VERSION = (import.meta.env.VITE_BUNDLE_VERSION || 'dev').slice(0, 7)
+
 // ─── Caducidad ────────────────────────────────────────────────────────────────
 // The server drops expired videos from the playlist every night, but the TV only refreshes
 // on reload. Filter locally as well, by the device's date, so expiry also works offline.
@@ -617,6 +620,10 @@ export function ClientPage() {
 
           <p className="text-center text-slate-600 text-xs tracking-widest uppercase">
             Usa el control remoto · Presiona <kbd className="bg-white/10 px-2 py-0.5 rounded">OK</kbd> para continuar
+          </p>
+          {/* Version of the web bundle in use: changes by itself after a live update. */}
+          <p className="text-center text-slate-700 text-[10px] tracking-[0.3em] uppercase">
+            Interfaz {BUNDLE_VERSION}
           </p>
         </div>
       )}
