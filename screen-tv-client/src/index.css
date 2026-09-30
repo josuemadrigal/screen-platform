@@ -24,6 +24,19 @@
     -webkit-user-select: none;
   }
 
+  /* El WebView de Android dibuja un botón ▶ enorme sobre un <video> en pausa o sin datos.
+     Nunca queremos verlo: la app controla la reproducción y muestra su propia capa de espera. */
+  video::-webkit-media-controls,
+  video::-webkit-media-controls-overlay-play-button,
+  video::-webkit-media-controls-start-playback-button,
+  video::-webkit-media-controls-enclosure,
+  video::-webkit-media-controls-panel {
+    display: none !important;
+    -webkit-appearance: none;
+    opacity: 0 !important;
+    pointer-events: none;
+  }
+
   /* Estilos del cursor de foco para control remoto */
   :focus-visible {
     outline: 3px solid #6366f1;

@@ -4,7 +4,7 @@ import { useScreen } from '../hooks/useScreen'
 import { useSQLiteCache } from '../hooks/useSQLiteCache'
 import { useVideoStore } from '../hooks/useVideoStore'
 import { useLiveUpdate } from '../hooks/useLiveUpdate'
-import { Monitor, Cast, AlertCircle, XCircle, Wifi, WifiOff, Play, Tv2, Download, HardDrive } from 'lucide-react'
+import { Monitor, Cast, AlertCircle, XCircle, Wifi, WifiOff, Tv2, Download, HardDrive } from 'lucide-react'
 import { cn } from '../lib/utils'
 import { API_URL } from '../lib/config'
 import { Capacitor } from '@capacitor/core'
@@ -59,6 +59,16 @@ export function ClientPage() {
   const videoRef0 = useRef<HTMLVideoElement>(null)
   const videoRef1 = useRef<HTMLVideoElement>(null)
   const refs = [videoRef0, videoRef1]
+
+  // play() puede ser rechazado por el WebView (política de autoplay, decodificador ocupado).
+  // Reintentar en silencio evita que el elemento quede en pausa mostrando un hueco.
+  const safePlay = useCallback((el: HTMLVideoElement | null | undefined) => {
+    if (!el) return
+    el.play().catch(() => {
+      el.muted = true
+      el.play().catch(() => { })
+    })
+  }, [])
 
   // ─── Refs / Hooks ──────────────────────────────────────────────────────────
   const containerRef = useRef<HTMLDivElement>(null)
@@ -246,15 +256,15 @@ export function ClientPage() {
       const activeRef = refs[activePlayer]
       if (activeRef.current) {
         activeRef.current.currentTime = 0
-        activeRef.current.play()
+        safePlay(activeRef.current)
       }
       return
     }
     const nextPlayer = (activePlayer + 1) % 2
     setActivePlayer(nextPlayer)
     setCurrentIndex(nextIndex)
-    setTimeout(() => refs[nextPlayer].current?.play(), 10)
-  }, [videoList, activePlayer, nextIndex])
+    setTimeout(() => safePlay(refs[nextPlayer].current), 10)
+  }, [videoList, activePlayer, nextIndex, safePlay])
 
   // ─── Soporte Control Remoto / D-pad ───────────────────────────────────────
   useEffect(() => {
@@ -487,6 +497,12 @@ export function ClientPage() {
           ? 'fixed inset-0 z-100'
           : 'relative w-full max-w-3xl aspect-video rounded-[32px] border-4 border-white/5 z-0'
       )}>
+        {/* Capa de espera: se ve cuando el video activo aún no tiene imagen (carga, cambio, error). */}
+        <div className="absolute inset-0 z-0 flex flex-col items-center justify-center gap-6 bg-[#020617]">
+          <img src="/icon-512.png" alt="" className="w-40 h-40 rounded-[28px] opacity-90 drop-shadow-2xl" draggable={false} />
+          <span className="text-2xl font-black tracking-[0.35em] text-white/40 uppercase">Screen TV</span>
+        </div>
+
         {videoList.length > 0 ? (
           <>
             <video
@@ -494,7 +510,7 @@ export function ClientPage() {
               src={srcs[0]}
               className={cn(
                 'absolute inset-0 w-full h-full object-cover transition-opacity duration-700',
-                activePlayer === 0 ? 'opacity-100 z-10' : 'opacity-0 z-0'
+                activePlayer === 0 ? 'opacity-100 z-10' : 'opacity-0 -z-10'
               )}
               autoPlay={activePlayer === 0 && isPlaying}
               muted={activePlayer !== 0 || !hasInteracted}
@@ -508,7 +524,7 @@ export function ClientPage() {
               src={srcs[1]}
               className={cn(
                 'absolute inset-0 w-full h-full object-cover transition-opacity duration-700',
-                activePlayer === 1 ? 'opacity-100 z-10' : 'opacity-0 z-0'
+                activePlayer === 1 ? 'opacity-100 z-10' : 'opacity-0 -z-10'
               )}
               autoPlay={activePlayer === 1 && isPlaying}
               muted={activePlayer !== 1 || !hasInteracted}
@@ -519,9 +535,9 @@ export function ClientPage() {
             />
           </>
         ) : (
-          <div className="absolute inset-0 flex flex-col items-center justify-center text-slate-700 bg-[#020617]">
-            <Play size={96} className="opacity-10 mb-6" />
-            <span className="text-sm font-black uppercase tracking-[0.4em] text-slate-600">Esperando Contenido</span>
+          <div className="absolute inset-0 z-10 flex flex-col items-center justify-center bg-[#020617]/95">
+            <img src="/icon-512.png" alt="" className="w-40 h-40 rounded-[28px] opacity-90 mb-6" draggable={false} />
+            <span className="text-sm font-black uppercase tracking-[0.4em] text-slate-500">Esperando contenido</span>
           </div>
         )}
 
