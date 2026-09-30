@@ -23,11 +23,15 @@ VERSION_JSON=$(mktemp)
 printf '{"version":"%s","code":%s,"size":%s,"commit":"%s","publishedAt":"%s","file":"screentv.apk"}\n' \
   "$NAME" "$CODE" "$SIZE" "$COMMIT" "$DATE" > "$VERSION_JSON"
 
-echo "Publishing APK $NAME (code $CODE, $((SIZE/1024/1024)) MB) to $SCREEN_SERVER:$DIR"
-ssh -p "$PORT" "$SCREEN_SERVER" "mkdir -p '$DIR'"
-scp -P "$PORT" "$APK" "$SCREEN_SERVER:$DIR/screentv.apk.tmp"
-scp -P "$PORT" "$VERSION_JSON" "$SCREEN_SERVER:$DIR/version.json"
+# One SSH connection shared by every step, so the password is asked only once.
+CTRL=$(mktemp -d)/ctl
+SSH_OPTS=(-o ControlMaster=auto -o "ControlPath=$CTRL" -o ControlPersist=120)
+trap 'ssh -O exit -o "ControlPath=$CTRL" "$SCREEN_SERVER" 2>/dev/null; rm -f "$VERSION_JSON"' EXIT
+
+echo "Publishing APK $NAME (code $CODE, $(awk "BEGIN{printf \"%.1f\", $SIZE/1048576}") MB) to $SCREEN_SERVER:$DIR"
+ssh "${SSH_OPTS[@]}" -p "$PORT" "$SCREEN_SERVER" "mkdir -p '$DIR'"
+scp "${SSH_OPTS[@]}" -P "$PORT" "$APK" "$SCREEN_SERVER:$DIR/screentv.apk.tmp"
+scp "${SSH_OPTS[@]}" -P "$PORT" "$VERSION_JSON" "$SCREEN_SERVER:$DIR/version.json"
 # Atomic swap so a TV downloading right now never gets a half-written file.
-ssh -p "$PORT" "$SCREEN_SERVER" "mv '$DIR/screentv.apk.tmp' '$DIR/screentv.apk'"
-rm -f "$VERSION_JSON"
+ssh "${SSH_OPTS[@]}" -p "$PORT" "$SCREEN_SERVER" "mv '$DIR/screentv.apk.tmp' '$DIR/screentv.apk'"
 echo "Done. Download: https://<panel-host>/apk"
