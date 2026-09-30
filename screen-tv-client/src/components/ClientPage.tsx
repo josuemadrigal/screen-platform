@@ -87,7 +87,22 @@ export function ClientPage() {
   const servidor = API_URL
 
   const currentVideo = videoList[currentIndex]
-  const nextIndex = videoList.length > 0 ? (currentIndex + 1) % videoList.length : 0
+  // Siguiente video a reproducir. En la app, mientras haya descargas pendientes, la rotación
+  // se limita a los videos ya guardados en disco: al terminar uno no se espera por otro que
+  // aún se está descargando, se sigue con el siguiente disponible. Con todos descargados (o
+  // ninguno todavía) se respeta el orden de la playlist. store.version re-evalúa esto.
+  const nextIndex = (() => {
+    const n = videoList.length
+    if (n === 0) return 0
+    const locals = videoList.map((v) => store.isLocal(v.path))
+    const restrictToLocal = store.isNative && locals.some(Boolean) && !locals.every(Boolean)
+    for (let k = 1; k <= n; k++) {
+      const i = (currentIndex + k) % n
+      if (!restrictToLocal || locals[i]) return i
+    }
+    return (currentIndex + 1) % n
+  })()
+  void store.version
 
   // Source of each player slot. Resolved when the slot is assigned a video (local file if
   // already downloaded, API otherwise) and kept until the slot changes, so a finished
@@ -585,10 +600,9 @@ export function ClientPage() {
             <video
               ref={videoRef0}
               src={srcs[0]}
-              className={cn(
-                'absolute inset-0 w-full h-full object-cover transition-opacity duration-700',
-                activePlayer === 0 ? 'opacity-100 z-10' : 'opacity-0 -z-10'
-              )}
+              // Sin fundido: el saliente queda debajo con su último fotograma hasta que el
+              // entrante pinta, así nunca se ve la capa de espera entre videos.
+              className={cn('absolute inset-0 w-full h-full object-cover', activePlayer === 0 ? 'z-10' : 'z-[1]')}
               autoPlay={activePlayer === 0 && isPlaying}
               muted={activePlayer !== 0 || !hasInteracted}
               onEnded={() => activePlayer === 0 && handleNext()}
@@ -600,10 +614,7 @@ export function ClientPage() {
             <video
               ref={videoRef1}
               src={srcs[1]}
-              className={cn(
-                'absolute inset-0 w-full h-full object-cover transition-opacity duration-700',
-                activePlayer === 1 ? 'opacity-100 z-10' : 'opacity-0 -z-10'
-              )}
+              className={cn('absolute inset-0 w-full h-full object-cover', activePlayer === 1 ? 'z-10' : 'z-[1]')}
               autoPlay={activePlayer === 1 && isPlaying}
               muted={activePlayer !== 1 || !hasInteracted}
               onEnded={() => activePlayer === 1 && handleNext()}
