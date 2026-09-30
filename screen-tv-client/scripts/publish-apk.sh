@@ -28,7 +28,8 @@ CTRL=$(mktemp -d)/ctl
 SSH_OPTS=(-o ControlMaster=auto -o "ControlPath=$CTRL" -o ControlPersist=120)
 trap 'ssh -O exit -o "ControlPath=$CTRL" "$SCREEN_SERVER" 2>/dev/null; rm -f "$VERSION_JSON"' EXIT
 
-echo "Publishing APK $NAME (code $CODE, $(awk "BEGIN{printf \"%.1f\", $SIZE/1048576}") MB) to $SCREEN_SERVER:$DIR"
+MB=$(awk -v s="$SIZE" 'BEGIN { printf "%.1f", s / 1048576 }')
+echo "Publishing APK $NAME (code $CODE, $MB MB) to $SCREEN_SERVER:$DIR"
 ssh "${SSH_OPTS[@]}" -p "$PORT" "$SCREEN_SERVER" "mkdir -p '$DIR'"
 scp "${SSH_OPTS[@]}" -P "$PORT" "$APK" "$SCREEN_SERVER:$DIR/screentv.apk.tmp"
 scp "${SSH_OPTS[@]}" -P "$PORT" "$VERSION_JSON" "$SCREEN_SERVER:$DIR/version.json"
