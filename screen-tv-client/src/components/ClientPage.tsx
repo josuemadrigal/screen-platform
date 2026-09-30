@@ -479,25 +479,32 @@ export function ClientPage() {
     }
   }, [isPlaying, activePlayer])
 
+  // La capa de espera (logo) solo se muestra ante un fallo real: el video activo lleva más de
+  // 2 s sin datos. Nunca durante el cambio normal entre videos, que en Android tarda unas
+  // décimas en pintar el primer fotograma.
+  const [standby, setStandby] = useState(false)
   const stalledSince = useRef<number | null>(null)
   useEffect(() => {
     if (!isRegistered || videoList.length === 0) return
     const tick = setInterval(() => {
       const el = refs[activePlayer].current
       if (!el || !isPlaying || document.visibilityState !== 'visible') return
-      if (el.readyState >= 2) {
+      if (el.readyState >= 2 && !el.error) {
         stalledSince.current = null
+        setStandby(false)
         if (el.paused && !el.ended) el.play().catch(() => { })
         return
       }
-      // No data for this source: give it 20 s, then move on so the screen never freezes.
       stalledSince.current ??= Date.now()
-      if (Date.now() - stalledSince.current > 20000) {
+      const stalledFor = Date.now() - stalledSince.current
+      if (stalledFor > 2000) setStandby(true)
+      // No data for this source: give it 20 s, then move on so the screen never freezes.
+      if (stalledFor > 20000) {
         console.warn('[TV] Video sin datos durante 20 s, saltando al siguiente')
         stalledSince.current = null
         handleNext()
       }
-    }, 3000)
+    }, 1000)
     return () => clearInterval(tick)
   }, [isRegistered, videoList.length, activePlayer, isPlaying, handleNext])
 
@@ -589,8 +596,8 @@ export function ClientPage() {
           ? 'fixed inset-0 z-100'
           : 'relative w-full max-w-3xl aspect-video rounded-[32px] border-4 border-white/5 z-0'
       )}>
-        {/* Capa de espera: se ve cuando el video activo aún no tiene imagen (carga, cambio, error). */}
-        <div className="absolute inset-0 z-0 flex flex-col items-center justify-center gap-6 bg-[#020617]">
+        {/* Capa de espera: solo ante un fallo real (ver `standby`), nunca en el cambio entre videos. */}
+        <div className={cn('absolute inset-0 z-0 flex-col items-center justify-center gap-6 bg-[#020617]', standby ? 'flex' : 'hidden')}>
           <img src="/icon-512.png" alt="" className="w-40 h-40 rounded-[28px] opacity-90 drop-shadow-2xl" draggable={false} />
           <span className="text-2xl font-black tracking-[0.35em] text-white/40 uppercase">Screen TV</span>
         </div>
@@ -606,6 +613,7 @@ export function ClientPage() {
               autoPlay={activePlayer === 0 && isPlaying}
               muted={activePlayer !== 0 || !hasInteracted}
               onEnded={() => activePlayer === 0 && handleNext()}
+              onPlaying={() => activePlayer === 0 && setStandby(false)}
               onError={() => handleVideoError(0)}
               preload="auto"
               poster={TRANSPARENT_POSTER}
@@ -618,6 +626,7 @@ export function ClientPage() {
               autoPlay={activePlayer === 1 && isPlaying}
               muted={activePlayer !== 1 || !hasInteracted}
               onEnded={() => activePlayer === 1 && handleNext()}
+              onPlaying={() => activePlayer === 1 && setStandby(false)}
               onError={() => handleVideoError(1)}
               preload="auto"
               poster={TRANSPARENT_POSTER}
