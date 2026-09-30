@@ -7,6 +7,7 @@ import { useLiveUpdate } from '../hooks/useLiveUpdate'
 import { Monitor, Cast, AlertCircle, XCircle, Wifi, WifiOff, Play, Tv2, Download, HardDrive } from 'lucide-react'
 import { cn } from '../lib/utils'
 import { API_URL } from '../lib/config'
+import { Capacitor } from '@capacitor/core'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 interface VideoData {
@@ -125,6 +126,16 @@ export function ClientPage() {
       return false
     }
   }, [cache, store, servidor])
+
+  // En el navegador (no en la app) ofrecemos descargar el APK si el servidor lo publica.
+  const [apkVersion, setApkVersion] = useState<string | null>(null)
+  useEffect(() => {
+    if (Capacitor.isNativePlatform()) return
+    fetch('/apk/version.json', { cache: 'no-store' })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((info) => setApkVersion(info?.version ?? null))
+      .catch(() => {})
+  }, [])
 
   // ─── Inicialización: leer código guardado ──────────────────────────────────
   useEffect(() => {
@@ -617,6 +628,16 @@ export function ClientPage() {
               )}
             </div>
           </form>
+
+          {apkVersion && (
+            <a
+              href="/apk"
+              className="flex items-center justify-center gap-2 text-sm text-slate-400 hover:text-white transition-colors"
+            >
+              <Download size={16} />
+              Descargar la app para Android TV (v{apkVersion})
+            </a>
+          )}
 
           <p className="text-center text-slate-600 text-xs tracking-widest uppercase">
             Usa el control remoto · Presiona <kbd className="bg-white/10 px-2 py-0.5 rounded">OK</kbd> para pantalla completa

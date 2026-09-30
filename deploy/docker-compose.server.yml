@@ -86,6 +86,8 @@ services:
       # Certificates and Caddy state; keep them so certificates are not re-issued on every restart.
       - caddy_data:/data
       - caddy_config:/config
+      # APK published with `npm run apk:publish` (screen-tv-client); served at /apk/screentv.apk
+      - ./apk:/srv/apk:ro
     depends_on:
       - api
 

@@ -208,6 +208,18 @@ npm run apk
 
 ---
 
+## Publicar el APK para descargarlo desde la web
+
+```bash
+npm run apk
+SCREEN_SERVER=root@servidor SCREEN_SSH_PORT=3013 npm run apk:publish
+```
+
+El APK queda en `https://<panel>/apk` (sin login; también `/screentv.apk` y en el host de la TV).
+El panel muestra el botón "Descargar APK" en Ajustes y en Pantallas, y la web de la TV ofrece
+la descarga en la pantalla del código. `SCREEN_STACK_DIR` cambia la carpeta del servidor
+(por defecto `/opt/screen-platform`, el APK va en `apk/`).
+
 ## Actualizaciones en vivo (sin reinstalar el APK)
 
 La app comprueba al arrancar, y cada 6 horas, `https://api.<dominio>:<puerto>/updates/latest.json`.

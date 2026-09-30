@@ -3,12 +3,14 @@
 {$PANEL_HOST}:{$PUBLIC_PORT} {
 	import tls-issuer
 	root * /srv/panel
+	import apk-download
 	import static-spa
 }
 
 {$TV_HOST}:{$PUBLIC_PORT} {
 	import tls-issuer
 	root * /srv/tv
+	import apk-download
 	import static-spa
 }
 
@@ -16,6 +18,7 @@
 	import tls-issuer
 	encode gzip
 	import app-updates
+	import apk-download
 	handle {
 		# Uploads: no body size limit here; the API validates the file.
 		# WebSocket (Socket.IO) upgrade is handled automatically by reverse_proxy.

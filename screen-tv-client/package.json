@@ -11,6 +11,7 @@
     "cap:open": "npx cap open android",
     "cap:run": "npm run build && npx cap sync android && npx cap run android",
     "apk": "VITE_BUNDLE_VERSION=$(git rev-parse HEAD) npm run build && npx cap sync android && node scripts/bump-version.mjs && cd android && ANDROID_HOME=${ANDROID_HOME:-$HOME/Library/Android/sdk} ./gradlew assembleRelease -q && echo \"APK: android/app/build/outputs/apk/release/app-release.apk\"",
+    "apk:publish": "bash scripts/publish-apk.sh",
     "android:setup": "node scripts/setup-android.mjs"
   },
   "dependencies": {

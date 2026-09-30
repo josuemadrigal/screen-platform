@@ -149,6 +149,19 @@ The APK is the one artifact that still needs the API URL at build time. In
 then follow `screen-tv-client/BUILD.md`. Because the API is served over HTTPS, no cleartext
 exception is needed.
 
+**Publishing the APK for download.** The web container mounts `./apk` (next to the compose
+file) and Caddy serves it, without login, at `https://PANEL_HOST/apk` (also on the TV and API
+hosts, and as `/screentv.apk`). From your computer:
+
+```bash
+cd screen-tv-client && npm run apk
+SCREEN_SERVER=root@host SCREEN_SSH_PORT=3013 npm run apk:publish
+```
+
+`apk:publish` copies `screentv.apk` plus a `version.json` (version, size, date) that the panel
+reads to show the "Descargar APK" button (Ajustes and Pantallas) and that the TV web page uses
+to offer the download on its code screen. Nothing else to restart.
+
 ## Alternatives
 
 - **Build on the server instead of pulling images**: clone the repository on the server and use

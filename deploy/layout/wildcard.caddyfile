@@ -9,12 +9,14 @@
 	@panel host {$PANEL_HOST}
 	handle @panel {
 		root * /srv/panel
+		import apk-download
 		import static-spa
 	}
 
 	@tv host {$TV_HOST}
 	handle @tv {
 		root * /srv/tv
+		import apk-download
 		import static-spa
 	}
 
@@ -22,6 +24,7 @@
 	handle @api {
 		encode gzip
 		import app-updates
+		import apk-download
 		handle {
 			reverse_proxy api:4006 {
 				flush_interval -1

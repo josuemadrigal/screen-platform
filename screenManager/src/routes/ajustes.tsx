@@ -6,6 +6,7 @@ import { cn } from '../lib/utils'
 import { API_URL } from '../lib/config'
 import { useAuthStore } from '../store/authStore'
 import { useChangePassword, apiError } from '../services/userService'
+import { ApkDownloadCard } from '../components/ApkDownloadCard'
 
 export const Route = createFileRoute('/ajustes')({
   component: SettingsPage,
@@ -99,6 +100,8 @@ function SettingsPage() {
               </button>
             </div>
           </form>
+
+          <ApkDownloadCard />
 
           <div className="glass p-8 rounded-[32px] space-y-8">
             <div className="space-y-6">

@@ -31,6 +31,23 @@ import /etc/caddy/tls/{$TLS_MODE}.caddyfile
 	}
 }
 
+# Android APK published by the operator (deploy/README.md "Android TV app"): /apk/screentv.apk
+# and /apk/version.json, read from the ./apk folder mounted at /srv/apk. Short URLs: /apk and
+# /screentv.apk. Served on the panel, TV and API hosts, no login needed.
+(apk-download) {
+	redir /apk /apk/screentv.apk
+	redir /screentv.apk /apk/screentv.apk
+	handle /apk/* {
+		root * /srv
+		header Cache-Control "no-cache"
+		header Access-Control-Allow-Origin "*"
+		@apk path *.apk
+		header @apk Content-Type "application/vnd.android.package-archive"
+		header @apk Content-Disposition "attachment"
+		file_server
+	}
+}
+
 (static-spa) {
 	encode gzip zstd
 
@@ -38,7 +55,7 @@ import /etc/caddy/tls/{$TLS_MODE}.caddyfile
 	handle /config.js {
 		header Content-Type "application/javascript"
 		header Cache-Control "no-cache"
-		respond "window.__APP_CONFIG__ = { apiUrl: 'https://{$API_HOST}{$PUBLIC_URL_SUFFIX}', socketUrl: 'https://{$API_HOST}{$PUBLIC_URL_SUFFIX}' };" 200
+		respond "window.__APP_CONFIG__ = { apiUrl: 'https://{$API_HOST}{$PUBLIC_URL_SUFFIX}', socketUrl: 'https://{$API_HOST}{$PUBLIC_URL_SUFFIX}', tvUrl: 'https://{$TV_HOST}{$PUBLIC_URL_SUFFIX}' };" 200
 	}
 
 	handle {

@@ -27,3 +27,5 @@ scratch/
 # Production deploy secrets and media
 deploy/.env
 deploy/storage/
+deploy/apk/
+*.apk

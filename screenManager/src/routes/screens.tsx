@@ -1,6 +1,8 @@
 import { createFileRoute, Link } from '@tanstack/react-router'
 import { useScreens, useDeleteScreen } from '../services/screenService'
-import { Monitor, Trash2, Edit3, Plus, MapPin } from 'lucide-react'
+import { Monitor, Trash2, Edit3, Plus, MapPin, Download } from 'lucide-react'
+import { APK_URL } from '../lib/config'
+import { useApkInfo } from '../components/ApkDownloadCard'
 import { cn } from '../lib/utils'
 
 export const Route = createFileRoute('/screens')({
@@ -10,6 +12,7 @@ export const Route = createFileRoute('/screens')({
 function ScreensPage() {
   const { data: screens, isLoading } = useScreens()
   const deleteScreen = useDeleteScreen()
+  const { data: apk } = useApkInfo()
 
   return (
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
@@ -18,13 +21,26 @@ function ScreensPage() {
           <h1 className="text-4xl font-bold tracking-tight text-white/90">Pantallas</h1>
           <p className="text-slate-500 mt-2 font-medium">Gestiona y configura tus monitores remotos.</p>
         </div>
-        <Link 
-          to="/screen-add"
-          className="flex items-center gap-2 px-6 py-3 rounded-2xl bg-primary hover:bg-primary/90 text-white font-bold transition-all shadow-xl shadow-primary/20 active:scale-95"
-        >
-          <Plus size={20} />
-          Añadir Pantalla
-        </Link>
+        <div className="flex gap-3">
+          {apk && (
+            <a
+              href={APK_URL}
+              download="screentv.apk"
+              title={`Aplicación Android TV v${apk.version}`}
+              className="flex items-center gap-2 px-5 py-3 rounded-2xl bg-white/5 hover:bg-white/10 text-slate-200 font-bold transition-all"
+            >
+              <Download size={20} />
+              APK v{apk.version}
+            </a>
+          )}
+          <Link 
+            to="/screen-add"
+            className="flex items-center gap-2 px-6 py-3 rounded-2xl bg-primary hover:bg-primary/90 text-white font-bold transition-all shadow-xl shadow-primary/20 active:scale-95"
+          >
+            <Plus size={20} />
+            Añadir Pantalla
+          </Link>
+        </div>
       </header>
 
       {isLoading ? (
