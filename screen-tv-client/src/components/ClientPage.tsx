@@ -60,6 +60,11 @@ export function ClientPage() {
   const videoRef1 = useRef<HTMLVideoElement>(null)
   const refs = [videoRef0, videoRef1]
 
+  // Android WebView pinta su propio "poster" (un ▶ enorme sobre blanco) en cualquier <video>
+  // sin atributo poster que no esté reproduciendo. Un poster transparente lo anula y deja ver
+  // la capa de espera con el logo.
+  const TRANSPARENT_POSTER = 'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2216%22 height=%229%22/%3E'
+
   // play() puede ser rechazado por el WebView (política de autoplay, decodificador ocupado).
   // Reintentar en silencio evita que el elemento quede en pausa mostrando un hueco.
   const safePlay = useCallback((el: HTMLVideoElement | null | undefined) => {
@@ -517,6 +522,7 @@ export function ClientPage() {
               onEnded={() => activePlayer === 0 && handleNext()}
               onError={() => handleVideoError(0)}
               preload="auto"
+              poster={TRANSPARENT_POSTER}
               playsInline
             />
             <video
@@ -531,6 +537,7 @@ export function ClientPage() {
               onEnded={() => activePlayer === 1 && handleNext()}
               onError={() => handleVideoError(1)}
               preload="auto"
+              poster={TRANSPARENT_POSTER}
               playsInline
             />
           </>
