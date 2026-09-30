@@ -193,7 +193,11 @@ export function ClientPage() {
   }, [videoList.length, currentIndex])
 
   // ─── Fullscreen helpers ────────────────────────────────────────────────────
+  // "isFullscreen" es el modo reproducción de la app, no el estado del navegador. La API
+  // Fullscreen solo funciona tras una pulsación del usuario, así que después de una recarga
+  // (comando del panel, actualización en vivo) Android la rechaza; el modo debe entrar igual.
   const enterFullscreen = useCallback(async () => {
+    setIsFullscreen(true)
     try {
       const elem = document.documentElement as any
       if (!document.fullscreenElement && !elem.webkitFullscreenElement) {
@@ -201,12 +205,13 @@ export function ClientPage() {
         else if (elem.webkitRequestFullscreen) await elem.webkitRequestFullscreen()
       }
     } catch (err) {
-      console.warn('[TV] Fullscreen no disponible:', err)
+      console.warn('[TV] Fullscreen del navegador no disponible (se sigue en modo reproducción):', err)
     }
   }, [])
 
   useEffect(() => {
     const handleFSChange = () => {
+      // Entrar por la API confirma el modo; salir (Back en Android) lo abandona.
       setIsFullscreen(!!(document.fullscreenElement || (document as any).webkitFullscreenElement))
     }
     document.addEventListener('fullscreenchange', handleFSChange)
@@ -219,19 +224,20 @@ export function ClientPage() {
 
   const toggleFullscreen = useCallback(async () => {
     setHasInteracted(true)
+    if (!isFullscreen) {
+      await enterFullscreen()
+      return
+    }
+    setIsFullscreen(false)
     try {
-      const elem = document.documentElement as any
-      if (!document.fullscreenElement && !elem.webkitFullscreenElement) {
-        if (elem.requestFullscreen) await elem.requestFullscreen()
-        else if (elem.webkitRequestFullscreen) await elem.webkitRequestFullscreen()
-      } else {
+      if (document.fullscreenElement || (document as any).webkitFullscreenElement) {
         if (document.exitFullscreen) await document.exitFullscreen()
         else if ((document as any).webkitExitFullscreen) await (document as any).webkitExitFullscreen()
       }
     } catch (err) {
       console.warn('[TV] Fullscreen error:', err)
     }
-  }, [])
+  }, [isFullscreen, enterFullscreen])
 
   // ─── Formulario de vinculación ─────────────────────────────────────────────
   const handleFormSubmit = async (e: React.FormEvent) => {
@@ -358,7 +364,14 @@ export function ClientPage() {
           }
           break
         case 'reload-screen':
-          window.location.reload()
+          // Recargar la playlist sin reiniciar la página: la TV sigue en modo reproducción.
+          fetchScreenData(linkedCode).then((ok) => {
+            if (!ok) return
+            setCurrentIndex(0)
+            setActivePlayer(0)
+            setIsPlaying(true)
+            setTimeout(() => safePlay(refs[0].current), 50)
+          })
           break
         case 'toggle-fullscreen':
           toggleFullscreen()
@@ -387,7 +400,7 @@ export function ClientPage() {
     return () => {
       socket.off('control-screen')
     }
-  }, [socket, videoList, activePlayer, handleNext, toggleFullscreen])
+  }, [socket, videoList, activePlayer, handleNext, toggleFullscreen, fetchScreenData, linkedCode, safePlay])
 
   // ─── Reanudar reproducción ────────────────────────────────────────────────
   // Android pauses the video when the app goes to the background or the screen turns off,
@@ -542,7 +555,7 @@ export function ClientPage() {
             />
           </>
         ) : (
-          <div className="absolute inset-0 z-10 flex flex-col items-center justify-center bg-[#020617]/95">
+          <div className="absolute inset-0 z-10 flex flex-col items-center justify-center bg-[#020617]">
             <img src="/icon-512.png" alt="" className="w-40 h-40 rounded-[28px] opacity-90 mb-6" draggable={false} />
             <span className="text-sm font-black uppercase tracking-[0.4em] text-slate-500">Esperando contenido</span>
           </div>
