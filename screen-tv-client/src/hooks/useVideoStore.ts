@@ -31,7 +31,8 @@ export function useVideoStore() {
   const [progress, setProgress] = useState<DownloadProgress | null>(null)
   // fileName -> URL the WebView can play (capacitor://localhost/_capacitor_file_/...)
   const localRef = useRef<Record<string, string>>({})
-  const [, bump] = useState(0)
+  // Changes every time the local index changes, so players can re-resolve their sources.
+  const [version, bump] = useState(0)
   const syncing = useRef(false)
 
   const listLocal = useCallback(async () => {
@@ -86,17 +87,23 @@ export function useVideoStore() {
       try {
         const wanted = new Map(videos.map((v) => [fileNameOf(v.path), v.path]))
         const onDisk = await listLocal()
-
-        for (const f of onDisk) {
-          if (!wanted.has(f.name)) {
-            await Filesystem.deleteFile({ path: `${DIR}/${f.name}`, directory: Directory.Data }).catch(() => {})
-            delete localRef.current[f.name]
-          }
-        }
-
         const have = new Set(onDisk.map((f) => f.name))
         const missing = [...wanted.entries()].filter(([name]) => !have.has(name))
-        if (missing.length === 0) return
+
+        // Files no longer in the playlist are removed only after the new ones are on disk, so a
+        // player that is still on an old file is never cut off before it has somewhere to go.
+        const removeUnwanted = async () => {
+          for (const f of onDisk) {
+            if (!wanted.has(f.name)) {
+              await Filesystem.deleteFile({ path: `${DIR}/${f.name}`, directory: Directory.Data }).catch(() => {})
+              delete localRef.current[f.name]
+            }
+          }
+        }
+        if (missing.length === 0) {
+          await removeUnwanted()
+          return
+        }
 
         let done = 0
         setProgress({ done, total: missing.length, current: missing[0][0] })
@@ -123,6 +130,7 @@ export function useVideoStore() {
           done += 1
           setProgress({ done, total: missing.length, current: missing[done]?.[0] })
         }
+        await removeUnwanted()
       } catch (err) {
         console.warn('[TV] Error sincronizando videos locales:', err)
       } finally {
@@ -153,7 +161,7 @@ export function useVideoStore() {
 
   // Stable object: consumers can list it in effect dependencies without re-running every render.
   return useMemo(
-    () => ({ isNative, isReady, progress, sync, resolveSrc, isLocal, discard }),
-    [isNative, isReady, progress, sync, resolveSrc, isLocal, discard],
+    () => ({ isNative, isReady, progress, version, sync, resolveSrc, isLocal, discard }),
+    [isNative, isReady, progress, version, sync, resolveSrc, isLocal, discard],
   )
 }

@@ -8,6 +8,7 @@ import { Monitor, Cast, AlertCircle, XCircle, Wifi, WifiOff, Tv2, Download, Hard
 import { cn } from '../lib/utils'
 import { API_URL } from '../lib/config'
 import { Capacitor } from '@capacitor/core'
+import { App as CapApp } from '@capacitor/app'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 interface VideoData {
@@ -103,9 +104,19 @@ export function ClientPage() {
       v0 ? store.resolveSrc(v0.path, servidor) : '',
       v1 ? store.resolveSrc(v1.path, servidor) : '',
     ]
-    // Only update when something actually changed, so React does not re-render in a loop.
-    setSrcs((prev) => (prev[0] === next[0] && prev[1] === next[1] ? prev : next))
-  }, [videoList, currentIndex, activePlayer, nextIndex, store.resolveSrc, servidor])
+    setSrcs((prev) => {
+      // Once a local copy lands (store.version), the inactive player switches to it right away.
+      // The active one keeps streaming what it is playing, unless that source has failed.
+      const keepActive = (slot: 0 | 1) => {
+        const el = refs[slot].current
+        const same = prev[slot] && prev[slot].endsWith(next[slot].split('/').pop() || '\0')
+        return slot === activePlayer && same && prev[slot] !== next[slot] && el && !el.error
+      }
+      const out: [string, string] = [keepActive(0) ? prev[0] : next[0], keepActive(1) ? prev[1] : next[1]]
+      // Only update when something actually changed, so React does not re-render in a loop.
+      return prev[0] === out[0] && prev[1] === out[1] ? prev : out
+    })
+  }, [videoList, currentIndex, activePlayer, nextIndex, store.resolveSrc, store.version, servidor])
 
   // ─── Fetch desde API + cache offline ──────────────────────────────────────
   const fetchScreenData = useCallback(async (code: string): Promise<boolean> => {
@@ -196,8 +207,42 @@ export function ClientPage() {
   // "isFullscreen" es el modo reproducción de la app, no el estado del navegador. La API
   // Fullscreen solo funciona tras una pulsación del usuario, así que después de una recarga
   // (comando del panel, actualización en vivo) Android la rechaza; el modo debe entrar igual.
+  const historyPushed = useRef(false)
+  const leavePlayback = () => {
+    setIsFullscreen(false)
+    if (historyPushed.current) {
+      historyPushed.current = false
+      window.history.back()
+    }
+    if (document.fullscreenElement || (document as any).webkitFullscreenElement) {
+      const exit = document.exitFullscreen?.bind(document) ?? (document as any).webkitExitFullscreen?.bind(document)
+      exit?.().catch?.(() => { })
+    }
+  }
+
+  // Botón Atrás en la app Android: Capacitor no lo gestiona sin el plugin App (la actividad se
+  // cierra). Con el plugin: en modo reproducción vuelve a la pantalla del código; en la pantalla
+  // del código cierra la app. APKs antiguos sin el plugin siguen con el comportamiento anterior.
+  const isFullscreenRef = useRef(false)
+  isFullscreenRef.current = isFullscreen
+  useEffect(() => {
+    if (!Capacitor.isNativePlatform() || !Capacitor.isPluginAvailable('App')) return
+    const sub = CapApp.addListener('backButton', () => {
+      if (isFullscreenRef.current) leavePlayback()
+      else CapApp.exitApp()
+    })
+    return () => { sub.then((h) => h.remove()) }
+  }, [])
+
+  // Botón Atrás del control: Android cierra la app si el WebView no tiene historial. Al entrar en
+  // modo reproducción se añade una entrada; Atrás la saca (popstate) y volvemos a la pantalla del
+  // código en lugar de salir de la app.
   const enterFullscreen = useCallback(async () => {
     setIsFullscreen(true)
+    if (!historyPushed.current) {
+      historyPushed.current = true
+      window.history.pushState({ tvPlayback: true }, '')
+    }
     try {
       const elem = document.documentElement as any
       if (!document.fullscreenElement && !elem.webkitFullscreenElement) {
@@ -211,14 +256,22 @@ export function ClientPage() {
 
   useEffect(() => {
     const handleFSChange = () => {
-      // Entrar por la API confirma el modo; salir (Back en Android) lo abandona.
-      setIsFullscreen(!!(document.fullscreenElement || (document as any).webkitFullscreenElement))
+      // Salir de la pantalla completa del navegador (Escape) abandona el modo reproducción.
+      const active = !!(document.fullscreenElement || (document as any).webkitFullscreenElement)
+      if (!active) leavePlayback()
+    }
+    const handlePopState = () => {
+      // Atrás en el control (o en el navegador): salir del modo reproducción.
+      historyPushed.current = false
+      setIsFullscreen(false)
     }
     document.addEventListener('fullscreenchange', handleFSChange)
     document.addEventListener('webkitfullscreenchange', handleFSChange)
+    window.addEventListener('popstate', handlePopState)
     return () => {
       document.removeEventListener('fullscreenchange', handleFSChange)
       document.removeEventListener('webkitfullscreenchange', handleFSChange)
+      window.removeEventListener('popstate', handlePopState)
     }
   }, [])
 
@@ -228,15 +281,7 @@ export function ClientPage() {
       await enterFullscreen()
       return
     }
-    setIsFullscreen(false)
-    try {
-      if (document.fullscreenElement || (document as any).webkitFullscreenElement) {
-        if (document.exitFullscreen) await document.exitFullscreen()
-        else if ((document as any).webkitExitFullscreen) await (document as any).webkitExitFullscreen()
-      }
-    } catch (err) {
-      console.warn('[TV] Fullscreen error:', err)
-    }
+    leavePlayback()
   }, [isFullscreen, enterFullscreen])
 
   // ─── Formulario de vinculación ─────────────────────────────────────────────
@@ -442,6 +487,7 @@ export function ClientPage() {
   }, [isRegistered, videoList.length, activePlayer, isPlaying, handleNext])
 
   // A source that fails to load: if it was the local copy, drop it and fall back to the API.
+  const retried = useRef<Record<string, number>>({})
   const handleVideoError = useCallback((slot: 0 | 1) => {
     const video = videoList[slot === activePlayer ? currentIndex : nextIndex]
     const el = refs[slot].current
@@ -455,8 +501,21 @@ export function ClientPage() {
       })
       return
     }
+    // Streaming source failed (network blip, playlist just changed...). Retry it once after a
+    // moment; a local copy may also have landed meanwhile and take over via store.version.
+    const key = el?.currentSrc || ''
+    const attempts = (retried.current[key] || 0) + 1
+    retried.current[key] = attempts
+    if (attempts <= 1 && el) {
+      setTimeout(() => {
+        if (!el.error) return
+        el.load()
+        if (slot === activePlayer) safePlay(el)
+      }, 2000)
+      return
+    }
     if (slot === activePlayer) setTimeout(() => handleNext(), 3000)
-  }, [videoList, activePlayer, currentIndex, nextIndex, store, servidor, handleNext])
+  }, [videoList, activePlayer, currentIndex, nextIndex, store, servidor, handleNext, safePlay])
 
   // ─── Screenshot periódico ──────────────────────────────────────────────────
   const takeScreenshot = () => {

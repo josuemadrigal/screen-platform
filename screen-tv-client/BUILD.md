@@ -230,7 +230,9 @@ reinicia con él: un par de segundos de pantalla negra, una vez por actualizaci�
 
 - Cambios en `src/` (interfaz, lógica): solo `git push`. Las TVs se actualizan solas.
 - Cambios nativos (plugins de Capacitor, manifest, versión de Capacitor): hace falta un APK
-  nuevo con `npm run apk`. Al instalarlo, el plugin vuelve al paquete integrado en el APK y
+  nuevo con `npm run apk`. Plugins actuales: Filesystem, Preferences, App (botón Atrás del
+  control: sale del modo reproducción en vez de cerrar la app; APKs anteriores a la 1.6 no lo
+  tienen) y capacitor-updater. Al instalarlo, el plugin vuelve al paquete integrado en el APK y
   sigue actualizándose desde ahí.
 - `npm run apk` sella el commit actual en el APK (`VITE_BUNDLE_VERSION`). Genera el APK desde un
   commit ya subido; si no, la app verá una versión distinta en el servidor y se "actualizará"
