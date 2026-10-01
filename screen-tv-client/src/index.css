@@ -39,7 +39,7 @@
 
   /* Estilos del cursor de foco para control remoto */
   :focus-visible {
-    outline: 3px solid #6366f1;
+    outline: 3px solid #d01f27;
     outline-offset: 2px;
     border-radius: 8px;
   }

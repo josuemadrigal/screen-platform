@@ -102,6 +102,12 @@ export function ClientPage() {
   const servidor = API_URL
 
   const currentVideo = videoList[currentIndex]
+  // En la app (Android TV) se usa UN solo reproductor. Con dos elementos <video>, el segundo
+  // retiene el decodificador de hardware y el activo se queda sin arrancar: el reporte típico
+  // es readyState 1 con varios segundos en buffer y networkState IDLE. En el navegador sí se
+  // usan dos para el cambio sin corte.
+  const singlePlayer = store.isNative
+
   // Siguiente video a reproducir. En la app, mientras haya descargas pendientes, la rotación
   // se limita a los videos ya guardados en disco: al terminar uno no se espera por otro que
   // aún se está descargando, se sigue con el siguiente disponible. Con todos descargados (o
@@ -128,8 +134,8 @@ export function ClientPage() {
       setSrcs(['', ''])
       return
     }
-    const v0 = videoList[activePlayer === 0 ? currentIndex : nextIndex]
-    const v1 = videoList[activePlayer === 1 ? currentIndex : nextIndex]
+    const v0 = videoList[singlePlayer || activePlayer === 0 ? currentIndex : nextIndex]
+    const v1 = singlePlayer ? undefined : videoList[activePlayer === 1 ? currentIndex : nextIndex]
     const next: [string, string] = [
       v0 ? store.resolveSrc(v0.path, servidor) : '',
       v1 ? store.resolveSrc(v1.path, servidor) : '',
@@ -347,11 +353,17 @@ export function ClientPage() {
       }
       return
     }
+    if (singlePlayer) {
+      // Mismo elemento: cambia la fuente y arranca. El corte es de unas décimas, sin segundo decodificador.
+      setCurrentIndex(nextIndex)
+      setTimeout(() => safePlay(refs[0].current), 10)
+      return
+    }
     const nextPlayer = (activePlayer + 1) % 2
     setActivePlayer(nextPlayer)
     setCurrentIndex(nextIndex)
     setTimeout(() => safePlay(refs[nextPlayer].current), 10)
-  }, [videoList, activePlayer, nextIndex, safePlay])
+  }, [videoList, activePlayer, nextIndex, safePlay, singlePlayer])
 
   // ─── Soporte Control Remoto / D-pad ───────────────────────────────────────
   useEffect(() => {
@@ -603,12 +615,12 @@ export function ClientPage() {
       <div className="min-h-screen bg-[#000000] flex items-center justify-center">
         <div className="flex flex-col items-center gap-6">
           <div className="relative">
-            <Tv2 size={72} className="text-indigo-400 animate-pulse" />
+            <Tv2 size={72} className="text-red-400 animate-pulse" />
           </div>
           <div className="flex gap-2">
-            <span className="size-2 rounded-full bg-indigo-400 animate-bounce [animation-delay:0ms]" />
-            <span className="size-2 rounded-full bg-indigo-400 animate-bounce [animation-delay:150ms]" />
-            <span className="size-2 rounded-full bg-indigo-400 animate-bounce [animation-delay:300ms]" />
+            <span className="size-2 rounded-full bg-red-500 animate-bounce [animation-delay:0ms]" />
+            <span className="size-2 rounded-full bg-red-500 animate-bounce [animation-delay:150ms]" />
+            <span className="size-2 rounded-full bg-red-500 animate-bounce [animation-delay:300ms]" />
           </div>
           <p className="text-slate-500 text-sm tracking-widest uppercase">Iniciando Screen TV…</p>
         </div>
@@ -638,7 +650,7 @@ export function ClientPage() {
         <div className={cn('absolute inset-0 z-0 flex-col items-center justify-center gap-6 bg-[#000000]', standby ? 'flex' : 'hidden')}>
           <img src="/icon-512.png" alt="2B Screen" className="w-36 h-36 rounded-[28px] drop-shadow-2xl animate-[breathe_2.4s_ease-in-out_infinite]" draggable={false} />
           <div className="flex items-center gap-3 text-white/70">
-            <span className="size-5 rounded-full border-2 border-white/20 border-t-indigo-400 animate-spin" />
+            <span className="size-5 rounded-full border-2 border-white/20 border-t-red-500 animate-spin" />
             <span className="text-xl font-bold tracking-[0.2em] uppercase">
               {store.progress
                 ? `Descargando videos ${Math.min(store.progress.done + 1, store.progress.total)}/${store.progress.total}`
@@ -655,31 +667,33 @@ export function ClientPage() {
               src={srcs[0]}
               // Sin fundido: el saliente queda debajo con su último fotograma hasta que el
               // entrante pinta, así nunca se ve la capa de espera entre videos.
-              className={cn('absolute inset-0 w-full h-full object-cover', activePlayer === 0 ? 'z-10' : 'z-[1]')}
+              className={cn('absolute inset-0 w-full h-full object-cover', activePlayer === 0 ? 'z-10' : 'z-[1]', standby && activePlayer === 0 && 'invisible')}
               autoPlay={activePlayer === 0 && isPlaying}
               muted={activePlayer !== 0 || !hasInteracted || screenMuted}
               onEnded={() => activePlayer === 0 && handleNext()}
               onPlaying={() => activePlayer === 0 && setStandby(false)}
               onTimeUpdate={() => activePlayer === 0 && store.isNative && warmNext()}
               onError={() => handleVideoError(0)}
-              preload={store.isNative && activePlayer !== 0 ? 'metadata' : 'auto'}
+              preload="auto"
               poster={TRANSPARENT_POSTER}
               playsInline
             />
+            {!singlePlayer && (
             <video
               ref={videoRef1}
               src={srcs[1]}
-              className={cn('absolute inset-0 w-full h-full object-cover', activePlayer === 1 ? 'z-10' : 'z-[1]')}
+              className={cn('absolute inset-0 w-full h-full object-cover', activePlayer === 1 ? 'z-10' : 'z-[1]', standby && activePlayer === 1 && 'invisible')}
               autoPlay={activePlayer === 1 && isPlaying}
               muted={activePlayer !== 1 || !hasInteracted || screenMuted}
               onEnded={() => activePlayer === 1 && handleNext()}
               onPlaying={() => activePlayer === 1 && setStandby(false)}
               onTimeUpdate={() => activePlayer === 1 && store.isNative && warmNext()}
               onError={() => handleVideoError(1)}
-              preload={store.isNative && activePlayer !== 1 ? 'metadata' : 'auto'}
+              preload="auto"
               poster={TRANSPARENT_POSTER}
               playsInline
             />
+            )}
           </>
         ) : (
           <div className="absolute inset-0 z-10 flex flex-col items-center justify-center bg-[#000000]">
@@ -708,7 +722,7 @@ export function ClientPage() {
             </div>
             {/* Descarga de videos al dispositivo (solo app nativa) */}
             {store.progress && (
-              <div className="bg-black/60 backdrop-blur-md px-4 py-2 rounded-full border border-indigo-500/30 text-indigo-300 flex items-center gap-2 shadow-xl text-[10px] font-black uppercase tracking-widest">
+              <div className="bg-black/60 backdrop-blur-md px-4 py-2 rounded-full border border-red-500/30 text-red-300 flex items-center gap-2 shadow-xl text-[10px] font-black uppercase tracking-widest">
                 <Download size={10} className="animate-bounce" />
                 Descargando {Math.min(store.progress.done + 1, store.progress.total)}/{store.progress.total}
               </div>
