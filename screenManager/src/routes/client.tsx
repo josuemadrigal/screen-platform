@@ -186,8 +186,8 @@ function ClientPage() {
       ref={containerRef}
       onClick={() => setHasInteracted(true)}
       className={cn(
-        'min-h-screen bg-[#020617] text-white font-inter relative overflow-hidden flex items-center justify-center',
-        !isFullscreen && 'flex-col lg:flex-row gap-8 lg:gap-14 px-6 py-8'
+        'min-h-screen bg-[#000000] text-white font-inter relative overflow-hidden flex items-center justify-center',
+        !isFullscreen && 'flex-col md:flex-row gap-8 md:gap-10 lg:gap-14 px-6 py-8'
       )}
     >
       
@@ -196,7 +196,7 @@ function ClientPage() {
         "transition-all duration-700 ease-in-out bg-black overflow-hidden shadow-2xl",
         isFullscreen 
           ? "fixed inset-0 z-[100]" 
-          : "relative w-full max-w-3xl lg:max-w-none lg:flex-1 lg:basis-0 aspect-video rounded-[32px] border-4 border-white/5 z-0"
+          : "relative w-full max-w-3xl md:max-w-none md:flex-1 md:basis-0 aspect-video rounded-[32px] border-4 border-white/5 z-0"
       )}>
         {videoList.length > 0 ? (
           <>
@@ -223,7 +223,7 @@ function ClientPage() {
             />
           </>
         ) : (
-          <div className="absolute inset-0 flex flex-col items-center justify-center bg-[#020617]">
+          <div className="absolute inset-0 flex flex-col items-center justify-center bg-[#000000]">
             <img src="/apple-touch-icon.png" alt="2B Screen" className="w-28 h-28 rounded-[24px] mb-4" draggable={false} />
             <span className="text-xs font-black uppercase tracking-[0.3em] text-slate-500">Esperando contenido</span>
           </div>
@@ -244,7 +244,7 @@ function ClientPage() {
 
       {/* FORMULARIO DE CONFIGURACIÓN (Solo se ve si no es Fullscreen) */}
       {!isFullscreen && (
-        <div className="z-10 w-full max-w-xl lg:max-w-none lg:flex-1 lg:basis-0 lg:px-6 xl:px-16 space-y-6 animate-in fade-in slide-in-from-bottom-8 duration-700">
+        <div className="z-10 w-full max-w-xl md:max-w-none md:flex-1 md:basis-0 md:px-4 lg:px-6 xl:px-16 space-y-6 animate-in fade-in slide-in-from-bottom-8 duration-700">
           <div className="text-center space-y-3">
             <div className="inline-flex p-4 rounded-3xl bg-white mb-1 shadow-2xl">
               <img src="/logo.png" alt="2B Screen" className="h-16 w-auto object-contain" draggable={false} />
@@ -254,7 +254,7 @@ function ClientPage() {
           </div>
           
           <form onSubmit={handleFormSubmit} className="space-y-4">
-            <input type="text" value={screenCode} onChange={(e) => setScreenCode(e.target.value.toUpperCase())} placeholder="CÓDIGO DE PANTALLA" className="w-full bg-white/5 border-2 border-white/10 rounded-3xl py-6 px-8 text-2xl font-black tracking-[0.2em] text-center text-white placeholder:text-white/20 focus:outline-none focus:border-primary transition-all shadow-2xl" />
+            <input type="text" value={screenCode} onChange={(e) => setScreenCode(e.target.value.toUpperCase())} placeholder="CÓDIGO DE PANTALLA" className="w-full bg-white/5 border-2 border-white/10 rounded-3xl py-6 px-6 text-xl lg:text-2xl font-black tracking-[0.15em] lg:tracking-[0.2em] text-center text-white placeholder:text-white/20 focus:outline-none focus:border-primary transition-all shadow-2xl" />
             {error && <div className="text-red-400 bg-red-400/10 p-4 rounded-2xl border border-red-400/20 text-sm flex items-center gap-2"><AlertCircle size={18} />{error}</div>}
             <div className="flex gap-3">
               <button type="submit" className="flex-1 bg-primary hover:bg-primary/90 text-white font-black py-5 rounded-3xl flex items-center justify-center gap-3 transition-all active:scale-95 shadow-xl uppercase tracking-widest text-lg"><Cast size={24} /> {isRegistered ? "Pantalla Completa" : "Vincular"}</button>

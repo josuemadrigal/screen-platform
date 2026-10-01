@@ -2,7 +2,7 @@ import { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
   appId: 'com.screenmanager.tvclient',
-  appName: 'Screen TV',
+  appName: '2B Screen',
   webDir: 'dist',
   android: {
     // Only for CAP_CLEARTEXT test builds (local HTTP API); production is HTTPS end to end.

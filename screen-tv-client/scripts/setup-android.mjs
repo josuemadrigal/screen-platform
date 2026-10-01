@@ -1,5 +1,5 @@
 // Re-applies our Android customizations after `npx cap add android` regenerates the folder:
-//  - Android TV manifest (leanback launcher, banner, optional touchscreen) + banner image
+//  - Android TV manifest (leanback launcher, banner, optional touchscreen) + banner, icons, splash, app name
 //  - MainActivity that serves downloaded videos with proper HTTP range support
 //  - compileSdk/targetSdk 35 and a newer Android Gradle Plugin (required by @capgo/capacitor-updater)
 // Usage: npm run android:setup
@@ -18,6 +18,9 @@ if (!existsSync(android)) {
 copyFileSync(join(root, 'android-config/AndroidManifest.xml'), join(android, 'app/src/main/AndroidManifest.xml'))
 // Every resource under android-config/res (TV banner, launcher icons in all densities)
 cpSync(join(root, 'android-config/res'), join(android, 'app/src/main/res'), { recursive: true })
+
+// App name shown in the launcher
+copyFileSync(join(root, 'android-config/values/strings.xml'), join(android, 'app/src/main/res/values/strings.xml'))
 
 // MainActivity with HTTP range support for the downloaded videos (large files froze otherwise)
 copyFileSync(join(root, 'android-config/MainActivity.java'), join(android, 'app/src/main/java/com/screenmanager/tvclient/MainActivity.java'))

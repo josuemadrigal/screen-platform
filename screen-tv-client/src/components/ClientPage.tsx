@@ -68,6 +68,19 @@ export function ClientPage() {
   // la capa de espera con el logo.
   const TRANSPARENT_POSTER = 'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2216%22 height=%229%22/%3E'
 
+  // En la TV, dos videos descodificando a la vez (el activo y el siguiente precargando) pueden
+  // trabar al activo. El inactivo solo carga metadatos y se "calienta" 5 s antes del cambio.
+  const warmedRef = useRef<string>('')
+  const warmNext = useCallback(() => {
+    const active = refs[activePlayer].current
+    const next = refs[(activePlayer + 1) % 2].current
+    if (!active || !next || !next.src || !Number.isFinite(active.duration)) return
+    if (active.duration - active.currentTime > 5 || warmedRef.current === next.src) return
+    warmedRef.current = next.src
+    next.preload = 'auto'
+    next.load()
+  }, [activePlayer])
+
   // play() puede ser rechazado por el WebView (política de autoplay, decodificador ocupado).
   // Reintentar en silencio evita que el elemento quede en pausa mostrando un hueco.
   const safePlay = useCallback((el: HTMLVideoElement | null | undefined) => {
@@ -481,6 +494,7 @@ export function ClientPage() {
   // décimas en pintar el primer fotograma.
   const [standby, setStandby] = useState(false)
   const stalledSince = useRef<number | null>(null)
+  const stallReported = useRef(false)
   useEffect(() => {
     if (!isRegistered || videoList.length === 0) return
     const tick = setInterval(() => {
@@ -488,6 +502,7 @@ export function ClientPage() {
       if (!el || !isPlaying || document.visibilityState !== 'visible') return
       if (el.readyState >= 2 && !el.error) {
         stalledSince.current = null
+        stallReported.current = false
         setStandby(false)
         if (el.paused && !el.ended) el.play().catch(() => { })
         return
@@ -495,6 +510,27 @@ export function ClientPage() {
       stalledSince.current ??= Date.now()
       const stalledFor = Date.now() - stalledSince.current
       if (stalledFor > 2000) setStandby(true)
+      // Report the stall once to the server so it shows up in the API logs with the details
+      // needed to diagnose it (source, buffer, decoder state) without touching the TV.
+      if (stalledFor > 2000 && !stallReported.current) {
+        stallReported.current = true
+        const ranges: string[] = []
+        for (let i = 0; i < el.buffered.length; i++) ranges.push(`${el.buffered.start(i).toFixed(1)}-${el.buffered.end(i).toFixed(1)}`)
+        socket?.emit('update-screen-status', {
+          stall: {
+            src: el.currentSrc.split('/').pop(),
+            local: el.currentSrc.includes('_capacitor_file_'),
+            readyState: el.readyState,
+            networkState: el.networkState,
+            error: el.error?.code ?? null,
+            currentTime: Number(el.currentTime.toFixed(1)),
+            duration: Number.isFinite(el.duration) ? Number(el.duration.toFixed(1)) : null,
+            buffered: ranges.join(','),
+            paused: el.paused,
+            bundle: BUNDLE_VERSION,
+          },
+        })
+      }
       // No data for this source: give it 20 s, then move on so the screen never freezes.
       if (stalledFor > 20000) {
         console.warn('[TV] Video sin datos durante 20 s, saltando al siguiente')
@@ -564,7 +600,7 @@ export function ClientPage() {
   // ─── Render ───────────────────────────────────────────────────────────────
   if (loadingInit) {
     return (
-      <div className="min-h-screen bg-[#020617] flex items-center justify-center">
+      <div className="min-h-screen bg-[#000000] flex items-center justify-center">
         <div className="flex flex-col items-center gap-6">
           <div className="relative">
             <Tv2 size={72} className="text-indigo-400 animate-pulse" />
@@ -585,10 +621,10 @@ export function ClientPage() {
       ref={containerRef}
       onClick={() => setHasInteracted(true)}
       className={cn(
-        'min-h-screen bg-[#020617] text-white font-sans relative overflow-hidden flex items-center justify-center',
+        'min-h-screen bg-[#000000] text-white font-sans relative overflow-hidden flex items-center justify-center',
         // Fuera de pantalla completa: vista previa a la izquierda y formulario a la derecha en
         // pantallas anchas (TV, escritorio); apilados en pantallas estrechas.
-        !isFullscreen && 'flex-col lg:flex-row gap-8 lg:gap-14 px-6 py-8'
+        !isFullscreen && 'flex-col md:flex-row gap-8 md:gap-10 lg:gap-14 px-6 py-8'
       )}
     >
       {/* ── CAPA DE VIDEO (doble buffer, nunca se destruye) ── */}
@@ -596,10 +632,10 @@ export function ClientPage() {
         'transition-all duration-700 ease-in-out bg-black overflow-hidden shadow-2xl',
         isFullscreen
           ? 'fixed inset-0 z-100'
-          : 'relative w-full max-w-3xl lg:max-w-none lg:flex-1 lg:basis-0 aspect-video rounded-[32px] border-4 border-white/5 z-0'
+          : 'relative w-full max-w-3xl md:max-w-none md:flex-1 md:basis-0 aspect-video rounded-[32px] border-4 border-white/5 z-0'
       )}>
         {/* Capa de espera: solo ante un fallo real (ver `standby`), nunca en el cambio entre videos. */}
-        <div className={cn('absolute inset-0 z-0 flex-col items-center justify-center gap-6 bg-[#020617]', standby ? 'flex' : 'hidden')}>
+        <div className={cn('absolute inset-0 z-0 flex-col items-center justify-center gap-6 bg-[#000000]', standby ? 'flex' : 'hidden')}>
           <img src="/icon-512.png" alt="2B Screen" className="w-36 h-36 rounded-[28px] drop-shadow-2xl animate-[breathe_2.4s_ease-in-out_infinite]" draggable={false} />
           <div className="flex items-center gap-3 text-white/70">
             <span className="size-5 rounded-full border-2 border-white/20 border-t-indigo-400 animate-spin" />
@@ -624,8 +660,9 @@ export function ClientPage() {
               muted={activePlayer !== 0 || !hasInteracted || screenMuted}
               onEnded={() => activePlayer === 0 && handleNext()}
               onPlaying={() => activePlayer === 0 && setStandby(false)}
+              onTimeUpdate={() => activePlayer === 0 && store.isNative && warmNext()}
               onError={() => handleVideoError(0)}
-              preload="auto"
+              preload={store.isNative && activePlayer !== 0 ? 'metadata' : 'auto'}
               poster={TRANSPARENT_POSTER}
               playsInline
             />
@@ -637,14 +674,15 @@ export function ClientPage() {
               muted={activePlayer !== 1 || !hasInteracted || screenMuted}
               onEnded={() => activePlayer === 1 && handleNext()}
               onPlaying={() => activePlayer === 1 && setStandby(false)}
+              onTimeUpdate={() => activePlayer === 1 && store.isNative && warmNext()}
               onError={() => handleVideoError(1)}
-              preload="auto"
+              preload={store.isNative && activePlayer !== 1 ? 'metadata' : 'auto'}
               poster={TRANSPARENT_POSTER}
               playsInline
             />
           </>
         ) : (
-          <div className="absolute inset-0 z-10 flex flex-col items-center justify-center bg-[#020617]">
+          <div className="absolute inset-0 z-10 flex flex-col items-center justify-center bg-[#000000]">
             <img src="/icon-512.png" alt="2B Screen" className="w-40 h-40 rounded-[28px] mb-6" draggable={false} />
             <span className="text-sm font-black uppercase tracking-[0.4em] text-slate-500">Esperando contenido</span>
           </div>
@@ -694,7 +732,7 @@ export function ClientPage() {
 
       {/* ── FORMULARIO (solo visible fuera de fullscreen) ── */}
       {!isFullscreen && (
-        <div className="z-10 w-full max-w-xl lg:max-w-none lg:flex-1 lg:basis-0 lg:px-6 xl:px-16 space-y-6 animate-[fadeSlideUp_0.6s_ease_forwards]">
+        <div className="z-10 w-full max-w-xl md:max-w-none md:flex-1 md:basis-0 md:px-4 lg:px-6 xl:px-16 space-y-6 animate-[fadeSlideUp_0.6s_ease_forwards]">
           <div className="text-center space-y-3">
             <div className="inline-flex p-4 rounded-3xl bg-white mb-1 shadow-2xl">
               <img src="/logo.png" alt="2B Screen" className="h-16 w-auto object-contain" draggable={false} />
@@ -717,8 +755,8 @@ export function ClientPage() {
               onChange={(e) => setScreenCode(e.target.value.toUpperCase())}
               placeholder="CÓDIGO DE PANTALLA"
               autoComplete="off"
-              className="w-full bg-white/5 border-2 border-white/10 rounded-3xl py-6 px-8
-                         text-2xl font-black tracking-[0.25em] text-center
+              className="w-full bg-white/5 border-2 border-white/10 rounded-3xl py-6 px-6
+                         text-xl lg:text-2xl font-black tracking-[0.15em] lg:tracking-[0.25em] text-center
                          focus:outline-none focus:border-red-500 transition-all
                          shadow-2xl placeholder:text-white/20"
             />
