@@ -38,9 +38,9 @@ function VideosPage() {
         <div className="space-y-2">
           <div className="flex items-center gap-3 text-primary">
             <Film size={24} />
-            <h1 className="text-4xl font-bold tracking-tight text-white/90">Videos</h1>
+            <h1 className="text-4xl font-bold tracking-tight text-slate-900">Videos</h1>
           </div>
-          <p className="text-slate-400 text-lg">Biblioteca de contenidos multimedia.</p>
+          <p className="text-slate-600 text-lg">Biblioteca de contenidos multimedia.</p>
         </div>
         
         <div className="flex items-center gap-4">
@@ -51,7 +51,7 @@ function VideosPage() {
                value={search}
                onChange={(e) => setSearch(e.target.value)}
                placeholder="Buscar videos..."
-               className="w-full pl-12 pr-4 py-3 bg-white/5 border border-white/10 rounded-2xl focus:ring-2 focus:ring-primary/50 focus:border-primary outline-none transition-all text-sm"
+               className="w-full pl-12 pr-4 py-3 bg-slate-900/5 border border-slate-900/10 rounded-2xl focus:ring-2 focus:ring-primary/50 focus:border-primary outline-none transition-all text-sm"
              />
           </div>
           <button 
@@ -77,10 +77,10 @@ function VideosPage() {
           ))}
           {filteredVideos.length === 0 && (
             <div className="col-span-full py-20 text-center space-y-4">
-              <div className="bg-white/5 size-20 rounded-full flex items-center justify-center mx-auto text-slate-500">
+              <div className="bg-slate-900/5 size-20 rounded-full flex items-center justify-center mx-auto text-slate-500">
                 <Film size={40} />
               </div>
-              <p className="text-slate-400 text-lg">No se encontraron videos.</p>
+              <p className="text-slate-600 text-lg">No se encontraron videos.</p>
             </div>
           )}
         </div>

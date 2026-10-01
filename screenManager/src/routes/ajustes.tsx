@@ -25,13 +25,13 @@ function SettingsPage() {
     try {
       await changePassword.mutateAsync({ id: me.id, currentPassword: pw.currentPassword, newPassword: pw.newPassword })
       setPw({ currentPassword: '', newPassword: '', confirm: '' })
-      Swal.fire({ icon: 'success', title: 'Contraseña actualizada', timer: 1400, showConfirmButton: false, background: '#0f172a', color: '#f8fafc' })
+      Swal.fire({ icon: 'success', title: 'Contraseña actualizada', timer: 1400, showConfirmButton: false, background: '#ffffff', color: '#0f172a' })
     } catch (error) {
       Swal.fire('Error', apiError(error, 'No se pudo cambiar la contraseña'), 'error')
     }
   }
 
-  const pwInput = 'w-full px-6 py-4 rounded-2xl bg-white/5 border border-white/10 focus:ring-2 focus:ring-primary/50 focus:border-primary outline-none transition-all'
+  const pwInput = 'w-full px-6 py-4 rounded-2xl bg-slate-900/5 border border-slate-900/10 focus:ring-2 focus:ring-primary/50 focus:border-primary outline-none transition-all'
 
   const sections = [
     { id: 'general', name: 'General', icon: Globe, description: 'Idioma, zona horaria y moneda.' },
@@ -46,9 +46,9 @@ function SettingsPage() {
       <header className="space-y-2">
         <div className="flex items-center gap-3 text-primary">
           <Settings size={24} />
-          <h1 className="text-4xl font-bold tracking-tight text-white/90">Ajustes</h1>
+          <h1 className="text-4xl font-bold tracking-tight text-slate-900">Ajustes</h1>
         </div>
-        <p className="text-slate-400 text-lg">Configura el comportamiento global de tu sistema de señalización.</p>
+        <p className="text-slate-600 text-lg">Configura el comportamiento global de tu sistema de señalización.</p>
       </header>
 
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
@@ -60,7 +60,7 @@ function SettingsPage() {
                 "w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all text-left",
                 section.id === 'general' 
                   ? "bg-primary/10 text-primary font-bold shadow-lg shadow-primary/5" 
-                  : "text-slate-400 hover:bg-white/5 hover:text-white"
+                  : "text-slate-600 hover:bg-slate-900/5 hover:text-slate-900"
               )}
             >
               <section.icon size={18} />
@@ -72,11 +72,11 @@ function SettingsPage() {
         <div className="lg:col-span-3 space-y-8">
           <form onSubmit={submitPassword} className="glass p-8 rounded-[32px] space-y-6">
             <h3 className="text-xl font-bold flex items-center gap-2">
-              <KeyRound size={20} className="text-amber-400" />
+              <KeyRound size={20} className="text-amber-600" />
               Mi cuenta · cambiar contraseña
             </h3>
-            <p className="text-sm text-slate-400">
-              Sesión iniciada como <span className="text-white font-bold">{me?.name}</span>
+            <p className="text-sm text-slate-600">
+              Sesión iniciada como <span className="text-slate-900 font-bold">{me?.name}</span>
               {me?.role && <span className="ml-2 uppercase tracking-widest text-[10px] text-primary">{me.role.name}</span>}
             </p>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -117,7 +117,7 @@ function SettingsPage() {
                      type="text" 
                      value={API_URL}
                      readOnly
-                     className="w-full px-6 py-4 rounded-2xl bg-white/5 border border-white/10 text-slate-400 font-mono text-sm cursor-not-allowed"
+                     className="w-full px-6 py-4 rounded-2xl bg-slate-900/5 border border-slate-900/10 text-slate-600 font-mono text-sm cursor-not-allowed"
                    />
                  </div>
                  <div className="space-y-2">
@@ -126,14 +126,14 @@ function SettingsPage() {
                      type="text" 
                      value={(() => { try { return new URL(API_URL).port || (API_URL.startsWith('https') ? '443' : '80') } catch { return '' } })()}
                      readOnly
-                     className="w-full px-6 py-4 rounded-2xl bg-white/5 border border-white/10 text-slate-400 font-mono text-sm cursor-not-allowed"
+                     className="w-full px-6 py-4 rounded-2xl bg-slate-900/5 border border-slate-900/10 text-slate-600 font-mono text-sm cursor-not-allowed"
                    />
                  </div>
                </div>
             </div>
 
-            <div className="space-y-6 pt-8 border-t border-white/5">
-               <h3 className="text-xl font-bold flex items-center gap-2 text-red-400">
+            <div className="space-y-6 pt-8 border-t border-slate-900/5">
+               <h3 className="text-xl font-bold flex items-center gap-2 text-red-600">
                  <Lock size={20} />
                  Zona de Peligro
                </h3>

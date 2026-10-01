@@ -64,8 +64,8 @@ function UserAddPage() {
           <UserPlus size={32} />
         </div>
         <div>
-          <h1 className="text-4xl font-bold tracking-tight text-white/90">Nuevo Usuario</h1>
-          <p className="text-slate-400 mt-1">Otorga acceso al panel de administración.</p>
+          <h1 className="text-4xl font-bold tracking-tight text-slate-900">Nuevo Usuario</h1>
+          <p className="text-slate-600 mt-1">Otorga acceso al panel de administración.</p>
         </div>
       </header>
 
@@ -74,7 +74,7 @@ function UserAddPage() {
           <div className="glass p-8 rounded-3xl space-y-6">
             <div className="space-y-4">
               <div className="space-y-2">
-                <label className="text-sm font-medium text-slate-400 ml-1 flex items-center gap-2">
+                <label className="text-sm font-medium text-slate-600 ml-1 flex items-center gap-2">
                   <User size={14} /> Nombre Completo
                 </label>
                 <input 
@@ -82,13 +82,13 @@ function UserAddPage() {
                   value={formData.name}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                   placeholder="Ej. Juan Pérez"
-                  className="w-full px-6 py-4 rounded-2xl bg-white/5 border border-white/10 focus:ring-2 focus:ring-primary/50 focus:border-primary outline-none transition-all"
+                  className="w-full px-6 py-4 rounded-2xl bg-slate-900/5 border border-slate-900/10 focus:ring-2 focus:ring-primary/50 focus:border-primary outline-none transition-all"
                   required
                 />
               </div>
 
               <div className="space-y-2">
-                <label className="text-sm font-medium text-slate-400 ml-1 flex items-center gap-2">
+                <label className="text-sm font-medium text-slate-600 ml-1 flex items-center gap-2">
                   <User size={14} /> Nombre de Usuario
                 </label>
                 <input
@@ -96,13 +96,13 @@ function UserAddPage() {
                   value={formData.user}
                   onChange={(e) => setFormData({ ...formData, user: e.target.value.toLowerCase().replace(/\s/g, '') })}
                   placeholder="Ej. jperez"
-                  className="w-full px-6 py-4 rounded-2xl bg-white/5 border border-white/10 focus:ring-2 focus:ring-primary/50 focus:border-primary outline-none transition-all font-mono"
+                  className="w-full px-6 py-4 rounded-2xl bg-slate-900/5 border border-slate-900/10 focus:ring-2 focus:ring-primary/50 focus:border-primary outline-none transition-all font-mono"
                   required
                 />
               </div>
 
               <div className="space-y-2">
-                <label className="text-sm font-medium text-slate-400 ml-1 flex items-center gap-2">
+                <label className="text-sm font-medium text-slate-600 ml-1 flex items-center gap-2">
                   <Mail size={14} /> Correo Electrónico
                 </label>
                 <input 
@@ -110,19 +110,19 @@ function UserAddPage() {
                   value={formData.email}
                   onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                   placeholder="ejemplo@correo.com"
-                  className="w-full px-6 py-4 rounded-2xl bg-white/5 border border-white/10 focus:ring-2 focus:ring-primary/50 focus:border-primary outline-none transition-all"
+                  className="w-full px-6 py-4 rounded-2xl bg-slate-900/5 border border-slate-900/10 focus:ring-2 focus:ring-primary/50 focus:border-primary outline-none transition-all"
                   required
                 />
               </div>
 
               <div className="space-y-2">
-                <label className="text-sm font-medium text-slate-400 ml-1 flex items-center gap-2">
+                <label className="text-sm font-medium text-slate-600 ml-1 flex items-center gap-2">
                   <ShieldCheck size={14} /> Rol
                 </label>
                 <select
                   value={formData.roleId}
                   onChange={(e) => setFormData({ ...formData, roleId: e.target.value })}
-                  className="w-full px-6 py-4 rounded-2xl bg-white/5 border border-white/10 focus:ring-2 focus:ring-primary/50 focus:border-primary outline-none transition-all appearance-none"
+                  className="w-full px-6 py-4 rounded-2xl bg-slate-900/5 border border-slate-900/10 focus:ring-2 focus:ring-primary/50 focus:border-primary outline-none transition-all appearance-none"
                 >
                   <option value="">Por defecto (viewer, solo lectura)</option>
                   {roles.map((r) => (
@@ -138,7 +138,7 @@ function UserAddPage() {
           <div className="glass p-8 rounded-3xl space-y-6">
             <div className="space-y-4">
               <div className="space-y-2">
-                <label className="text-sm font-medium text-slate-400 ml-1 flex items-center gap-2">
+                <label className="text-sm font-medium text-slate-600 ml-1 flex items-center gap-2">
                   <Lock size={14} /> Contraseña
                 </label>
                 <div className="relative">
@@ -146,13 +146,13 @@ function UserAddPage() {
                     type={showPassword ? "text" : "password"}
                     value={formData.password}
                     onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                    className="w-full px-6 py-4 rounded-2xl bg-white/5 border border-white/10 focus:ring-2 focus:ring-primary/50 focus:border-primary outline-none transition-all pr-14"
+                    className="w-full px-6 py-4 rounded-2xl bg-slate-900/5 border border-slate-900/10 focus:ring-2 focus:ring-primary/50 focus:border-primary outline-none transition-all pr-14"
                     required
                   />
                   <button 
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-6 top-1/2 -translate-y-1/2 text-slate-500 hover:text-white transition-colors"
+                    className="absolute right-6 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-900 transition-colors"
                   >
                     {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
                   </button>
@@ -160,14 +160,14 @@ function UserAddPage() {
               </div>
 
               <div className="space-y-2">
-                <label className="text-sm font-medium text-slate-400 ml-1 flex items-center gap-2">
+                <label className="text-sm font-medium text-slate-600 ml-1 flex items-center gap-2">
                   <ShieldCheck size={14} /> Confirmar Contraseña
                 </label>
                 <input 
                   type="password" 
                   value={formData.password2}
                   onChange={(e) => setFormData({ ...formData, password2: e.target.value })}
-                  className="w-full px-6 py-4 rounded-2xl bg-white/5 border border-white/10 focus:ring-2 focus:ring-primary/50 focus:border-primary outline-none transition-all"
+                  className="w-full px-6 py-4 rounded-2xl bg-slate-900/5 border border-slate-900/10 focus:ring-2 focus:ring-primary/50 focus:border-primary outline-none transition-all"
                   required
                 />
               </div>
@@ -179,7 +179,7 @@ function UserAddPage() {
               className={cn(
                 "w-full py-4 rounded-2xl font-bold text-lg transition-all shadow-xl active:scale-[0.98]",
                 isSaving 
-                  ? "bg-slate-700 text-slate-400 cursor-not-allowed" 
+                  ? "bg-slate-200 text-slate-600 cursor-not-allowed" 
                   : "bg-primary hover:bg-primary/90 text-white shadow-primary/20"
               )}
             >

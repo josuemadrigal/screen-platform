@@ -2,7 +2,7 @@ import { createFileRoute } from '@tanstack/react-router'
 import { useState, useEffect, useRef } from 'react'
 import { api } from '../lib/api'
 import { useScreen } from '../hooks/useScreen'
-import { Monitor, Cast, Play, AlertCircle, XCircle } from 'lucide-react'
+import { Cast, AlertCircle, XCircle } from 'lucide-react'
 import { cn } from '../lib/utils'
 import { API_URL } from '../lib/config'
 
@@ -22,6 +22,7 @@ function ClientPage() {
   const [bannerText, setBannerText] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [hasInteracted, setHasInteracted] = useState(false)
+  const [screenMuted, setScreenMuted] = useState(false)
   
   const [activePlayer, setActivePlayer] = useState(0) 
   const videoRef0 = useRef<HTMLVideoElement>(null)
@@ -42,6 +43,7 @@ function ClientPage() {
     try {
       const { data } = await api.get(`/screens/code/${codeToUse}`)
       if (data && data.videosData) {
+        setScreenMuted(!!data.muted)
         setVideoList(data.videosData)
         setLinkedCode(codeToUse)
         setIsRegistered(true)
@@ -111,6 +113,9 @@ function ClientPage() {
             setBannerText(actionData?.text || '')
             setShowBanner(!!actionData?.text)
             break
+          case 'set-muted':
+            setScreenMuted(!!actionData?.muted)
+            break
         }
       })
       return () => { socket.off('control-screen') }
@@ -177,14 +182,21 @@ function ClientPage() {
   }, [hasInteracted, activePlayer])
 
   return (
-    <div ref={containerRef} onClick={() => setHasInteracted(true)} className="min-h-screen bg-[#020617] text-white font-inter flex flex-col items-center justify-center relative overflow-hidden">
+    <div
+      ref={containerRef}
+      onClick={() => setHasInteracted(true)}
+      className={cn(
+        'min-h-screen bg-[#020617] text-white font-inter relative overflow-hidden flex items-center justify-center',
+        !isFullscreen && 'flex-col lg:flex-row gap-8 lg:gap-14 px-6 py-8'
+      )}
+    >
       
       {/* CAPA DE VIDEO PERSISTENTE (Esta capa no se destruye nunca) */}
       <div className={cn(
         "transition-all duration-700 ease-in-out bg-black overflow-hidden shadow-2xl",
         isFullscreen 
           ? "fixed inset-0 z-[100]" 
-          : "relative w-full max-w-2xl aspect-video rounded-[40px] border-4 border-white/5 z-0"
+          : "relative w-full max-w-3xl lg:max-w-none lg:flex-1 lg:basis-0 aspect-video rounded-[32px] border-4 border-white/5 z-0"
       )}>
         {videoList.length > 0 ? (
           <>
@@ -194,7 +206,7 @@ function ClientPage() {
               className={cn("absolute inset-0 w-full h-full object-cover transition-opacity duration-700", activePlayer === 0 ? "opacity-100 z-10" : "opacity-0 z-0")}
               autoPlay={activePlayer === 0 && isPlaying}
               // OPTIMIZACIÓN: Muted inicial para permitir Autoplay forzado
-              muted={activePlayer !== 0 || !hasInteracted}
+              muted={activePlayer !== 0 || !hasInteracted || screenMuted}
               onEnded={() => activePlayer === 0 && handleNext()}
               preload="auto"
               playsInline
@@ -204,16 +216,16 @@ function ClientPage() {
               src={`${servidor}${videoList[activePlayer === 1 ? currentIndex : nextIndex]?.path}`}
               className={cn("absolute inset-0 w-full h-full object-cover transition-opacity duration-700", activePlayer === 1 ? "opacity-100 z-10" : "opacity-0 z-0")}
               autoPlay={activePlayer === 1 && isPlaying}
-              muted={activePlayer !== 1 || !hasInteracted}
+              muted={activePlayer !== 1 || !hasInteracted || screenMuted}
               onEnded={() => activePlayer === 1 && handleNext()}
               preload="auto"
               playsInline
             />
           </>
         ) : (
-          <div className="absolute inset-0 flex flex-col items-center justify-center text-slate-700 bg-slate-900">
-            <Play size={80} className="opacity-20 mb-4" />
-            <span className="text-xs font-black uppercase tracking-[0.3em]">Esperando Contenido</span>
+          <div className="absolute inset-0 flex flex-col items-center justify-center bg-[#020617]">
+            <img src="/apple-touch-icon.png" alt="2B Screen" className="w-28 h-28 rounded-[24px] mb-4" draggable={false} />
+            <span className="text-xs font-black uppercase tracking-[0.3em] text-slate-500">Esperando contenido</span>
           </div>
         )}
 
@@ -222,8 +234,8 @@ function ClientPage() {
           <div className="absolute top-4 left-4 flex flex-col gap-2 z-20">
             <div className="bg-black/60 backdrop-blur-md px-4 py-2 rounded-full border border-white/10 flex items-center gap-2 shadow-2xl">
               <div className="size-2 rounded-full bg-red-500 animate-pulse" />
-              <span className="text-[10px] font-black uppercase tracking-[0.2em] text-white/90">
-                LIVE: <span className="text-primary">{activeCode}</span>
+              <span className="text-[10px] font-black uppercase tracking-[0.2em] text-white/80">
+                LIVE: <span className="text-red-400">{activeCode}</span>
               </span>
             </div>
           </div>
@@ -232,15 +244,17 @@ function ClientPage() {
 
       {/* FORMULARIO DE CONFIGURACIÓN (Solo se ve si no es Fullscreen) */}
       {!isFullscreen && (
-        <div className="z-10 w-full max-w-xl px-6 py-12 space-y-8 animate-in fade-in slide-in-from-bottom-8 duration-700">
-          <div className="text-center space-y-4">
-            <div className="inline-flex p-3 rounded-2xl bg-primary/10 text-primary mb-2"><Monitor size={32} /></div>
-            <h1 className="text-5xl font-black tracking-tight text-white uppercase italic leading-none">Player <span className="text-primary not-italic">Client</span></h1>
-            <p className="text-slate-400 text-lg font-medium">{isRegistered ? `Vinculado como ${linkedCode}.` : "Ingresa el código para comenzar."}</p>
+        <div className="z-10 w-full max-w-xl lg:max-w-none lg:flex-1 lg:basis-0 lg:px-6 xl:px-16 space-y-6 animate-in fade-in slide-in-from-bottom-8 duration-700">
+          <div className="text-center space-y-3">
+            <div className="inline-flex p-4 rounded-3xl bg-white mb-1 shadow-2xl">
+              <img src="/logo.png" alt="2B Screen" className="h-16 w-auto object-contain" draggable={false} />
+            </div>
+            <p className="text-slate-400 text-base font-medium">{isRegistered ? `Vinculado como ${linkedCode}.` : "Ingresa el código para comenzar."}</p>
+            {screenMuted && <p className="text-amber-400 text-xs font-bold uppercase tracking-widest">Sonido apagado desde el panel</p>}
           </div>
           
           <form onSubmit={handleFormSubmit} className="space-y-4">
-            <input type="text" value={screenCode} onChange={(e) => setScreenCode(e.target.value.toUpperCase())} placeholder="CÓDIGO DE PANTALLA" className="w-full bg-white/5 border-2 border-white/10 rounded-3xl py-6 px-8 text-2xl font-black tracking-[0.2em] text-center focus:outline-none focus:border-primary transition-all shadow-2xl" />
+            <input type="text" value={screenCode} onChange={(e) => setScreenCode(e.target.value.toUpperCase())} placeholder="CÓDIGO DE PANTALLA" className="w-full bg-white/5 border-2 border-white/10 rounded-3xl py-6 px-8 text-2xl font-black tracking-[0.2em] text-center text-white placeholder:text-white/20 focus:outline-none focus:border-primary transition-all shadow-2xl" />
             {error && <div className="text-red-400 bg-red-400/10 p-4 rounded-2xl border border-red-400/20 text-sm flex items-center gap-2"><AlertCircle size={18} />{error}</div>}
             <div className="flex gap-3">
               <button type="submit" className="flex-1 bg-primary hover:bg-primary/90 text-white font-black py-5 rounded-3xl flex items-center justify-center gap-3 transition-all active:scale-95 shadow-xl uppercase tracking-widest text-lg"><Cast size={24} /> {isRegistered ? "Pantalla Completa" : "Vincular"}</button>
@@ -255,7 +269,7 @@ function ClientPage() {
       {/* BANNER DE MENSAJE */}
       {showBanner && bannerText && (
         <div className={cn("fixed bottom-0 left-0 right-0 bg-black/80 backdrop-blur-xl border-t border-white/10 text-center p-6 z-[110] animate-in slide-in-from-bottom-full duration-700", isFullscreen ? "p-12" : "p-6")}>
-          <h2 className={cn("font-black text-white uppercase tracking-tight italic", isFullscreen ? "text-5xl md:text-8xl" : "text-xl md:text-2xl")}>{bannerText}</h2>
+          <h2 className={cn("font-black text-white uppercase tracking-tight", isFullscreen ? "text-5xl md:text-8xl" : "text-xl md:text-2xl")}>{bannerText}</h2>
         </div>
       )}
     </div>

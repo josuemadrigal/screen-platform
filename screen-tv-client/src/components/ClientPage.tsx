@@ -4,7 +4,7 @@ import { useScreen } from '../hooks/useScreen'
 import { useSQLiteCache } from '../hooks/useSQLiteCache'
 import { useVideoStore } from '../hooks/useVideoStore'
 import { useLiveUpdate } from '../hooks/useLiveUpdate'
-import { Monitor, Cast, AlertCircle, XCircle, Wifi, WifiOff, Tv2, Download, HardDrive } from 'lucide-react'
+import { Cast, AlertCircle, XCircle, Wifi, WifiOff, Tv2, Download, HardDrive } from 'lucide-react'
 import { cn } from '../lib/utils'
 import { API_URL } from '../lib/config'
 import { Capacitor } from '@capacitor/core'
@@ -53,6 +53,8 @@ export function ClientPage() {
   const [error, setError] = useState<string | null>(null)
   const [hasInteracted, setHasInteracted] = useState(false)
   const [isOffline, setIsOffline] = useState(false)
+  // Sonido apagado para esta pantalla (se configura en el panel y llega en vivo por socket).
+  const [screenMuted, setScreenMuted] = useState(false)
   const [loadingInit, setLoadingInit] = useState(true)
 
   // ─── Double buffering para transiciones sin cortes ─────────────────────────
@@ -141,6 +143,7 @@ export function ClientPage() {
       const { data } = await api.get(`/screens/code/${codeToUse}`)
       if (data?.videosData) {
         const active = (data.videosData as VideoData[]).filter(isVideoActive)
+        setScreenMuted(!!data.muted)
         setVideoList(active)
         setLinkedCode(codeToUse)
         setIsRegistered(true)
@@ -445,6 +448,9 @@ export function ClientPage() {
           setBannerText(actionData?.text || '')
           setShowBanner(!!actionData?.text)
           break
+        case 'set-muted':
+          setScreenMuted(!!actionData?.muted)
+          break
       }
     })
 
@@ -578,18 +584,23 @@ export function ClientPage() {
     <div
       ref={containerRef}
       onClick={() => setHasInteracted(true)}
-      className="min-h-screen bg-[#020617] text-white font-sans flex flex-col items-center justify-center relative overflow-hidden"
+      className={cn(
+        'min-h-screen bg-[#020617] text-white font-sans relative overflow-hidden flex items-center justify-center',
+        // Fuera de pantalla completa: vista previa a la izquierda y formulario a la derecha en
+        // pantallas anchas (TV, escritorio); apilados en pantallas estrechas.
+        !isFullscreen && 'flex-col lg:flex-row gap-8 lg:gap-14 px-6 py-8'
+      )}
     >
       {/* ── CAPA DE VIDEO (doble buffer, nunca se destruye) ── */}
       <div className={cn(
         'transition-all duration-700 ease-in-out bg-black overflow-hidden shadow-2xl',
         isFullscreen
           ? 'fixed inset-0 z-100'
-          : 'relative w-full max-w-3xl aspect-video rounded-[32px] border-4 border-white/5 z-0'
+          : 'relative w-full max-w-3xl lg:max-w-none lg:flex-1 lg:basis-0 aspect-video rounded-[32px] border-4 border-white/5 z-0'
       )}>
         {/* Capa de espera: solo ante un fallo real (ver `standby`), nunca en el cambio entre videos. */}
         <div className={cn('absolute inset-0 z-0 flex-col items-center justify-center gap-6 bg-[#020617]', standby ? 'flex' : 'hidden')}>
-          <img src="/icon-512.png" alt="" className="w-36 h-36 rounded-[28px] opacity-90 drop-shadow-2xl animate-[breathe_2.4s_ease-in-out_infinite]" draggable={false} />
+          <img src="/icon-512.png" alt="2B Screen" className="w-36 h-36 rounded-[28px] drop-shadow-2xl animate-[breathe_2.4s_ease-in-out_infinite]" draggable={false} />
           <div className="flex items-center gap-3 text-white/70">
             <span className="size-5 rounded-full border-2 border-white/20 border-t-indigo-400 animate-spin" />
             <span className="text-xl font-bold tracking-[0.2em] uppercase">
@@ -610,7 +621,7 @@ export function ClientPage() {
               // entrante pinta, así nunca se ve la capa de espera entre videos.
               className={cn('absolute inset-0 w-full h-full object-cover', activePlayer === 0 ? 'z-10' : 'z-[1]')}
               autoPlay={activePlayer === 0 && isPlaying}
-              muted={activePlayer !== 0 || !hasInteracted}
+              muted={activePlayer !== 0 || !hasInteracted || screenMuted}
               onEnded={() => activePlayer === 0 && handleNext()}
               onPlaying={() => activePlayer === 0 && setStandby(false)}
               onError={() => handleVideoError(0)}
@@ -623,7 +634,7 @@ export function ClientPage() {
               src={srcs[1]}
               className={cn('absolute inset-0 w-full h-full object-cover', activePlayer === 1 ? 'z-10' : 'z-[1]')}
               autoPlay={activePlayer === 1 && isPlaying}
-              muted={activePlayer !== 1 || !hasInteracted}
+              muted={activePlayer !== 1 || !hasInteracted || screenMuted}
               onEnded={() => activePlayer === 1 && handleNext()}
               onPlaying={() => activePlayer === 1 && setStandby(false)}
               onError={() => handleVideoError(1)}
@@ -634,7 +645,7 @@ export function ClientPage() {
           </>
         ) : (
           <div className="absolute inset-0 z-10 flex flex-col items-center justify-center bg-[#020617]">
-            <img src="/icon-512.png" alt="" className="w-40 h-40 rounded-[28px] opacity-90 mb-6" draggable={false} />
+            <img src="/icon-512.png" alt="2B Screen" className="w-40 h-40 rounded-[28px] mb-6" draggable={false} />
             <span className="text-sm font-black uppercase tracking-[0.4em] text-slate-500">Esperando contenido</span>
           </div>
         )}
@@ -646,7 +657,7 @@ export function ClientPage() {
             <div className="bg-black/60 backdrop-blur-md px-4 py-2 rounded-full border border-white/10 flex items-center gap-2 shadow-xl">
               <div className="size-2 rounded-full bg-red-500 animate-pulse" />
               <span className="text-[10px] font-black uppercase tracking-[0.2em] text-white/80">
-                LIVE: <span className="text-indigo-400">{activeCode}</span>
+                LIVE: <span className="text-red-400">{activeCode}</span>
               </span>
             </div>
             {/* Estado de conexión */}
@@ -683,14 +694,14 @@ export function ClientPage() {
 
       {/* ── FORMULARIO (solo visible fuera de fullscreen) ── */}
       {!isFullscreen && (
-        <div className="z-10 w-full max-w-xl px-6 py-10 space-y-8 animate-[fadeSlideUp_0.6s_ease_forwards]">
+        <div className="z-10 w-full max-w-xl lg:max-w-none lg:flex-1 lg:basis-0 lg:px-6 xl:px-16 space-y-6 animate-[fadeSlideUp_0.6s_ease_forwards]">
           <div className="text-center space-y-3">
-            <div className="inline-flex p-4 rounded-2xl bg-indigo-500/10 text-indigo-400 mb-2 ring-1 ring-indigo-500/20">
-              <Monitor size={36} />
+            <div className="inline-flex p-4 rounded-3xl bg-white mb-1 shadow-2xl">
+              <img src="/logo.png" alt="2B Screen" className="h-16 w-auto object-contain" draggable={false} />
             </div>
-            <h1 className="text-5xl font-black tracking-tight text-white uppercase italic leading-none">
-              Screen <span className="text-indigo-400 not-italic">TV</span>
-            </h1>
+            {screenMuted && (
+              <p className="text-amber-400 text-xs font-bold uppercase tracking-widest">Sonido apagado desde el panel</p>
+            )}
             <p className="text-slate-400 text-base font-medium">
               {isRegistered
                 ? `Vinculado como ${linkedCode}.`
@@ -708,7 +719,7 @@ export function ClientPage() {
               autoComplete="off"
               className="w-full bg-white/5 border-2 border-white/10 rounded-3xl py-6 px-8
                          text-2xl font-black tracking-[0.25em] text-center
-                         focus:outline-none focus:border-indigo-500 transition-all
+                         focus:outline-none focus:border-red-500 transition-all
                          shadow-2xl placeholder:text-white/20"
             />
 
@@ -722,9 +733,9 @@ export function ClientPage() {
             <div className="flex gap-3">
               <button
                 type="submit"
-                className="flex-1 bg-indigo-600 hover:bg-indigo-500 text-white font-black py-5 rounded-3xl
+                className="flex-1 bg-[#d01f27] hover:bg-[#b91c22] text-white font-black py-5 rounded-3xl
                            flex items-center justify-center gap-3 transition-all active:scale-95 shadow-xl
-                           uppercase tracking-widest text-lg focus:outline-none focus:ring-2 focus:ring-indigo-400"
+                           uppercase tracking-widest text-lg focus:outline-none focus:ring-2 focus:ring-red-400"
               >
                 <Cast size={24} />
                 {isRegistered ? 'Pantalla Completa' : 'Vincular'}

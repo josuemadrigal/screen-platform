@@ -70,13 +70,13 @@ function ScreenEditPage() {
             <Monitor size={32} />
           </div>
           <div>
-            <h1 className="text-4xl font-bold tracking-tight text-white/90">Editar Pantalla</h1>
-            <p className="text-slate-400 mt-1">ID: #{id} • {formData.name}</p>
+            <h1 className="text-4xl font-bold tracking-tight text-slate-900">Editar Pantalla</h1>
+            <p className="text-slate-600 mt-1">ID: #{id} • {formData.name}</p>
           </div>
         </div>
         <button 
           onClick={() => navigate({ to: '/pantallas' })}
-          className="p-3 rounded-2xl bg-white/5 border border-white/10 text-slate-400 hover:text-white hover:bg-white/10 transition-all"
+          className="p-3 rounded-2xl bg-slate-900/5 border border-slate-900/10 text-slate-600 hover:text-slate-900 hover:bg-slate-900/10 transition-all"
         >
           <ArrowLeft size={24} />
         </button>
@@ -87,38 +87,38 @@ function ScreenEditPage() {
           <div className="glass p-8 rounded-3xl space-y-6">
             <div className="space-y-4">
               <div className="space-y-2">
-                <label className="text-sm font-medium text-slate-400 ml-1 flex items-center gap-2">
+                <label className="text-sm font-medium text-slate-600 ml-1 flex items-center gap-2">
                   <Monitor size={14} /> Nombre
                 </label>
                 <input 
                   type="text" 
                   value={formData.name}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  className="w-full px-6 py-4 rounded-2xl bg-white/5 border border-white/10 focus:ring-2 focus:ring-primary/50 focus:border-primary outline-none transition-all"
+                  className="w-full px-6 py-4 rounded-2xl bg-slate-900/5 border border-slate-900/10 focus:ring-2 focus:ring-primary/50 focus:border-primary outline-none transition-all"
                 />
               </div>
 
               <div className="space-y-2">
-                <label className="text-sm font-medium text-slate-400 ml-1 flex items-center gap-2">
+                <label className="text-sm font-medium text-slate-600 ml-1 flex items-center gap-2">
                   <Hash size={14} /> Código
                 </label>
                 <input 
                   type="text" 
                   value={formData.code}
                   readOnly
-                  className="w-full px-6 py-4 rounded-2xl bg-white/5 border border-white/10 text-slate-500 cursor-not-allowed uppercase font-mono tracking-wider"
+                  className="w-full px-6 py-4 rounded-2xl bg-slate-900/5 border border-slate-900/10 text-slate-500 cursor-not-allowed uppercase font-mono tracking-wider"
                 />
               </div>
 
               <div className="space-y-2">
-                <label className="text-sm font-medium text-slate-400 ml-1 flex items-center gap-2">
+                <label className="text-sm font-medium text-slate-600 ml-1 flex items-center gap-2">
                   <MapPin size={14} /> Ubicación
                 </label>
                 <input 
                   type="text" 
                   value={formData.location}
                   onChange={(e) => setFormData({ ...formData, location: e.target.value })}
-                  className="w-full px-6 py-4 rounded-2xl bg-white/5 border border-white/10 focus:ring-2 focus:ring-primary/50 focus:border-primary outline-none transition-all"
+                  className="w-full px-6 py-4 rounded-2xl bg-slate-900/5 border border-slate-900/10 focus:ring-2 focus:ring-primary/50 focus:border-primary outline-none transition-all"
                 />
               </div>
             </div>
@@ -128,13 +128,13 @@ function ScreenEditPage() {
         <div className="space-y-6">
           <div className="glass p-8 rounded-3xl space-y-6">
             <div className="space-y-2">
-              <label className="text-sm font-medium text-slate-400 ml-1 flex items-center gap-2">
+              <label className="text-sm font-medium text-slate-600 ml-1 flex items-center gap-2">
                 <Library size={14} /> Playlist Asignada
               </label>
               <select 
                 value={formData.playlist}
                 onChange={(e) => setFormData({ ...formData, playlist: e.target.value })}
-                className="w-full px-6 py-4 rounded-2xl bg-white/5 border border-white/10 focus:ring-2 focus:ring-primary/50 focus:border-primary outline-none transition-all appearance-none cursor-pointer"
+                className="w-full px-6 py-4 rounded-2xl bg-slate-900/5 border border-slate-900/10 focus:ring-2 focus:ring-primary/50 focus:border-primary outline-none transition-all appearance-none cursor-pointer"
               >
                 <option value="none">Sin Playlist (Manual)</option>
                 {playlists.map(p => (
@@ -144,7 +144,7 @@ function ScreenEditPage() {
             </div>
 
             <div className="p-6 bg-primary/5 border border-primary/10 rounded-2xl">
-              <p className="text-xs text-slate-400 leading-relaxed italic">
+              <p className="text-xs text-slate-600 leading-relaxed italic">
                 Nota: Cambiar la playlist afectará lo que se muestra en la pantalla de inmediato si esta se encuentra conectada.
               </p>
             </div>
@@ -155,7 +155,7 @@ function ScreenEditPage() {
               className={cn(
                 "w-full py-4 rounded-2xl font-bold text-lg transition-all shadow-xl active:scale-[0.98] flex items-center justify-center gap-3",
                 isSaving 
-                  ? "bg-slate-700 text-slate-400 cursor-not-allowed" 
+                  ? "bg-slate-200 text-slate-600 cursor-not-allowed" 
                   : "bg-primary hover:bg-primary/90 text-white shadow-primary/20"
               )}
             >

@@ -55,9 +55,9 @@ function PlaylistViewPage() {
             <div className="flex items-center gap-2 text-slate-500 text-sm mb-1">
               <span>Playlists</span>
               <ChevronRight size={14} />
-              <span className="text-slate-300">Vista Previa</span>
+              <span className="text-slate-700">Vista Previa</span>
             </div>
-            <h1 className="text-4xl font-bold tracking-tight text-white/90">{data.playlist.playlistname}</h1>
+            <h1 className="text-4xl font-bold tracking-tight text-slate-900">{data.playlist.playlistname}</h1>
           </div>
         </div>
         <Link
@@ -72,7 +72,7 @@ function PlaylistViewPage() {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <div className="lg:col-span-2 space-y-6">
-          <div className="relative aspect-video rounded-[32px] overflow-hidden bg-slate-900 border border-white/5 shadow-2xl">
+          <div className="relative aspect-video rounded-[32px] overflow-hidden bg-white border border-slate-900/5 shadow-2xl">
             {videoList.length > 0 ? (
               <video
                 ref={playerRef}
@@ -91,7 +91,7 @@ function PlaylistViewPage() {
               </div>
             )}
             
-            <div className="absolute top-6 left-6 flex items-center gap-2 px-3 py-1.5 rounded-full bg-black/40 backdrop-blur-md border border-white/10 text-[10px] font-bold text-white uppercase tracking-widest">
+            <div className="absolute top-6 left-6 flex items-center gap-2 px-3 py-1.5 rounded-full bg-black/50 backdrop-blur-md border border-white/20 text-[10px] font-bold text-white uppercase tracking-widest">
               <Play size={10} fill="currentColor" className="text-primary" />
               Vista Previa en Vivo
             </div>
@@ -105,19 +105,19 @@ function PlaylistViewPage() {
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-6 pt-4">
                <div className="space-y-1">
                  <p className="text-xs text-slate-500 uppercase tracking-wider font-bold">Videos</p>
-                 <p className="text-lg font-bold text-white">{videoList.length}</p>
+                 <p className="text-lg font-bold text-slate-900">{videoList.length}</p>
                </div>
                <div className="space-y-1">
                  <p className="text-xs text-slate-500 uppercase tracking-wider font-bold">Duración</p>
-                 <p className="text-lg font-bold text-white">{formatDuration(totalDuration(videoList))}</p>
+                 <p className="text-lg font-bold text-slate-900">{formatDuration(totalDuration(videoList))}</p>
                </div>
                <div className="space-y-1">
                  <p className="text-xs text-slate-500 uppercase tracking-wider font-bold">Estado</p>
-                 <p className="text-lg font-bold text-emerald-400">Activa</p>
+                 <p className="text-lg font-bold text-emerald-600">Activa</p>
                </div>
                <div className="space-y-1">
                  <p className="text-xs text-slate-500 uppercase tracking-wider font-bold">Uso</p>
-                 <p className="text-lg font-bold text-white">{data.screensCount} {data.screensCount === 1 ? 'Pantalla' : 'Pantallas'}</p>
+                 <p className="text-lg font-bold text-slate-900">{data.screensCount} {data.screensCount === 1 ? 'Pantalla' : 'Pantallas'}</p>
                </div>
             </div>
           </div>
@@ -139,7 +139,7 @@ function PlaylistViewPage() {
                     "w-full flex items-center gap-4 p-3 rounded-2xl border transition-all text-left group",
                     currentVideoIndex === index 
                       ? "bg-primary/20 border-primary shadow-lg shadow-primary/10" 
-                      : "bg-white/5 border-white/10 hover:bg-white/10"
+                      : "bg-slate-900/5 border-slate-900/10 hover:bg-slate-900/10"
                   )}
                 >
                   <div className="size-16 rounded-xl overflow-hidden shrink-0 relative">
@@ -149,14 +149,14 @@ function PlaylistViewPage() {
                     />
                     {currentVideoIndex === index && (
                        <div className="absolute inset-0 bg-primary/40 flex items-center justify-center">
-                         <Play size={20} fill="currentColor" className="text-white" />
+                         <Play size={20} fill="currentColor" className="text-slate-900" />
                        </div>
                     )}
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className={cn(
                       "font-bold truncate",
-                      currentVideoIndex === index ? "text-white" : "text-slate-300 group-hover:text-white"
+                      currentVideoIndex === index ? "text-slate-900" : "text-slate-700 group-hover:text-slate-900"
                     )}>
                       {video.title}
                     </p>

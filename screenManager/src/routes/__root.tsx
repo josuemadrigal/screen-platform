@@ -40,7 +40,7 @@ function RootLayout() {
   if (!isPublic && !token) return null
 
   return (
-    <div className="min-h-screen bg-slate-950 text-white selection:bg-primary/30 flex">
+    <div className="min-h-screen bg-slate-50 text-slate-900 selection:bg-primary/30 flex">
       {showSidebar && <Sidebar />}
       <main className="flex-1 overflow-x-hidden h-screen">
         <div className={showSidebar ? 'p-8 max-w-7xl mx-auto' : 'h-full w-full'}>

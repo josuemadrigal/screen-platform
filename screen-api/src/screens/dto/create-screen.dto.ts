@@ -1,4 +1,4 @@
-import { IsString, IsNotEmpty, IsInt, IsOptional } from 'class-validator';
+import { IsString, IsNotEmpty, IsInt, IsOptional, IsBoolean } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 
 export class CreateScreenDto {
@@ -26,4 +26,9 @@ export class CreateScreenDto {
   @IsString()
   @IsOptional()
   playlist?: string;
+
+  @ApiProperty({ required: false, description: 'Sound off on the TV' })
+  @IsOptional()
+  @IsBoolean()
+  muted?: boolean;
 }

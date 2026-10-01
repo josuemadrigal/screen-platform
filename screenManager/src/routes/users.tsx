@@ -25,8 +25,8 @@ function UsersPage() {
       confirmButtonText: 'Eliminar',
       cancelButtonText: 'Cancelar',
       confirmButtonColor: '#ef4444',
-      background: '#0f172a',
-      color: '#f8fafc',
+      background: '#ffffff',
+      color: '#0f172a',
     })
     if (!isConfirmed) return
     try {
@@ -38,7 +38,7 @@ function UsersPage() {
 
   if (!canView) {
     return (
-      <div className="glass rounded-[32px] p-12 text-center text-slate-400">
+      <div className="glass rounded-[32px] p-12 text-center text-slate-600">
         <ShieldCheck size={40} className="mx-auto mb-3 opacity-30" />
         Tu rol no tiene permiso para ver esta sección.
       </div>
@@ -49,13 +49,13 @@ function UsersPage() {
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
       <header className="flex justify-between items-end flex-wrap gap-4">
         <div>
-          <h1 className="text-4xl font-bold tracking-tight text-white/90">Usuarios</h1>
+          <h1 className="text-4xl font-bold tracking-tight text-slate-900">Usuarios</h1>
           <p className="text-slate-500 mt-2 font-medium">Quién accede al panel, con qué rol y cuándo se conectó por última vez.</p>
         </div>
         <div className="flex gap-3">
           <Link
             to="/roles"
-            className="flex items-center gap-2 px-5 py-3 rounded-2xl bg-white/5 hover:bg-white/10 text-slate-200 font-bold transition-all"
+            className="flex items-center gap-2 px-5 py-3 rounded-2xl bg-slate-900/5 hover:bg-slate-900/10 text-slate-800 font-bold transition-all"
           >
             <ShieldCheck size={20} />
             Roles y permisos
@@ -76,7 +76,7 @@ function UsersPage() {
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
-              <tr className="text-left text-[11px] uppercase tracking-widest text-slate-500 border-b border-white/5">
+              <tr className="text-left text-[11px] uppercase tracking-widest text-slate-500 border-b border-slate-900/5">
                 <th className="px-6 py-4 font-bold">Usuario</th>
                 <th className="px-6 py-4 font-bold">Rol</th>
                 <th className="px-6 py-4 font-bold">Estado</th>
@@ -100,15 +100,15 @@ function UsersPage() {
                 </tr>
               )}
               {users.map((u) => (
-                <tr key={u.id} className="border-b border-white/5 last:border-0 hover:bg-white/[0.02] transition-colors">
+                <tr key={u.id} className="border-b border-slate-900/5 last:border-0 hover:bg-slate-900/[0.03] transition-colors">
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-3">
                       <span
                         title={u.online ? 'En línea' : 'Desconectado'}
-                        className={cn('size-2.5 rounded-full shrink-0', u.online ? 'bg-emerald-500 shadow-[0_0_8px] shadow-emerald-500/60' : 'bg-slate-600')}
+                        className={cn('size-2.5 rounded-full shrink-0', u.online ? 'bg-emerald-500 shadow-[0_0_8px] shadow-emerald-500/60' : 'bg-slate-300')}
                       />
                       <div>
-                        <div className="font-bold text-white/90">
+                        <div className="font-bold text-slate-900">
                           {u.name}
                           {me?.id === u.id && <span className="ml-2 text-[10px] uppercase tracking-widest text-primary">tú</span>}
                         </div>
@@ -120,7 +120,7 @@ function UsersPage() {
                     {u.role ? (
                       <span className={cn(
                         'inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold',
-                        u.role.name === 'admin' ? 'bg-primary/15 text-primary' : 'bg-white/5 text-slate-300'
+                        u.role.name === 'admin' ? 'bg-primary/15 text-primary' : 'bg-slate-900/5 text-slate-700'
                       )}>
                         <ShieldCheck size={12} />
                         {u.role.name}
@@ -132,14 +132,14 @@ function UsersPage() {
                   <td className="px-6 py-4">
                     <span className={cn(
                       'px-3 py-1 rounded-full text-xs font-bold',
-                      u.status === '1' ? 'bg-emerald-500/10 text-emerald-400' : 'bg-red-500/10 text-red-400'
+                      u.status === '1' ? 'bg-emerald-500/10 text-emerald-600' : 'bg-red-500/10 text-red-600'
                     )}>
                       {u.status === '1' ? 'Activo' : 'Desactivado'}
                     </span>
                   </td>
-                  <td className="px-6 py-4 text-slate-300" title={formatDateTime(u.lastLoginAt)}>{timeAgo(u.lastLoginAt)}</td>
-                  <td className="px-6 py-4 text-slate-300" title={formatDateTime(u.lastSeenAt)}>
-                    {u.online ? <span className="text-emerald-400 font-bold">En línea</span> : timeAgo(u.lastSeenAt)}
+                  <td className="px-6 py-4 text-slate-700" title={formatDateTime(u.lastLoginAt)}>{timeAgo(u.lastLoginAt)}</td>
+                  <td className="px-6 py-4 text-slate-700" title={formatDateTime(u.lastSeenAt)}>
+                    {u.online ? <span className="text-emerald-600 font-bold">En línea</span> : timeAgo(u.lastSeenAt)}
                   </td>
                   {canManage && (
                     <td className="px-6 py-4">
@@ -148,7 +148,7 @@ function UsersPage() {
                           to="/user-edit/$id"
                           params={{ id: String(u.id) }}
                           title="Editar y contraseña"
-                          className="p-2.5 bg-white/5 hover:bg-primary/20 rounded-xl text-slate-400 hover:text-primary transition-all"
+                          className="p-2.5 bg-slate-900/5 hover:bg-primary/20 rounded-xl text-slate-600 hover:text-primary transition-all"
                         >
                           <Edit3 size={18} />
                         </Link>
@@ -157,7 +157,7 @@ function UsersPage() {
                           params={{ id: String(u.id) }}
                           hash="password"
                           title="Cambiar contraseña"
-                          className="p-2.5 bg-white/5 hover:bg-amber-500/20 rounded-xl text-slate-400 hover:text-amber-400 transition-all"
+                          className="p-2.5 bg-slate-900/5 hover:bg-amber-500/20 rounded-xl text-slate-600 hover:text-amber-600 transition-all"
                         >
                           <KeyRound size={18} />
                         </Link>
@@ -165,7 +165,7 @@ function UsersPage() {
                           onClick={() => handleDelete(u.id, u.name)}
                           disabled={me?.id === u.id}
                           title={me?.id === u.id ? 'No puedes eliminar tu propio usuario' : 'Eliminar'}
-                          className="p-2.5 bg-white/5 hover:bg-red-500/20 rounded-xl text-slate-400 hover:text-red-400 transition-all disabled:opacity-30 disabled:hover:bg-white/5 disabled:hover:text-slate-400"
+                          className="p-2.5 bg-slate-900/5 hover:bg-red-500/20 rounded-xl text-slate-600 hover:text-red-600 transition-all disabled:opacity-30 disabled:hover:bg-slate-900/5 disabled:hover:text-slate-600"
                         >
                           <Trash2 size={18} />
                         </button>

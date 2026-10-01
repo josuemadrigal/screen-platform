@@ -67,6 +67,8 @@ model Screen {
   location  String
   status    Int       @default(1)
   playlist  String?
+  /// Sound off on the TV for this screen (toggled from the panel, pushed live).
+  muted     Boolean   @default(false)
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
 

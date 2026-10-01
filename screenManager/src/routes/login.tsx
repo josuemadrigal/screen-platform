@@ -13,14 +13,14 @@ function LoginPage() {
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
-  
+
   const login = useAuthStore(state => state.login)
   const navigate = useNavigate()
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsLoading(true)
-    
+
     try {
       const success = await login(email, password)
       if (success) {
@@ -42,23 +42,21 @@ function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-slate-950 relative overflow-hidden p-6">
+    <div className="min-h-screen flex items-center justify-center bg-slate-50 relative overflow-hidden p-6">
       {/* Background Orbs */}
       <div className="absolute top-0 left-0 w-[500px] h-[500px] bg-primary/20 rounded-full blur-[120px] -translate-x-1/2 -translate-y-1/2" />
-      <div className="absolute bottom-0 right-0 w-[500px] h-[500px] bg-indigo-500/10 rounded-full blur-[120px] translate-x-1/2 translate-y-1/2" />
+      <div className="absolute bottom-0 right-0 w-[500px] h-[500px] bg-secondary/15 rounded-full blur-[120px] translate-x-1/2 translate-y-1/2" />
 
       <div className="w-full max-w-md space-y-8 relative z-10">
         <div className="text-center space-y-4">
-          <div className="inline-flex items-center justify-center p-4 rounded-3xl bg-white/5 border border-white/10 shadow-2xl animate-in zoom-in duration-700">
-             <span className="text-3xl font-black tracking-tighter text-white">
-               SCREEN<span className="text-primary">MANAGER</span>
-             </span>
+          <div className="inline-flex items-center justify-center p-5 rounded-3xl bg-white border border-slate-900/10 shadow-xl animate-in zoom-in duration-700">
+            <img src="/logo.png" alt="2B Screen" className="h-24 w-auto object-contain" draggable={false} />
           </div>
-          <h1 className="text-2xl font-bold text-white/90">Bienvenido de nuevo</h1>
+          <h1 className="text-2xl font-bold text-slate-900">Bienvenido de nuevo</h1>
           <p className="text-slate-500">Ingresa tus credenciales para administrar tus pantallas.</p>
         </div>
 
-        <div className="glass p-8 rounded-[40px] border border-white/10 shadow-2xl space-y-6">
+        <div className="glass p-8 rounded-[40px] border border-slate-900/10 shadow-2xl space-y-6">
           <form onSubmit={handleLogin} className="space-y-4">
             <div className="space-y-2">
               <label className="text-xs font-bold text-slate-500 uppercase tracking-widest ml-1">Usuario o Email</label>
@@ -69,7 +67,7 @@ function LoginPage() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="admin o tu@email.com"
-                  className="w-full pl-12 pr-4 py-4 rounded-2xl bg-white/5 border border-white/10 focus:ring-2 focus:ring-primary/50 focus:border-primary outline-none transition-all text-sm"
+                  className="w-full pl-12 pr-4 py-4 rounded-2xl bg-slate-900/5 border border-slate-900/10 focus:ring-2 focus:ring-primary/50 focus:border-primary outline-none transition-all text-sm"
                   required
                 />
               </div>
@@ -79,18 +77,18 @@ function LoginPage() {
               <label className="text-xs font-bold text-slate-500 uppercase tracking-widest ml-1">Contraseña</label>
               <div className="relative group">
                 <Lock size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-primary transition-colors" />
-                <input 
+                <input
                   type={showPassword ? "text" : "password"}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="••••••••"
-                  className="w-full pl-12 pr-14 py-4 rounded-2xl bg-white/5 border border-white/10 focus:ring-2 focus:ring-primary/50 focus:border-primary outline-none transition-all text-sm"
+                  className="w-full pl-12 pr-14 py-4 rounded-2xl bg-slate-900/5 border border-slate-900/10 focus:ring-2 focus:ring-primary/50 focus:border-primary outline-none transition-all text-sm"
                   required
                 />
-                <button 
+                <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-500 hover:text-white transition-colors"
+                  className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-900 transition-colors"
                 >
                   {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                 </button>
@@ -114,13 +112,13 @@ function LoginPage() {
           </form>
 
           <div className="relative">
-            <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-white/5"></div></div>
-            <div className="relative flex justify-center text-xs uppercase"><span className="bg-slate-900/50 backdrop-blur-md px-2 text-slate-600 font-bold tracking-tighter">O accede como</span></div>
+            <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-slate-900/5"></div></div>
+            <div className="relative flex justify-center text-xs uppercase"><span className="bg-white/70 backdrop-blur-md px-2 text-slate-600 font-bold tracking-tighter">O accede como</span></div>
           </div>
 
-          <Link 
+          <Link
             to="/client"
-            className="w-full py-4 rounded-2xl bg-white/5 border border-white/10 hover:bg-white/10 text-slate-300 font-bold transition-all flex items-center justify-center gap-3 group"
+            className="w-full py-4 rounded-2xl bg-slate-900/5 border border-slate-900/10 hover:bg-slate-900/10 text-slate-700 font-bold transition-all flex items-center justify-center gap-3 group"
           >
             <Cast size={20} className="text-slate-500 group-hover:text-primary transition-colors" />
             Modo Pantalla (Cliente)
@@ -129,7 +127,7 @@ function LoginPage() {
         </div>
 
         <p className="text-center text-xs text-slate-600">
-          ScreenManager v2.0 • Producido por Antigravity
+          2Bscreens v2.0 • Panelvo Technologies
         </p>
       </div>
     </div>

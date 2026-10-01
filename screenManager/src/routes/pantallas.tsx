@@ -17,9 +17,9 @@ function PantallasPage() {
         <div className="space-y-2">
           <div className="flex items-center gap-3 text-primary">
             <LayoutGrid size={24} />
-            <h1 className="text-4xl font-bold tracking-tight text-white/90">Pantallas</h1>
+            <h1 className="text-4xl font-bold tracking-tight text-slate-900">Pantallas</h1>
           </div>
-          <p className="text-slate-400 text-lg">Administra y monitorea tus dispositivos en tiempo real.</p>
+          <p className="text-slate-600 text-lg">Administra y monitorea tus dispositivos en tiempo real.</p>
         </div>
         <button 
           onClick={() => navigate({ to: '/nueva-pantalla' })}
@@ -43,10 +43,10 @@ function PantallasPage() {
           ))}
           {screens?.length === 0 && (
             <div className="col-span-full py-20 text-center space-y-4">
-              <div className="bg-white/5 size-20 rounded-full flex items-center justify-center mx-auto text-slate-500">
+              <div className="bg-slate-900/5 size-20 rounded-full flex items-center justify-center mx-auto text-slate-500">
                 <LayoutGrid size={40} />
               </div>
-              <p className="text-slate-400 text-lg">No hay pantallas registradas.</p>
+              <p className="text-slate-600 text-lg">No hay pantallas registradas.</p>
             </div>
           )}
         </div>

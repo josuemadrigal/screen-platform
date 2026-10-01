@@ -13,8 +13,32 @@ export class PlaylistsService {
     });
   }
 
+  /** "mm:ss", "hh:mm:ss" or plain seconds → seconds. */
+  private static seconds(d: string | null | undefined): number {
+    if (!d) return 0;
+    const parts = d.split(':').map((n) => parseInt(n, 10));
+    if (parts.some(isNaN)) return 0;
+    return parts.reduce((acc, n) => acc * 60 + n, 0);
+  }
+
+  /** Playlists sorted by name, each with how many videos it holds and their total length. */
   async findAll() {
-    return this.prisma.playlist.findMany();
+    const playlists = await this.prisma.playlist.findMany({ orderBy: { playlistname: 'asc' } });
+    const ids = new Set<number>();
+    const parsed = playlists.map((p) => {
+      const list = (p.videos || '').split(',').map((id) => parseInt(id.trim(), 10)).filter((id) => !isNaN(id));
+      list.forEach((id) => ids.add(id));
+      return { p, list };
+    });
+    const videos = ids.size
+      ? await this.prisma.video.findMany({ where: { id: { in: [...ids] } }, select: { id: true, duration: true } })
+      : [];
+    const durationById = new Map(videos.map((v) => [v.id, PlaylistsService.seconds(v.duration)]));
+    return parsed.map(({ p, list }) => ({
+      ...p,
+      videosCount: list.filter((id) => durationById.has(id)).length,
+      durationSeconds: list.reduce((acc, id) => acc + (durationById.get(id) ?? 0), 0),
+    }));
   }
 
   async findOne(id: number) {

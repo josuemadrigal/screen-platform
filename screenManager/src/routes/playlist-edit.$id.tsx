@@ -126,13 +126,13 @@ function PlaylistEditPage() {
             <Library size={32} />
           </div>
           <div>
-            <h1 className="text-4xl font-bold tracking-tight text-white/90">Editar Playlist</h1>
-            <p className="text-slate-400 mt-1">Modifica el nombre y los videos de la lista.</p>
+            <h1 className="text-4xl font-bold tracking-tight text-slate-900">Editar Playlist</h1>
+            <p className="text-slate-600 mt-1">Modifica el nombre y los videos de la lista.</p>
           </div>
         </div>
         <button
           onClick={() => navigate({ to: '/playlist' })}
-          className="p-3 rounded-2xl bg-white/5 border border-white/10 text-slate-400 hover:text-white hover:bg-white/10 transition-all"
+          className="p-3 rounded-2xl bg-slate-900/5 border border-slate-900/10 text-slate-600 hover:text-slate-900 hover:bg-slate-900/10 transition-all"
         >
           <ArrowLeft size={24} />
         </button>
@@ -142,20 +142,20 @@ function PlaylistEditPage() {
         <div className="lg:col-span-2 space-y-6">
           <div className="glass p-8 rounded-3xl space-y-6">
             <div className="space-y-2">
-              <label className="text-sm font-medium text-slate-400 ml-1">Nombre de la Playlist</label>
+              <label className="text-sm font-medium text-slate-600 ml-1">Nombre de la Playlist</label>
               <input
                 type="text"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 placeholder="Ej. Promo Mañana / Menú Digital"
-                className="w-full px-6 py-4 rounded-2xl bg-white/5 border border-white/10 focus:ring-2 focus:ring-primary/50 focus:border-primary outline-none transition-all text-lg font-bold"
+                className="w-full px-6 py-4 rounded-2xl bg-slate-900/5 border border-slate-900/10 focus:ring-2 focus:ring-primary/50 focus:border-primary outline-none transition-all text-lg font-bold"
                 required
               />
             </div>
 
             <div className="space-y-4">
               <div className="flex items-center justify-between">
-                <label className="text-sm font-medium text-slate-400 ml-1">Seleccionar Videos</label>
+                <label className="text-sm font-medium text-slate-600 ml-1">Seleccionar Videos</label>
                 <div className="relative group">
                   <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" />
                   <input
@@ -163,7 +163,7 @@ function PlaylistEditPage() {
                     placeholder="Buscar..."
                     value={search}
                     onChange={(e) => setSearch(e.target.value)}
-                    className="pl-9 pr-4 py-1.5 rounded-xl bg-white/5 border border-white/10 text-xs focus:ring-1 focus:ring-primary/50 outline-none"
+                    className="pl-9 pr-4 py-1.5 rounded-xl bg-slate-900/5 border border-slate-900/10 text-xs focus:ring-1 focus:ring-primary/50 outline-none"
                   />
                 </div>
               </div>
@@ -180,8 +180,8 @@ function PlaylistEditPage() {
                       className={cn(
                         "p-4 rounded-2xl border transition-all cursor-pointer flex items-center gap-4 group",
                         isSelected
-                          ? "bg-primary/20 border-primary text-white"
-                          : "bg-white/5 border-white/10 text-slate-400 hover:bg-white/10"
+                          ? "bg-primary/20 border-primary text-slate-900"
+                          : "bg-slate-900/5 border-slate-900/10 text-slate-600 hover:bg-slate-900/10"
                       )}
                     >
                       <div className="relative size-16 rounded-xl overflow-hidden shrink-0">
@@ -191,12 +191,12 @@ function PlaylistEditPage() {
                         />
                         {isSelected && (
                           <div className="absolute inset-0 bg-primary/40 flex items-center justify-center">
-                            {uses > 1 ? <span className="text-white font-black text-lg">×{uses}</span> : <CheckCircle2 size={24} className="text-white" />}
+                            {uses > 1 ? <span className="text-slate-900 font-black text-lg">×{uses}</span> : <CheckCircle2 size={24} className="text-slate-900" />}
                           </div>
                         )}
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className={cn("font-bold truncate", isSelected ? "text-white" : "text-slate-200")}>{video.title}</p>
+                        <p className={cn("font-bold truncate", isSelected ? "text-slate-900" : "text-slate-800")}>{video.title}</p>
                         <p className="text-[10px] opacity-60 uppercase font-bold tracking-widest">{video.duration}</p>
                       </div>
                     </div>
@@ -215,7 +215,7 @@ function PlaylistEditPage() {
             </h2>
 
             <p className="text-[11px] text-slate-500 -mt-2">
-              Arrastra para reordenar · Duración total <span className="text-slate-300 font-bold">{formatDuration(total)}</span>
+              Arrastra para reordenar · Duración total <span className="text-slate-700 font-bold">{formatDuration(total)}</span>
             </p>
 
             <div className="space-y-2 max-h-[400px] overflow-y-auto pr-1 custom-scrollbar">
@@ -233,10 +233,10 @@ function PlaylistEditPage() {
                       ? "opacity-40 scale-95 bg-primary/10 border-primary/30"
                       : overIndex === index && draggingIndex !== index
                       ? "bg-primary/10 border-primary/50 scale-[1.02] shadow-lg shadow-primary/10"
-                      : "bg-white/5 border-white/10 hover:bg-white/8 hover:border-white/20"
+                      : "bg-slate-900/5 border-slate-900/10 hover:bg-slate-900/8 hover:border-slate-900/20"
                   )}
                 >
-                  <div className="cursor-grab active:cursor-grabbing text-slate-600 hover:text-slate-400 transition-colors touch-none shrink-0">
+                  <div className="cursor-grab active:cursor-grabbing text-slate-600 hover:text-slate-600 transition-colors touch-none shrink-0">
                     <GripVertical size={16} />
                   </div>
                   <div className="relative shrink-0">
@@ -248,7 +248,7 @@ function PlaylistEditPage() {
                       {index + 1}
                     </span>
                   </div>
-                  <span className="flex-1 text-sm font-medium truncate text-slate-200">{video.title}</span>
+                  <span className="flex-1 text-sm font-medium truncate text-slate-800">{video.title}</span>
                   <button
                     type="button"
                     onClick={() => removeAt(index)}
@@ -265,14 +265,14 @@ function PlaylistEditPage() {
               )}
             </div>
 
-            <div className="pt-4 border-t border-white/10">
+            <div className="pt-4 border-t border-slate-900/10">
               <button
                 type="submit"
                 disabled={isSaving || selectedVideos.length === 0}
                 className={cn(
                   "w-full py-4 rounded-2xl font-bold text-lg transition-all shadow-xl active:scale-[0.98] flex items-center justify-center gap-3",
                   (isSaving || selectedVideos.length === 0)
-                    ? "bg-slate-700 text-slate-400 cursor-not-allowed"
+                    ? "bg-slate-200 text-slate-600 cursor-not-allowed"
                     : "bg-primary hover:bg-primary/90 text-white shadow-primary/20"
                 )}
               >

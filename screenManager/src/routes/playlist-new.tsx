@@ -79,8 +79,8 @@ function PlaylistAddPage() {
           <Library size={32} />
         </div>
         <div>
-          <h1 className="text-4xl font-bold tracking-tight text-white/90">Nueva Playlist</h1>
-          <p className="text-slate-400 mt-1">Crea una secuencia de videos para tus pantallas.</p>
+          <h1 className="text-4xl font-bold tracking-tight text-slate-900">Nueva Playlist</h1>
+          <p className="text-slate-600 mt-1">Crea una secuencia de videos para tus pantallas.</p>
         </div>
       </header>
 
@@ -88,20 +88,20 @@ function PlaylistAddPage() {
         <div className="lg:col-span-2 space-y-6">
           <div className="glass p-8 rounded-3xl space-y-6">
             <div className="space-y-2">
-              <label className="text-sm font-medium text-slate-400 ml-1">Nombre de la Playlist</label>
+              <label className="text-sm font-medium text-slate-600 ml-1">Nombre de la Playlist</label>
               <input 
                 type="text" 
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 placeholder="Ej. Promo Mañana / Menú Digital"
-                className="w-full px-6 py-4 rounded-2xl bg-white/5 border border-white/10 focus:ring-2 focus:ring-primary/50 focus:border-primary outline-none transition-all text-lg font-bold"
+                className="w-full px-6 py-4 rounded-2xl bg-slate-900/5 border border-slate-900/10 focus:ring-2 focus:ring-primary/50 focus:border-primary outline-none transition-all text-lg font-bold"
                 required
               />
             </div>
 
             <div className="space-y-4">
               <div className="flex items-center justify-between">
-                <label className="text-sm font-medium text-slate-400 ml-1">Seleccionar Videos</label>
+                <label className="text-sm font-medium text-slate-600 ml-1">Seleccionar Videos</label>
                 <div className="relative group">
                    <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" />
                    <input 
@@ -109,7 +109,7 @@ function PlaylistAddPage() {
                      placeholder="Buscar..."
                      value={search}
                      onChange={(e) => setSearch(e.target.value)}
-                     className="pl-9 pr-4 py-1.5 rounded-xl bg-white/5 border border-white/10 text-xs focus:ring-1 focus:ring-primary/50 outline-none"
+                     className="pl-9 pr-4 py-1.5 rounded-xl bg-slate-900/5 border border-slate-900/10 text-xs focus:ring-1 focus:ring-primary/50 outline-none"
                    />
                 </div>
               </div>
@@ -126,8 +126,8 @@ function PlaylistAddPage() {
                       className={cn(
                         "p-4 rounded-2xl border transition-all cursor-pointer flex items-center gap-4 group",
                         isSelected 
-                          ? "bg-primary/20 border-primary text-white" 
-                          : "bg-white/5 border-white/10 text-slate-400 hover:bg-white/10"
+                          ? "bg-primary/20 border-primary text-slate-900" 
+                          : "bg-slate-900/5 border-slate-900/10 text-slate-600 hover:bg-slate-900/10"
                       )}
                     >
                       <div className="relative size-16 rounded-xl overflow-hidden shrink-0">
@@ -137,12 +137,12 @@ function PlaylistAddPage() {
                         />
                         {isSelected && (
                           <div className="absolute inset-0 bg-primary/40 flex items-center justify-center">
-                            {uses > 1 ? <span className="text-white font-black text-lg">×{uses}</span> : <CheckCircle2 size={24} className="text-white" />}
+                            {uses > 1 ? <span className="text-slate-900 font-black text-lg">×{uses}</span> : <CheckCircle2 size={24} className="text-slate-900" />}
                           </div>
                         )}
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className={cn("font-bold truncate", isSelected ? "text-white" : "text-slate-200")}>{video.title}</p>
+                        <p className={cn("font-bold truncate", isSelected ? "text-slate-900" : "text-slate-800")}>{video.title}</p>
                         <p className="text-[10px] opacity-60 uppercase font-bold tracking-widest">{video.duration}</p>
                       </div>
                     </div>
@@ -160,12 +160,12 @@ function PlaylistAddPage() {
               Secuencia ({selectedVideos.length})
             </h2>
             <p className="text-[11px] text-slate-500 -mt-2">
-              Duración total <span className="text-slate-300 font-bold">{formatDuration(total)}</span>
+              Duración total <span className="text-slate-700 font-bold">{formatDuration(total)}</span>
             </p>
             
             <div className="space-y-3 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
               {selectedVideos.map((video, index) => (
-                <div key={`${video.id}-${index}`} className="flex items-center gap-3 p-3 rounded-xl bg-white/5 border border-white/10">
+                <div key={`${video.id}-${index}`} className="flex items-center gap-3 p-3 rounded-xl bg-slate-900/5 border border-slate-900/10">
                   <span className="size-6 rounded-lg bg-primary/20 text-primary flex items-center justify-center text-[10px] font-bold">
                     {index + 1}
                   </span>
@@ -186,9 +186,9 @@ function PlaylistAddPage() {
               )}
             </div>
 
-            <div className="pt-6 border-t border-white/10 space-y-4">
+            <div className="pt-6 border-t border-slate-900/10 space-y-4">
               <div className="flex justify-between text-sm">
-                <span className="text-slate-400">Duración total estimada:</span>
+                <span className="text-slate-600">Duración total estimada:</span>
                 <span className="font-bold text-primary">--:--</span>
               </div>
               
@@ -198,7 +198,7 @@ function PlaylistAddPage() {
                 className={cn(
                   "w-full py-4 rounded-2xl font-bold text-lg transition-all shadow-xl active:scale-[0.98]",
                   (isSaving || selectedVideos.length === 0)
-                    ? "bg-slate-700 text-slate-400 cursor-not-allowed" 
+                    ? "bg-slate-200 text-slate-600 cursor-not-allowed" 
                     : "bg-primary hover:bg-primary/90 text-white shadow-primary/20"
                 )}
               >

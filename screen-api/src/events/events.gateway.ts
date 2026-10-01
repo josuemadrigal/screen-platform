@@ -209,6 +209,15 @@ export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect {
    * Sends a "reload-screen" command to every connected TV client linked with the
    * given screen code. Returns how many clients were notified.
    */
+  /** Mute or unmute every TV client linked with this screen code, without reloading. */
+  setMutedByCode(code: string, muted: boolean): number {
+    const targets = Array.from(this.screens.values()).filter((screen) => screen.screenName === code);
+    for (const screen of targets) {
+      this.server.to(screen.socketId).emit('control-screen', { action: 'set-muted', data: { muted } });
+    }
+    return targets.length;
+  }
+
   reloadScreensByCode(code: string): number {
     const targets = Array.from(this.screens.values()).filter((screen) => screen.screenName === code);
     for (const screen of targets) {

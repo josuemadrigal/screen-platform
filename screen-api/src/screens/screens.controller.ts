@@ -61,6 +61,13 @@ export class ScreensController {
   async update(@Param('id', ParseIntPipe) id: number, @Body() dto: UpdateScreenDto, @Req() req: Request) {
     const result = await this.screensService.update(id, dto);
     const userid = getUserIdFromRequest(req, this.jwtService);
+    const keys = Object.keys(dto ?? {});
+    if (keys.length === 1 && keys[0] === 'muted') {
+      // Sound toggle only: push it live, no reload needed.
+      await this.historyService.create({ userid, action: `Pantalla "${result.name}" ${result.muted ? 'silenciada' : 'con sonido'} (ID: ${id})` });
+      this.eventsGateway.setMutedByCode(result.code, result.muted);
+      return result;
+    }
     await this.historyService.create({ userid, action: `Pantalla actualizada: "${result.name}" (ID: ${id})` });
     // Tell any TV client linked to this screen to reload so it picks up the new config/playlist.
     this.eventsGateway.reloadScreensByCode(result.code);

@@ -41,17 +41,17 @@ export function ApkDownloadCard() {
       </h3>
 
       {isLoading ? (
-        <div className="h-16 rounded-2xl bg-white/5 animate-pulse" />
+        <div className="h-16 rounded-2xl bg-slate-900/5 animate-pulse" />
       ) : info ? (
         <div className="flex flex-wrap items-center justify-between gap-4">
-          <div className="text-sm text-slate-400 space-y-1">
+          <div className="text-sm text-slate-600 space-y-1">
             <p>
-              Versión <span className="text-white font-bold">{info.version}</span>
+              Versión <span className="text-slate-900 font-bold">{info.version}</span>
               <span className="text-slate-500"> · {mb} MB{date ? ` · publicada el ${date}` : ''}</span>
             </p>
             <p className="flex items-center gap-2">
               <Tv size={14} />
-              En el navegador de la TV abre <span className="font-mono text-white">{shortUrl()}</span>
+              En el navegador de la TV abre <span className="font-mono text-slate-900">{shortUrl()}</span>
             </p>
           </div>
           <a
@@ -64,9 +64,9 @@ export function ApkDownloadCard() {
           </a>
         </div>
       ) : (
-        <p className="text-sm text-slate-400">
-          Todavía no hay un APK publicado. Desde tu computadora, en <span className="font-mono text-white">screen-tv-client</span>, ejecuta
-          <span className="font-mono text-white"> npm run apk</span> y luego <span className="font-mono text-white">npm run apk:publish</span>.
+        <p className="text-sm text-slate-600">
+          Todavía no hay un APK publicado. Desde tu computadora, en <span className="font-mono text-slate-900">screen-tv-client</span>, ejecuta
+          <span className="font-mono text-slate-900"> npm run apk</span> y luego <span className="font-mono text-slate-900">npm run apk:publish</span>.
         </p>
       )}
     </div>

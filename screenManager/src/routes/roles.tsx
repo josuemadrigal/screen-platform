@@ -11,7 +11,7 @@ export const Route = createFileRoute('/roles')({
 })
 
 const inputCls =
-  'w-full px-5 py-3 rounded-2xl bg-white/5 border border-white/10 focus:ring-2 focus:ring-primary/50 focus:border-primary outline-none transition-all'
+  'w-full px-5 py-3 rounded-2xl bg-slate-900/5 border border-slate-900/10 focus:ring-2 focus:ring-primary/50 focus:border-primary outline-none transition-all'
 
 function RolesPage() {
   const { data: roles = [], isLoading } = useRoles()
@@ -36,7 +36,7 @@ function RolesPage() {
 
   if (!canView) {
     return (
-      <div className="glass rounded-[32px] p-12 text-center text-slate-400">
+      <div className="glass rounded-[32px] p-12 text-center text-slate-600">
         <ShieldCheck size={40} className="mx-auto mb-3 opacity-30" />
         Tu rol no tiene permiso para ver esta sección.
       </div>
@@ -47,7 +47,7 @@ function RolesPage() {
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
       <header className="flex justify-between items-end flex-wrap gap-4">
         <div>
-          <h1 className="text-4xl font-bold tracking-tight text-white/90">Roles y permisos</h1>
+          <h1 className="text-4xl font-bold tracking-tight text-slate-900">Roles y permisos</h1>
           <p className="text-slate-500 mt-2 font-medium">Cada usuario tiene un rol; el rol decide qué puede hacer en el panel.</p>
         </div>
         {canManage && (
@@ -70,7 +70,7 @@ function RolesPage() {
           </div>
           <PermissionPicker permissions={permissions} selected={draft.permissions} onChange={(p) => setDraft({ ...draft, permissions: p })} />
           <div className="flex justify-end gap-3">
-            <button type="button" onClick={() => setShowNew(false)} className="px-5 py-3 rounded-2xl bg-white/5 hover:bg-white/10 text-slate-300 font-bold">Cancelar</button>
+            <button type="button" onClick={() => setShowNew(false)} className="px-5 py-3 rounded-2xl bg-slate-900/5 hover:bg-slate-900/10 text-slate-700 font-bold">Cancelar</button>
             <button type="submit" disabled={createRole.isPending} className="flex items-center gap-2 px-6 py-3 rounded-2xl bg-primary hover:bg-primary/90 text-white font-bold disabled:opacity-50">
               <Save size={18} /> Crear rol
             </button>
@@ -116,17 +116,17 @@ function PermissionPicker({
             key={p.key}
             className={cn(
               'flex items-start gap-3 p-3 rounded-2xl border transition-all',
-              on ? 'bg-primary/10 border-primary/30' : 'bg-white/[0.02] border-white/5',
-              disabled || locked ? 'opacity-70 cursor-not-allowed' : 'cursor-pointer hover:border-white/20'
+              on ? 'bg-primary/10 border-primary/30' : 'bg-slate-900/[0.03] border-slate-900/5',
+              disabled || locked ? 'opacity-70 cursor-not-allowed' : 'cursor-pointer hover:border-slate-900/20'
             )}
           >
             <input type="checkbox" className="mt-1 accent-[var(--color-primary,#6366f1)]" checked={on} disabled={disabled || locked} onChange={() => toggle(p.key)} />
             <div>
-              <div className="text-sm font-bold text-white/90 flex items-center gap-2">
+              <div className="text-sm font-bold text-slate-900 flex items-center gap-2">
                 {permLabel(p.key)}
                 {locked && <Lock size={12} className="text-slate-500" />}
               </div>
-              <div className="text-xs text-slate-400">{p.description}</div>
+              <div className="text-xs text-slate-600">{p.description}</div>
             </div>
           </label>
         )
@@ -158,7 +158,7 @@ function RoleCard({ role, permissions, canManage, onSaved }: {
   const remove = async () => {
     const { isConfirmed } = await Swal.fire({
       title: `¿Eliminar el rol "${role.name}"?`, icon: 'warning', showCancelButton: true,
-      confirmButtonText: 'Eliminar', cancelButtonText: 'Cancelar', confirmButtonColor: '#ef4444', background: '#0f172a', color: '#f8fafc',
+      confirmButtonText: 'Eliminar', cancelButtonText: 'Cancelar', confirmButtonColor: '#ef4444', background: '#ffffff', color: '#0f172a',
     })
     if (!isConfirmed) return
     try {
@@ -172,18 +172,18 @@ function RoleCard({ role, permissions, canManage, onSaved }: {
     <div className="glass rounded-[32px] p-8 space-y-6">
       <div className="flex justify-between items-start gap-4">
         <div className="flex items-center gap-3">
-          <div className={cn('p-3 rounded-2xl', role.isSystem ? 'bg-primary/10 text-primary' : 'bg-white/5 text-slate-300')}>
+          <div className={cn('p-3 rounded-2xl', role.isSystem ? 'bg-primary/10 text-primary' : 'bg-slate-900/5 text-slate-700')}>
             <ShieldCheck size={24} />
           </div>
           <div>
-            <h3 className="text-xl font-bold text-white/90 flex items-center gap-2">
+            <h3 className="text-xl font-bold text-slate-900 flex items-center gap-2">
               {role.name}
               {role.isSystem && <span className="text-[10px] uppercase tracking-widest text-primary">sistema</span>}
             </h3>
-            {role.description && <p className="text-sm text-slate-400">{role.description}</p>}
+            {role.description && <p className="text-sm text-slate-600">{role.description}</p>}
           </div>
         </div>
-        <span className="flex items-center gap-1.5 text-xs text-slate-400 whitespace-nowrap">
+        <span className="flex items-center gap-1.5 text-xs text-slate-600 whitespace-nowrap">
           <Users size={14} /> {role.usersCount} usuario{role.usersCount === 1 ? '' : 's'}
         </span>
       </div>
@@ -202,7 +202,7 @@ function RoleCard({ role, permissions, canManage, onSaved }: {
             onClick={remove}
             disabled={role.isSystem || role.usersCount > 0}
             title={role.isSystem ? 'Rol del sistema' : role.usersCount > 0 ? 'Reasigna sus usuarios antes de eliminarlo' : 'Eliminar rol'}
-            className="flex items-center gap-2 px-4 py-2 rounded-xl text-red-400 hover:bg-red-500/10 transition-all disabled:opacity-30 disabled:hover:bg-transparent"
+            className="flex items-center gap-2 px-4 py-2 rounded-xl text-red-600 hover:bg-red-500/10 transition-all disabled:opacity-30 disabled:hover:bg-transparent"
           >
             <Trash2 size={16} /> Eliminar
           </button>

@@ -55,8 +55,8 @@ function VideoEditPage() {
         title: 'Video actualizado',
         timer: 1500,
         showConfirmButton: false,
-        background: '#0f172a',
-        color: '#f8fafc'
+        background: '#ffffff',
+        color: '#0f172a'
       })
       navigate({ to: '/videos' })
     } catch (error) {
@@ -64,8 +64,8 @@ function VideoEditPage() {
         icon: 'error',
         title: 'Error',
         text: 'No se pudo actualizar el video',
-        background: '#0f172a',
-        color: '#f8fafc'
+        background: '#ffffff',
+        color: '#0f172a'
       })
     } finally {
       setIsSaving(false)
@@ -83,13 +83,13 @@ function VideoEditPage() {
         <div className="flex items-center gap-4">
           <button 
             onClick={() => navigate({ to: '/videos' })}
-            className="p-3 rounded-2xl bg-white/5 hover:bg-white/10 text-slate-400 transition-all active:scale-95"
+            className="p-3 rounded-2xl bg-slate-900/5 hover:bg-slate-900/10 text-slate-600 transition-all active:scale-95"
           >
             <ArrowLeft size={20} />
           </button>
           <div className="space-y-1">
-            <h1 className="text-3xl font-bold tracking-tight text-white/90">Editar Video</h1>
-            <p className="text-slate-400 text-sm">Actualiza la información del contenido multimedia.</p>
+            <h1 className="text-3xl font-bold tracking-tight text-slate-900">Editar Video</h1>
+            <p className="text-slate-600 text-sm">Actualiza la información del contenido multimedia.</p>
           </div>
         </div>
       </header>
@@ -99,7 +99,7 @@ function VideoEditPage() {
           <form onSubmit={handleSave} className="glass p-8 rounded-[32px] space-y-8">
             <div className="space-y-6">
               <div className="space-y-2">
-                <label className="text-sm font-bold text-slate-400 ml-1">Título del Video</label>
+                <label className="text-sm font-bold text-slate-600 ml-1">Título del Video</label>
                 <div className="relative group">
                   <Film className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-primary transition-colors" size={18} />
                   <input 
@@ -107,7 +107,7 @@ function VideoEditPage() {
                     value={title}
                     onChange={(e) => setTitle(e.target.value)}
                     required
-                    className="w-full pl-12 pr-4 py-4 bg-white/5 border border-white/10 rounded-2xl focus:ring-2 focus:ring-primary/50 focus:border-primary outline-none transition-all"
+                    className="w-full pl-12 pr-4 py-4 bg-slate-900/5 border border-slate-900/10 rounded-2xl focus:ring-2 focus:ring-primary/50 focus:border-primary outline-none transition-all"
                     placeholder="Ej: Promo Verano 2024"
                   />
                 </div>
@@ -115,7 +115,7 @@ function VideoEditPage() {
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-2">
-                  <label className="text-sm font-bold text-slate-400 ml-1">Fecha de Expiración</label>
+                  <label className="text-sm font-bold text-slate-600 ml-1">Fecha de Expiración</label>
                   <div className="relative group">
                     <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-primary transition-colors" size={18} />
                     <input 
@@ -129,17 +129,17 @@ function VideoEditPage() {
                         setDateout(next)
                       }}
                       required
-                      className="w-full pl-12 pr-4 py-4 bg-white/5 border border-white/10 rounded-2xl focus:ring-2 focus:ring-primary/50 focus:border-primary outline-none transition-all color-scheme-dark"
+                      className="w-full pl-12 pr-4 py-4 bg-slate-900/5 border border-slate-900/10 rounded-2xl focus:ring-2 focus:ring-primary/50 focus:border-primary outline-none transition-all color-scheme-dark"
                     />
                   </div>
                 </div>
 
                 <div className="space-y-2">
-                  <label className="text-sm font-bold text-slate-400 ml-1">Estado</label>
+                  <label className="text-sm font-bold text-slate-600 ml-1">Estado</label>
                   <select 
                     value={status}
                     onChange={(e) => setStatus(e.target.value)}
-                    className="w-full px-4 py-4 bg-white/5 border border-white/10 rounded-2xl focus:ring-2 focus:ring-primary/50 focus:border-primary outline-none transition-all appearance-none"
+                    className="w-full px-4 py-4 bg-slate-900/5 border border-slate-900/10 rounded-2xl focus:ring-2 focus:ring-primary/50 focus:border-primary outline-none transition-all appearance-none"
                   >
                     <option value="1">Activo</option>
                     <option value="0">Inactivo</option>
@@ -163,39 +163,39 @@ function VideoEditPage() {
 
         <div className="space-y-6">
           <div className="glass p-6 rounded-[32px] space-y-4">
-            <h2 className="text-sm font-bold text-slate-400 uppercase tracking-widest px-2">Vista Previa</h2>
-            <div className="aspect-video rounded-2xl overflow-hidden bg-slate-900 border border-white/5 shadow-2xl relative group">
+            <h2 className="text-sm font-bold text-slate-600 uppercase tracking-widest px-2">Vista Previa</h2>
+            <div className="aspect-video rounded-2xl overflow-hidden bg-white border border-slate-900/5 shadow-2xl relative group">
               <video 
                 src={videoUrl}
                 controls
                 className="w-full h-full object-cover"
               />
-              <div className="absolute top-4 left-4 flex items-center gap-2 px-2.5 py-1 rounded-full bg-black/40 backdrop-blur-md border border-white/10">
+              <div className="absolute top-4 left-4 flex items-center gap-2 px-2.5 py-1 rounded-full bg-black/50 backdrop-blur-md border border-white/20">
                 <Circle size={6} fill={status === '1' ? "#10b981" : "#ef4444"} className={status === '1' ? "text-emerald-500" : "text-red-500"} />
                 <span className="text-[10px] font-bold text-white uppercase tracking-tighter">
-                  {status === '1' ? 'Online' : 'Offline'}
+                  {status === '1' ? 'Activo' : 'Inactivo'}
                 </span>
               </div>
             </div>
             <div className="p-2 space-y-3">
               <div className="flex items-center justify-between">
                 <span className="text-xs text-slate-500">ID del Video</span>
-                <span className="text-xs font-mono text-slate-300">#{id}</span>
+                <span className="text-xs font-mono text-slate-700">#{id}</span>
               </div>
               <div className="flex items-center justify-between">
                 <span className="text-xs text-slate-500">Duración</span>
-                <span className="text-xs font-bold text-white">{data.duration}</span>
+                <span className="text-xs font-bold text-slate-900">{data.duration}</span>
               </div>
               <div className="flex items-center justify-between">
                 <span className="text-xs text-slate-500">Formato</span>
-                <span className="text-xs font-bold text-white uppercase">{data.path.split('.').pop()}</span>
+                <span className="text-xs font-bold text-slate-900 uppercase">{data.path.split('.').pop()}</span>
               </div>
             </div>
           </div>
 
           <div className="p-6 rounded-[32px] bg-amber-500/10 border border-amber-500/20 space-y-2">
-            <p className="text-xs font-bold text-amber-500 uppercase tracking-wider">Aviso</p>
-            <p className="text-xs text-amber-200/60 leading-relaxed">
+            <p className="text-xs font-bold text-amber-700 uppercase tracking-wider">Aviso</p>
+            <p className="text-xs text-amber-900/70 leading-relaxed">
               Los cambios en el estado afectarán la visibilidad del video en todas las playlists donde esté asignado.
             </p>
           </div>

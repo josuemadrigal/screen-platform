@@ -57,8 +57,8 @@ function ScreenEditPage() {
         title: '¡Guardado!',
         text: 'La configuración de la pantalla se ha actualizado correctamente.',
         icon: 'success',
-        background: '#0f172a',
-        color: '#f8fafc',
+        background: '#ffffff',
+        color: '#0f172a',
         confirmButtonColor: '#f7931e',
       })
       navigate({ to: '/screens' })
@@ -81,12 +81,12 @@ function ScreenEditPage() {
         <div className="flex items-center gap-4">
           <button 
             onClick={() => navigate({ to: '/screens' })}
-            className="p-3 rounded-2xl bg-white/5 hover:bg-white/10 text-slate-400 hover:text-white transition-all"
+            className="p-3 rounded-2xl bg-slate-900/5 hover:bg-slate-900/10 text-slate-600 hover:text-slate-900 transition-all"
           >
             <ArrowLeft size={24} />
           </button>
           <div>
-            <h1 className="text-4xl font-bold tracking-tight text-white/90">Editar Pantalla</h1>
+            <h1 className="text-4xl font-bold tracking-tight text-slate-900">Editar Pantalla</h1>
             <p className="text-slate-500 font-medium">Configura el hardware y asigna contenido</p>
           </div>
         </div>
@@ -97,27 +97,27 @@ function ScreenEditPage() {
           <div className="glass p-8 rounded-[32px] space-y-6">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
               <div className="space-y-2">
-                <label className="text-sm font-bold text-slate-400 uppercase tracking-widest flex items-center gap-2">
+                <label className="text-sm font-bold text-slate-600 uppercase tracking-widest flex items-center gap-2">
                   <Monitor size={14} /> Nombre de la Pantalla
                 </label>
                 <input
                   type="text"
                   value={formData.name}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  className="w-full bg-white/5 border border-white/10 rounded-2xl py-4 px-5 text-white focus:outline-none focus:border-primary transition-all"
+                  className="w-full bg-slate-900/5 border border-slate-900/10 rounded-2xl py-4 px-5 text-slate-900 focus:outline-none focus:border-primary transition-all"
                   placeholder="Ej: Monitor Entrada"
                   required
                 />
               </div>
               <div className="space-y-2">
-                <label className="text-sm font-bold text-slate-400 uppercase tracking-widest flex items-center gap-2">
+                <label className="text-sm font-bold text-slate-600 uppercase tracking-widest flex items-center gap-2">
                   <Hash size={14} /> Código Identificador
                 </label>
                 <input
                   type="text"
                   value={formData.code}
                   onChange={(e) => setFormData({ ...formData, code: e.target.value.toUpperCase() })}
-                  className="w-full bg-white/5 border border-white/10 rounded-2xl py-4 px-5 text-white font-mono tracking-wider focus:outline-none focus:border-primary transition-all"
+                  className="w-full bg-slate-900/5 border border-slate-900/10 rounded-2xl py-4 px-5 text-slate-900 font-mono tracking-wider focus:outline-none focus:border-primary transition-all"
                   placeholder="PANT-01"
                   required
                 />
@@ -125,27 +125,27 @@ function ScreenEditPage() {
             </div>
 
             <div className="space-y-2">
-              <label className="text-sm font-bold text-slate-400 uppercase tracking-widest flex items-center gap-2">
+              <label className="text-sm font-bold text-slate-600 uppercase tracking-widest flex items-center gap-2">
                 <MapPin size={14} /> Ubicación Física
               </label>
               <input
                 type="text"
                 value={formData.location}
                 onChange={(e) => setFormData({ ...formData, location: e.target.value })}
-                className="w-full bg-white/5 border border-white/10 rounded-2xl py-4 px-5 text-white focus:outline-none focus:border-primary transition-all"
+                className="w-full bg-slate-900/5 border border-slate-900/10 rounded-2xl py-4 px-5 text-slate-900 focus:outline-none focus:border-primary transition-all"
                 placeholder="Ej: Recepción, Piso 1"
                 required
               />
             </div>
 
             <div className="space-y-2">
-              <label className="text-sm font-bold text-slate-400 uppercase tracking-widest flex items-center gap-2">
+              <label className="text-sm font-bold text-slate-600 uppercase tracking-widest flex items-center gap-2">
                 <Layout size={14} /> Playlist Asignada
               </label>
               <select
                 value={formData.playlist}
                 onChange={(e) => setFormData({ ...formData, playlist: e.target.value })}
-                className="w-full bg-[#1e293b] border border-white/10 rounded-2xl py-4 px-5 text-white focus:outline-none focus:border-primary transition-all appearance-none"
+                className="w-full bg-slate-900/5 border border-slate-900/10 rounded-2xl py-4 px-5 text-slate-900 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/30 transition-all appearance-none"
                 required
               >
                 <option value="">Selecciona una playlist</option>
@@ -161,29 +161,29 @@ function ScreenEditPage() {
 
         <div className="space-y-6">
           <div className="glass p-8 rounded-[32px] space-y-6">
-            <h3 className="font-bold text-white uppercase tracking-widest text-sm">Estado del Monitor</h3>
+            <h3 className="font-bold text-slate-900 uppercase tracking-widest text-sm">Estado del Monitor</h3>
             <div className="flex flex-col gap-4">
               <button
                 type="button"
                 onClick={() => setFormData({ ...formData, status: 1 })}
                 className={cn(
                   "flex items-center justify-between p-4 rounded-2xl border transition-all",
-                  formData.status === 1 ? "bg-emerald-500/10 border-emerald-500/50 text-emerald-400" : "bg-white/5 border-white/10 text-slate-500"
+                  formData.status === 1 ? "bg-emerald-500/10 border-emerald-500/50 text-emerald-600" : "bg-slate-900/5 border-slate-900/10 text-slate-500"
                 )}
               >
                 <span className="font-bold">Activo</span>
-                <div className={cn("size-3 rounded-full", formData.status === 1 ? "bg-emerald-500 animate-pulse" : "bg-slate-700")}></div>
+                <div className={cn("size-3 rounded-full", formData.status === 1 ? "bg-emerald-500 animate-pulse" : "bg-slate-200")}></div>
               </button>
               <button
                 type="button"
                 onClick={() => setFormData({ ...formData, status: 0 })}
                 className={cn(
                   "flex items-center justify-between p-4 rounded-2xl border transition-all",
-                  formData.status === 0 ? "bg-red-500/10 border-red-500/50 text-red-400" : "bg-white/5 border-white/10 text-slate-500"
+                  formData.status === 0 ? "bg-red-500/10 border-red-500/50 text-red-600" : "bg-slate-900/5 border-slate-900/10 text-slate-500"
                 )}
               >
                 <span className="font-bold">Inactivo</span>
-                <div className={cn("size-3 rounded-full", formData.status === 0 ? "bg-red-500" : "bg-slate-700")}></div>
+                <div className={cn("size-3 rounded-full", formData.status === 0 ? "bg-red-500" : "bg-slate-200")}></div>
               </button>
             </div>
           </div>
@@ -205,17 +205,17 @@ function ScreenEditPage() {
                   icon: 'warning',
                   showCancelButton: true,
                   confirmButtonColor: '#ef4444',
-                  cancelButtonColor: '#334155',
+                  cancelButtonColor: '#64748b',
                   confirmButtonText: 'Sí, eliminar',
-                  background: '#0f172a',
-                  color: '#f8fafc',
+                  background: '#ffffff',
+                  color: '#0f172a',
                 })
                 if (result.isConfirmed) {
                   await api.delete(`/screens/${id}`)
                   navigate({ to: '/screens' })
                 }
               }}
-              className="w-full bg-red-500/10 hover:bg-red-500/20 text-red-400 font-bold py-4 rounded-2xl flex items-center justify-center gap-2 transition-all border border-red-500/20"
+              className="w-full bg-red-500/10 hover:bg-red-500/20 text-red-600 font-bold py-4 rounded-2xl flex items-center justify-center gap-2 transition-all border border-red-500/20"
             >
               <Trash2 size={20} />
               Eliminar Monitor

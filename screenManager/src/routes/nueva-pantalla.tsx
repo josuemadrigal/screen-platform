@@ -68,8 +68,8 @@ function PantallaAddPage() {
           <Monitor size={32} />
         </div>
         <div>
-          <h1 className="text-4xl font-bold tracking-tight text-white/90">Nueva Pantalla</h1>
-          <p className="text-slate-400 mt-1">Registra un nuevo dispositivo en tu red.</p>
+          <h1 className="text-4xl font-bold tracking-tight text-slate-900">Nueva Pantalla</h1>
+          <p className="text-slate-600 mt-1">Registra un nuevo dispositivo en tu red.</p>
         </div>
       </header>
 
@@ -78,7 +78,7 @@ function PantallaAddPage() {
           <div className="glass p-8 rounded-3xl space-y-6">
             <div className="space-y-4">
               <div className="space-y-2">
-                <label className="text-sm font-medium text-slate-400 ml-1 flex items-center gap-2">
+                <label className="text-sm font-medium text-slate-600 ml-1 flex items-center gap-2">
                   <Monitor size={14} /> Nombre del Dispositivo
                 </label>
                 <input 
@@ -86,13 +86,13 @@ function PantallaAddPage() {
                   value={formData.name}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                   placeholder="Ej. Pantalla Recepción Principal"
-                  className="w-full px-6 py-4 rounded-2xl bg-white/5 border border-white/10 focus:ring-2 focus:ring-primary/50 focus:border-primary outline-none transition-all"
+                  className="w-full px-6 py-4 rounded-2xl bg-slate-900/5 border border-slate-900/10 focus:ring-2 focus:ring-primary/50 focus:border-primary outline-none transition-all"
                   required
                 />
               </div>
 
               <div className="space-y-2">
-                <label className="text-sm font-medium text-slate-400 ml-1 flex items-center gap-2">
+                <label className="text-sm font-medium text-slate-600 ml-1 flex items-center gap-2">
                   <Hash size={14} /> Código Identificador
                 </label>
                 <input 
@@ -100,13 +100,13 @@ function PantallaAddPage() {
                   value={formData.code}
                   onChange={(e) => setFormData({ ...formData, code: e.target.value.toUpperCase() })}
                   placeholder="Ej. REC-01"
-                  className="w-full px-6 py-4 rounded-2xl bg-white/5 border border-white/10 focus:ring-2 focus:ring-primary/50 focus:border-primary outline-none transition-all uppercase font-mono tracking-wider"
+                  className="w-full px-6 py-4 rounded-2xl bg-slate-900/5 border border-slate-900/10 focus:ring-2 focus:ring-primary/50 focus:border-primary outline-none transition-all uppercase font-mono tracking-wider"
                   required
                 />
               </div>
 
               <div className="space-y-2">
-                <label className="text-sm font-medium text-slate-400 ml-1 flex items-center gap-2">
+                <label className="text-sm font-medium text-slate-600 ml-1 flex items-center gap-2">
                   <MapPin size={14} /> Ubicación Física
                 </label>
                 <input 
@@ -114,7 +114,7 @@ function PantallaAddPage() {
                   value={formData.location}
                   onChange={(e) => setFormData({ ...formData, location: e.target.value })}
                   placeholder="Ej. Hall Principal, Piso 1"
-                  className="w-full px-6 py-4 rounded-2xl bg-white/5 border border-white/10 focus:ring-2 focus:ring-primary/50 focus:border-primary outline-none transition-all"
+                  className="w-full px-6 py-4 rounded-2xl bg-slate-900/5 border border-slate-900/10 focus:ring-2 focus:ring-primary/50 focus:border-primary outline-none transition-all"
                   required
                 />
               </div>
@@ -125,13 +125,13 @@ function PantallaAddPage() {
         <div className="space-y-6">
           <div className="glass p-8 rounded-3xl space-y-6">
             <div className="space-y-2">
-              <label className="text-sm font-medium text-slate-400 ml-1 flex items-center gap-2">
+              <label className="text-sm font-medium text-slate-600 ml-1 flex items-center gap-2">
                 <Library size={14} /> Asignar Playlist Inicial
               </label>
               <select 
                 value={formData.playlist}
                 onChange={(e) => setFormData({ ...formData, playlist: e.target.value })}
-                className="w-full px-6 py-4 rounded-2xl bg-white/5 border border-white/10 focus:ring-2 focus:ring-primary/50 focus:border-primary outline-none transition-all appearance-none cursor-pointer"
+                className="w-full px-6 py-4 rounded-2xl bg-slate-900/5 border border-slate-900/10 focus:ring-2 focus:ring-primary/50 focus:border-primary outline-none transition-all appearance-none cursor-pointer"
               >
                 <option value="none">Sin Playlist (Manual)</option>
                 {playlists.map(p => (
@@ -144,7 +144,7 @@ function PantallaAddPage() {
               <h3 className="font-bold text-primary flex items-center gap-2">
                 <CheckCircle2 size={16} /> Información
               </h3>
-              <p className="text-xs text-slate-400 leading-relaxed">
+              <p className="text-xs text-slate-600 leading-relaxed">
                 Una vez registrada, podrás controlar la pantalla desde el monitor en tiempo real usando el código asignado.
               </p>
             </div>
@@ -155,7 +155,7 @@ function PantallaAddPage() {
               className={cn(
                 "w-full py-4 rounded-2xl font-bold text-lg transition-all shadow-xl active:scale-[0.98]",
                 isSaving 
-                  ? "bg-slate-700 text-slate-400 cursor-not-allowed" 
+                  ? "bg-slate-200 text-slate-600 cursor-not-allowed" 
                   : "bg-primary hover:bg-primary/90 text-white shadow-primary/20"
               )}
             >

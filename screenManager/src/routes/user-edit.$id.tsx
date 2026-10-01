@@ -11,7 +11,7 @@ export const Route = createFileRoute('/user-edit/$id')({
 })
 
 const inputCls =
-  'w-full px-5 py-3.5 rounded-2xl bg-white/5 border border-white/10 focus:ring-2 focus:ring-primary/50 focus:border-primary outline-none transition-all'
+  'w-full px-5 py-3.5 rounded-2xl bg-slate-900/5 border border-slate-900/10 focus:ring-2 focus:ring-primary/50 focus:border-primary outline-none transition-all'
 const labelCls = 'text-xs font-bold text-slate-500 uppercase tracking-widest ml-1'
 
 function UserEditPage() {
@@ -48,7 +48,7 @@ function UserEditPage() {
         status: form.status,
       })
       if (isSelf) await refreshMe()
-      await Swal.fire({ icon: 'success', title: 'Usuario actualizado', timer: 1400, showConfirmButton: false, background: '#0f172a', color: '#f8fafc' })
+      await Swal.fire({ icon: 'success', title: 'Usuario actualizado', timer: 1400, showConfirmButton: false, background: '#ffffff', color: '#0f172a' })
       navigate({ to: '/users' })
     } catch (error) {
       Swal.fire('Error', apiError(error, 'No se pudo actualizar el usuario'), 'error')
@@ -63,7 +63,7 @@ function UserEditPage() {
       // Someone else's password: users.manage lets us reset it without knowing the current one.
       await changePassword.mutateAsync({ id: userId, newPassword: pw.newPassword })
       setPw({ newPassword: '', confirm: '' })
-      Swal.fire({ icon: 'success', title: 'Contraseña actualizada', timer: 1400, showConfirmButton: false, background: '#0f172a', color: '#f8fafc' })
+      Swal.fire({ icon: 'success', title: 'Contraseña actualizada', timer: 1400, showConfirmButton: false, background: '#ffffff', color: '#0f172a' })
     } catch (error) {
       Swal.fire('Error', apiError(error, 'No se pudo cambiar la contraseña'), 'error')
     }
@@ -80,8 +80,8 @@ function UserEditPage() {
           <UserCog size={32} />
         </div>
         <div>
-          <h1 className="text-4xl font-bold tracking-tight text-white/90">{user.name}</h1>
-          <p className="text-slate-400 mt-1">
+          <h1 className="text-4xl font-bold tracking-tight text-slate-900">{user.name}</h1>
+          <p className="text-slate-600 mt-1">
             @{user.user} · última conexión {formatDateTime(user.lastLoginAt)}
           </p>
         </div>
@@ -135,15 +135,15 @@ function UserEditPage() {
 
       <form id="password" onSubmit={savePassword} className="glass rounded-[32px] p-8 space-y-6">
         <h2 className="text-xl font-bold flex items-center gap-2">
-          <KeyRound size={20} className="text-amber-400" />
+          <KeyRound size={20} className="text-amber-600" />
           {isSelf ? 'Cambiar mi contraseña' : 'Restablecer contraseña'}
         </h2>
         {isSelf && (
-          <p className="text-sm text-slate-400">Para cambiar tu propia contraseña usa la sección "Mi cuenta" en Ajustes, donde se pide la contraseña actual.</p>
+          <p className="text-sm text-slate-600">Para cambiar tu propia contraseña usa la sección "Mi cuenta" en Ajustes, donde se pide la contraseña actual.</p>
         )}
         {!isSelf && (
           <>
-            <p className="text-sm text-slate-400">Asigna una contraseña nueva a este usuario. No hace falta conocer la actual.</p>
+            <p className="text-sm text-slate-600">Asigna una contraseña nueva a este usuario. No hace falta conocer la actual.</p>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-2">
                 <label className={labelCls}>Nueva contraseña</label>
@@ -156,7 +156,7 @@ function UserEditPage() {
                     minLength={6}
                     required
                   />
-                  <button type="button" onClick={() => setShowPw(!showPw)} className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-500 hover:text-white">
+                  <button type="button" onClick={() => setShowPw(!showPw)} className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-900">
                     {showPw ? <EyeOff size={18} /> : <Eye size={18} />}
                   </button>
                 </div>

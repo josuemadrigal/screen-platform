@@ -10,6 +10,8 @@ export interface Screen {
   playlist?: string;
   /** TV clients connected right now with this code (from the socket gateway). */
   connected?: number;
+  /** Sound off on the TV. */
+  muted?: boolean;
   createdAt: string;
   updatedAt: string;
 }
