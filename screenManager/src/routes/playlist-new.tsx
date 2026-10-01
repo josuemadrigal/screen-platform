@@ -5,6 +5,7 @@ import { Library, Trash2, Video, Search, CheckCircle2 } from 'lucide-react'
 import { cn } from '../lib/utils'
 import Swal from 'sweetalert2'
 import { API_URL } from '../lib/config'
+import { totalDuration, formatDuration } from '../lib/media'
 
 export const Route = createFileRoute('/playlist-new')({
   component: PlaylistAddPage,
@@ -31,13 +32,11 @@ function PlaylistAddPage() {
     fetchVideos()
   }, [])
 
-  const toggleVideo = (video: any) => {
-    if (selectedVideos.find(v => v.id === video.id)) {
-      setSelectedVideos(selectedVideos.filter(v => v.id !== video.id))
-    } else {
-      setSelectedVideos([...selectedVideos, video])
-    }
-  }
+  // Un mismo video puede ir varias veces en la secuencia.
+  const addVideo = (video: any) => setSelectedVideos((prev) => [...prev, video])
+  const removeAt = (index: number) => setSelectedVideos((prev) => prev.filter((_, i) => i !== index))
+  const timesUsed = (id: number) => selectedVideos.filter((v) => v.id === id).length
+  const total = totalDuration(selectedVideos)
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -117,11 +116,13 @@ function PlaylistAddPage() {
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 max-h-[500px] overflow-y-auto pr-2 custom-scrollbar">
                 {filteredVideos.map(video => {
-                  const isSelected = selectedVideos.find(v => v.id === video.id)
+                  const uses = timesUsed(video.id)
+                  const isSelected = uses > 0
                   return (
                     <div 
                       key={video.id}
-                      onClick={() => toggleVideo(video)}
+                      onClick={() => addVideo(video)}
+                      title="Clic para añadir a la secuencia (puede repetirse)"
                       className={cn(
                         "p-4 rounded-2xl border transition-all cursor-pointer flex items-center gap-4 group",
                         isSelected 
@@ -136,7 +137,7 @@ function PlaylistAddPage() {
                         />
                         {isSelected && (
                           <div className="absolute inset-0 bg-primary/40 flex items-center justify-center">
-                            <CheckCircle2 size={24} className="text-white" />
+                            {uses > 1 ? <span className="text-white font-black text-lg">×{uses}</span> : <CheckCircle2 size={24} className="text-white" />}
                           </div>
                         )}
                       </div>
@@ -158,16 +159,20 @@ function PlaylistAddPage() {
               <Video size={20} className="text-primary" />
               Secuencia ({selectedVideos.length})
             </h2>
+            <p className="text-[11px] text-slate-500 -mt-2">
+              Duración total <span className="text-slate-300 font-bold">{formatDuration(total)}</span>
+            </p>
             
             <div className="space-y-3 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
               {selectedVideos.map((video, index) => (
-                <div key={video.id} className="flex items-center gap-3 p-3 rounded-xl bg-white/5 border border-white/10">
+                <div key={`${video.id}-${index}`} className="flex items-center gap-3 p-3 rounded-xl bg-white/5 border border-white/10">
                   <span className="size-6 rounded-lg bg-primary/20 text-primary flex items-center justify-center text-[10px] font-bold">
                     {index + 1}
                   </span>
                   <span className="flex-1 text-sm font-medium truncate">{video.title}</span>
                   <button 
-                    onClick={() => toggleVideo(video)}
+                    type="button"
+                    onClick={() => removeAt(index)}
                     className="p-1.5 hover:bg-red-500/10 text-slate-500 hover:text-red-500 transition-colors"
                   >
                     <Trash2 size={14} />

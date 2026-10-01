@@ -232,7 +232,11 @@ reinicia con él: un par de segundos de pantalla negra, una vez por actualizaci�
 - Cambios nativos (plugins de Capacitor, manifest, versión de Capacitor): hace falta un APK
   nuevo con `npm run apk`. Plugins actuales: Filesystem, Preferences, App (botón Atrás del
   control: sale del modo reproducción en vez de cerrar la app; APKs anteriores a la 1.6 no lo
-  tienen) y capacitor-updater. Al instalarlo, el plugin vuelve al paquete integrado en el APK y
+  tienen) y capacitor-updater.
+- `android-config/MainActivity.java` (aplicado por `npm run android:setup`) sirve los videos
+  descargados con soporte real de rangos HTTP. Sin él, el WebView congela los videos grandes
+  (más de unos MB) tras el primer fotograma porque la respuesta por defecto de Capacitor a un
+  `Range` devuelve el archivo desde el byte 0. Requiere APK 1.7 o superior. Al instalarlo, el plugin vuelve al paquete integrado en el APK y
   sigue actualizándose desde ahí.
 - `npm run apk` sella el commit actual en el APK (`VITE_BUNDLE_VERSION`). Genera el APK desde un
   commit ya subido; si no, la app verá una versión distinta en el servidor y se "actualizará"

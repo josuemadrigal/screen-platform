@@ -2,6 +2,7 @@ import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import * as Ffmpeg from 'fluent-ffmpeg';
 import * as path from 'path';
+import { statSync } from 'fs';
 import { Video } from '@prisma/client';
 
 @Injectable()
@@ -23,14 +24,23 @@ export class StorageService {
     });
   }
 
+  /** Size in bytes of the stored file, or null when it is missing on disk. */
+  private fileSize(fileName: string): number | null {
+    try {
+      return statSync(path.join(process.cwd(), 'storage', fileName)).size;
+    } catch {
+      return null;
+    }
+  }
+
   async findAll() {
-    return this.prisma.video.findMany();
+    const videos = await this.prisma.video.findMany();
+    return videos.map((v) => ({ ...v, size: this.fileSize(v.fileName) }));
   }
 
   async findOne(id: number) {
-    return this.prisma.video.findUnique({
-      where: { id },
-    });
+    const video = await this.prisma.video.findUnique({ where: { id } });
+    return video ? { ...video, size: this.fileSize(video.fileName) } : video;
   }
 
   async update(id: number, data: any) {

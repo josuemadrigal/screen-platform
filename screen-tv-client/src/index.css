@@ -52,6 +52,15 @@
 
 @layer utilities {
   /* Animaciones TV */
+  @keyframes breathe {
+    0%, 100% { transform: scale(1); opacity: 0.85; }
+    50% { transform: scale(1.06); opacity: 1; }
+  }
+  @keyframes dots {
+    0% { clip-path: inset(0 100% 0 0); }
+    100% { clip-path: inset(0 -10% 0 0); }
+  }
+
   @keyframes fadeSlideUp {
     from {
       opacity: 0;

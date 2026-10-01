@@ -434,17 +434,8 @@ export function ClientPage() {
           })
           break
         case 'toggle-fullscreen':
+          // El modo reproducción es propio de la app, así que el comando remoto siempre funciona.
           toggleFullscreen()
-          // Browsers only allow fullscreen from a user gesture on the device itself, so a remote
-          // command may be refused. If it was, ask the person at the TV to press OK once.
-          setTimeout(() => {
-            const active = !!(document.fullscreenElement || (document as any).webkitFullscreenElement)
-            if (!active) {
-              setBannerText('Pulsa OK en el control para pantalla completa')
-              setShowBanner(true)
-              setTimeout(() => setShowBanner(false), 15000)
-            }
-          }, 400)
           break
         case 'change-video':
           if (actionData?.direction === 'next') handleNext()
@@ -598,8 +589,16 @@ export function ClientPage() {
       )}>
         {/* Capa de espera: solo ante un fallo real (ver `standby`), nunca en el cambio entre videos. */}
         <div className={cn('absolute inset-0 z-0 flex-col items-center justify-center gap-6 bg-[#020617]', standby ? 'flex' : 'hidden')}>
-          <img src="/icon-512.png" alt="" className="w-40 h-40 rounded-[28px] opacity-90 drop-shadow-2xl" draggable={false} />
-          <span className="text-2xl font-black tracking-[0.35em] text-white/40 uppercase">Screen TV</span>
+          <img src="/icon-512.png" alt="" className="w-36 h-36 rounded-[28px] opacity-90 drop-shadow-2xl animate-[breathe_2.4s_ease-in-out_infinite]" draggable={false} />
+          <div className="flex items-center gap-3 text-white/70">
+            <span className="size-5 rounded-full border-2 border-white/20 border-t-indigo-400 animate-spin" />
+            <span className="text-xl font-bold tracking-[0.2em] uppercase">
+              {store.progress
+                ? `Descargando videos ${Math.min(store.progress.done + 1, store.progress.total)}/${store.progress.total}`
+                : 'Cargando'}
+              <span className="animate-[dots_1.5s_steps(4,end)_infinite]">…</span>
+            </span>
+          </div>
         </div>
 
         {videoList.length > 0 ? (

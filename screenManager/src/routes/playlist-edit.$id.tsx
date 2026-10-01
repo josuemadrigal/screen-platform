@@ -5,6 +5,7 @@ import { Library, Trash2, Video, Search, CheckCircle2, ArrowLeft, Save, GripVert
 import { cn } from '../lib/utils'
 import Swal from 'sweetalert2'
 import { API_URL } from '../lib/config'
+import { totalDuration, formatDuration } from '../lib/media'
 
 export const Route = createFileRoute('/playlist-edit/$id')({
   component: PlaylistEditPage,
@@ -46,13 +47,11 @@ function PlaylistEditPage() {
     fetchData()
   }, [id])
 
-  const toggleVideo = (video: any) => {
-    if (selectedVideos.find(v => v.id === video.id)) {
-      setSelectedVideos(selectedVideos.filter(v => v.id !== video.id))
-    } else {
-      setSelectedVideos([...selectedVideos, video])
-    }
-  }
+  // Un mismo video puede ir varias veces en la secuencia (p. ej. una promo cada 3 videos).
+  const addVideo = (video: any) => setSelectedVideos((prev) => [...prev, video])
+  const removeAt = (index: number) => setSelectedVideos((prev) => prev.filter((_, i) => i !== index))
+  const timesUsed = (id: number) => selectedVideos.filter((v) => v.id === id).length
+  const total = totalDuration(selectedVideos)
 
   const handleDragStart = (index: number) => {
     dragIndex.current = index
@@ -171,11 +170,13 @@ function PlaylistEditPage() {
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 max-h-[500px] overflow-y-auto pr-2 custom-scrollbar">
                 {filteredVideos.map(video => {
-                  const isSelected = selectedVideos.find(v => v.id === video.id)
+                  const uses = timesUsed(video.id)
+                  const isSelected = uses > 0
                   return (
                     <div
                       key={video.id}
-                      onClick={() => toggleVideo(video)}
+                      onClick={() => addVideo(video)}
+                      title="Clic para añadir a la secuencia (puede repetirse)"
                       className={cn(
                         "p-4 rounded-2xl border transition-all cursor-pointer flex items-center gap-4 group",
                         isSelected
@@ -190,7 +191,7 @@ function PlaylistEditPage() {
                         />
                         {isSelected && (
                           <div className="absolute inset-0 bg-primary/40 flex items-center justify-center">
-                            <CheckCircle2 size={24} className="text-white" />
+                            {uses > 1 ? <span className="text-white font-black text-lg">×{uses}</span> : <CheckCircle2 size={24} className="text-white" />}
                           </div>
                         )}
                       </div>
@@ -214,13 +215,13 @@ function PlaylistEditPage() {
             </h2>
 
             <p className="text-[11px] text-slate-500 -mt-2">
-              Arrastra para reordenar
+              Arrastra para reordenar · Duración total <span className="text-slate-300 font-bold">{formatDuration(total)}</span>
             </p>
 
             <div className="space-y-2 max-h-[400px] overflow-y-auto pr-1 custom-scrollbar">
               {selectedVideos.map((video, index) => (
                 <div
-                  key={video.id}
+                  key={`${video.id}-${index}`}
                   draggable
                   onDragStart={() => handleDragStart(index)}
                   onDragEnter={() => handleDragEnter(index)}
@@ -250,7 +251,7 @@ function PlaylistEditPage() {
                   <span className="flex-1 text-sm font-medium truncate text-slate-200">{video.title}</span>
                   <button
                     type="button"
-                    onClick={() => toggleVideo(video)}
+                    onClick={() => removeAt(index)}
                     className="p-1.5 rounded-lg hover:bg-red-500/10 text-slate-600 hover:text-red-500 transition-colors shrink-0"
                   >
                     <Trash2 size={14} />

@@ -2,6 +2,7 @@ import { useState, useRef } from 'react'
 import { useNavigate } from '@tanstack/react-router'
 import { Play, Calendar, MoreVertical, Circle, Trash2, Edit } from 'lucide-react'
 import { cn } from '../lib/utils'
+import { formatSize } from '../lib/media'
 import { api } from '../lib/api'
 import Swal from 'sweetalert2'
 import { API_URL } from '../lib/config'
@@ -15,6 +16,7 @@ interface VideoProps {
     dateout: string;
     thumbnail: string;
     status: string | number;
+    size?: number | null;
   }
 }
 
@@ -134,6 +136,8 @@ export function VideoItem({ data }: VideoProps) {
           <div className="flex items-center gap-2 text-slate-400">
             <Calendar size={14} />
             <span>Vence: {data.dateout}</span>
+            <span className="text-slate-600">·</span>
+            <span title="Tamaño del archivo">{formatSize(data.size)}</span>
           </div>
           <div className={cn(
              "flex items-center gap-1.5 px-2 py-1 rounded-full border",

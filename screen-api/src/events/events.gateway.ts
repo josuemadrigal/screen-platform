@@ -119,6 +119,13 @@ export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect {
     }
   }
 
+  /** Number of TV clients currently connected with this screen code. */
+  connectedCount(code: string): number {
+    let n = 0;
+    for (const s of this.screens.values()) if (s.screenName === code) n++;
+    return n;
+  }
+
   @SubscribeMessage('screen-connect')
   async handleScreenConnect(@ConnectedSocket() socket: Socket, @MessageBody() screenName: string) {
     const code = typeof screenName === 'string' ? screenName.trim() : '';

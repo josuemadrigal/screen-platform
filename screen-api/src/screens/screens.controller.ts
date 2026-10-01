@@ -36,8 +36,10 @@ export class ScreensController {
 
   @Get()
   @ApiOperation({ summary: 'Get all screens' })
-  findAll() {
-    return this.screensService.findAll();
+  async findAll() {
+    const screens = await this.screensService.findAll();
+    // Live presence from the socket gateway: how many TVs are showing this screen right now.
+    return screens.map((s) => ({ ...s, connected: this.eventsGateway.connectedCount(s.code) }));
   }
 
   @Get('code/:code')

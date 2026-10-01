@@ -1,5 +1,6 @@
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import { useState, useEffect } from 'react'
+import { todayISO } from '../lib/media'
 import { api } from '../lib/api'
 import { Film, Calendar, Save, ArrowLeft, Circle } from 'lucide-react'
 import Swal from 'sweetalert2'
@@ -120,7 +121,13 @@ function VideoEditPage() {
                     <input 
                       type="date"
                       value={dateout}
-                      onChange={(e) => setDateout(e.target.value)}
+                      onChange={(e) => {
+                        const next = e.target.value
+                        // Un video vencido al que se le pone una fecha futura vuelve a estar activo;
+                        // el estado sigue siendo editable debajo.
+                        if (status === '0' && next >= todayISO() && dateout < todayISO()) setStatus('1')
+                        setDateout(next)
+                      }}
                       required
                       className="w-full pl-12 pr-4 py-4 bg-white/5 border border-white/10 rounded-2xl focus:ring-2 focus:ring-primary/50 focus:border-primary outline-none transition-all color-scheme-dark"
                     />

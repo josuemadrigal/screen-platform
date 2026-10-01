@@ -56,7 +56,7 @@ function ScreensPage() {
               <div className="flex justify-between items-start mb-6">
                 <div className={cn(
                   "p-4 rounded-2xl border",
-                  screen.status === 1 ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400' : 'bg-slate-500/10 border-slate-500/20 text-slate-500'
+                  (screen.connected ?? 0) > 0 ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400' : 'bg-slate-500/10 border-slate-500/20 text-slate-500'
                 )}>
                   <Monitor size={32} />
                 </div>
@@ -83,10 +83,15 @@ function ScreensPage() {
               
               <div className="space-y-1">
                 <div className="flex items-center gap-2 mb-1">
-                   <div className={cn("size-2 rounded-full", screen.status === 1 ? 'bg-emerald-500 animate-pulse' : 'bg-slate-500')} />
+                   <div className={cn("size-2 rounded-full", (screen.connected ?? 0) > 0 ? 'bg-emerald-500 animate-pulse' : 'bg-slate-500')} />
                    <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-500">
-                     {screen.status === 1 ? 'Online' : 'Offline'}
+                     {(screen.connected ?? 0) > 0
+                       ? `En línea · ${screen.connected} ${screen.connected === 1 ? 'TV conectada' : 'TVs conectadas'}`
+                       : 'Sin TV conectada'}
                    </span>
+                   {screen.status !== 1 && (
+                     <span className="ml-2 px-2 py-0.5 rounded-md bg-red-500/10 text-red-400 text-[9px] font-bold uppercase tracking-widest">Inactiva</span>
+                   )}
                 </div>
                 <h3 className="text-2xl font-bold text-white leading-tight">{screen.name}</h3>
                 <p className="text-slate-400 font-medium flex items-center gap-2">

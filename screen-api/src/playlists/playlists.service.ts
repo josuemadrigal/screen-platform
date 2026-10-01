@@ -35,8 +35,9 @@ export class PlaylistsService {
           }
         });
         
-        // Sort videos according to the order in the playlist.videos string
-        videosData.sort((a, b) => videoIds.indexOf(a.id) - videoIds.indexOf(b.id));
+        // Follow the order of the playlist string; a video listed twice plays twice.
+        const byId = new Map(videosData.map((v) => [v.id, v]));
+        videosData = videoIds.map((id) => byId.get(id)).filter(Boolean);
       }
     }
 

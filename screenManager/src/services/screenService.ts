@@ -8,6 +8,8 @@ export interface Screen {
   location: string;
   status: number;
   playlist?: string;
+  /** TV clients connected right now with this code (from the socket gateway). */
+  connected?: number;
   createdAt: string;
   updatedAt: string;
 }

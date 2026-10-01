@@ -1,7 +1,8 @@
-import { createFileRoute } from '@tanstack/react-router'
+import { createFileRoute, Link } from '@tanstack/react-router'
 import { useState, useEffect, useRef } from 'react'
 import { api } from '../lib/api'
-import { Library, Play, Clock, Video as VideoIcon, ListMusic, ChevronRight, Monitor } from 'lucide-react'
+import { Library, Play, Clock, Video as VideoIcon, ListMusic, ChevronRight, Monitor, Edit3 } from 'lucide-react'
+import { totalDuration, formatDuration } from '../lib/media'
 import { cn } from '../lib/utils'
 import { API_URL } from '../lib/config'
 
@@ -45,18 +46,28 @@ function PlaylistViewPage() {
 
   return (
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
-      <header className="flex items-center gap-4">
-        <div className="p-3 rounded-2xl bg-primary/10 text-primary">
-          <Library size={32} />
-        </div>
-        <div>
-          <div className="flex items-center gap-2 text-slate-500 text-sm mb-1">
-            <span>Playlists</span>
-            <ChevronRight size={14} />
-            <span className="text-slate-300">Vista Previa</span>
+      <header className="flex items-center justify-between gap-4 flex-wrap">
+        <div className="flex items-center gap-4">
+          <div className="p-3 rounded-2xl bg-primary/10 text-primary">
+            <Library size={32} />
           </div>
-          <h1 className="text-4xl font-bold tracking-tight text-white/90">{data.playlist.playlistname}</h1>
+          <div>
+            <div className="flex items-center gap-2 text-slate-500 text-sm mb-1">
+              <span>Playlists</span>
+              <ChevronRight size={14} />
+              <span className="text-slate-300">Vista Previa</span>
+            </div>
+            <h1 className="text-4xl font-bold tracking-tight text-white/90">{data.playlist.playlistname}</h1>
+          </div>
         </div>
+        <Link
+          to="/playlist-edit/$id"
+          params={{ id: String(data.playlist.id) }}
+          className="flex items-center gap-2 px-6 py-3 rounded-2xl bg-primary hover:bg-primary/90 text-white font-bold transition-all shadow-xl shadow-primary/20 active:scale-95"
+        >
+          <Edit3 size={18} />
+          Editar playlist
+        </Link>
       </header>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -97,8 +108,8 @@ function PlaylistViewPage() {
                  <p className="text-lg font-bold text-white">{videoList.length}</p>
                </div>
                <div className="space-y-1">
-                 <p className="text-xs text-slate-500 uppercase tracking-wider font-bold">ID</p>
-                 <p className="text-lg font-bold text-white">#{data.playlist.id}</p>
+                 <p className="text-xs text-slate-500 uppercase tracking-wider font-bold">Duración</p>
+                 <p className="text-lg font-bold text-white">{formatDuration(totalDuration(videoList))}</p>
                </div>
                <div className="space-y-1">
                  <p className="text-xs text-slate-500 uppercase tracking-wider font-bold">Estado</p>
@@ -122,7 +133,7 @@ function PlaylistViewPage() {
             <div className="flex-1 overflow-y-auto pr-2 space-y-3 custom-scrollbar">
               {videoList.map((video: any, index: number) => (
                 <button 
-                  key={video.id}
+                  key={`${video.id}-${index}`}
                   onClick={() => setCurrentVideoIndex(index)}
                   className={cn(
                     "w-full flex items-center gap-4 p-3 rounded-2xl border transition-all text-left group",
