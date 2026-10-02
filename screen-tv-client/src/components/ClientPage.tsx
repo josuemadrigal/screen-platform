@@ -121,6 +121,31 @@ export function ClientPage() {
   // usan dos para el cambio sin corte.
   const singlePlayer = store.isNative
 
+  // En la app, cada video se reproduce en un elemento <video> NUEVO. Cambiar el src del mismo
+  // elemento recrea el reproductor de Chromium mientras el decodificador de hardware anterior
+  // aún no se ha liberado; en TVs con un solo decodificador eso termina en PIPELINE_ERROR_DECODE
+  // para todos los videos siguientes. Desmontar el elemento, esperar unas décimas y montar otro
+  // deja al decodificador libre antes de volver a pedirlo.
+  const [playerEpoch, setPlayerEpoch] = useState(0)
+  const [playerHidden, setPlayerHidden] = useState(false)
+  const remountPlayer = useCallback((apply?: () => void) => {
+    // Release the decoder right now: Chromium otherwise frees it ~2 s after the element goes away.
+    const el = videoRef0.current
+    if (el) {
+      try {
+        el.pause()
+        el.removeAttribute('src')
+        el.load()
+      } catch { /* nothing */ }
+    }
+    setPlayerHidden(true)
+    setTimeout(() => {
+      apply?.()
+      setPlayerEpoch((e) => e + 1)
+      setPlayerHidden(false)
+    }, 500)
+  }, [])
+
   // Siguiente video a reproducir. En la app, mientras haya descargas pendientes, la rotación
   // se limita a los videos ya guardados en disco: al terminar uno no se espera por otro que
   // aún se está descargando, se sigue con el siguiente disponible. Con todos descargados (o
@@ -367,16 +392,19 @@ export function ClientPage() {
       return
     }
     if (singlePlayer) {
-      // Mismo elemento: cambia la fuente y arranca. El corte es de unas décimas, sin segundo decodificador.
-      setCurrentIndex(nextIndex)
-      setTimeout(() => safePlay(refs[0].current), 10)
+      const next = videoList[nextIndex]
+      const nextSrc = next ? store.resolveSrc(next.path, servidor) : ''
+      remountPlayer(() => {
+        setCurrentIndex(nextIndex)
+        setSrcs([nextSrc, ''])
+      })
       return
     }
     const nextPlayer = (activePlayer + 1) % 2
     setActivePlayer(nextPlayer)
     setCurrentIndex(nextIndex)
     setTimeout(() => safePlay(refs[nextPlayer].current), 10)
-  }, [videoList, activePlayer, nextIndex, safePlay, singlePlayer])
+  }, [videoList, activePlayer, nextIndex, safePlay, singlePlayer, remountPlayer, store, servidor])
 
   // ─── Soporte Control Remoto / D-pad ───────────────────────────────────────
   useEffect(() => {
@@ -576,8 +604,8 @@ export function ClientPage() {
       if (stalledFor > 6000 && !stallReloaded.current) {
         stallReloaded.current = true
         console.warn('[TV] Video sin datos durante 6 s, recargando el reproductor')
-        el.load()
-        safePlay(el)
+        if (singlePlayer) remountPlayer()
+        else { el.load(); safePlay(el) }
       }
       if (stalledFor > 15000) {
         console.warn('[TV] Video sin datos durante 15 s, saltando al siguiente')
@@ -588,7 +616,7 @@ export function ClientPage() {
       }
     }, 1000)
     return () => clearInterval(tick)
-  }, [isRegistered, videoList.length, activePlayer, isPlaying, handleNext, safePlay, socket, currentIndex])
+  }, [isRegistered, videoList.length, activePlayer, isPlaying, handleNext, safePlay, socket, currentIndex, singlePlayer, remountPlayer])
 
   // A source that fails to load: if it was the local copy, drop it and fall back to the API.
   const retried = useRef<Record<string, number>>({})
@@ -598,11 +626,22 @@ export function ClientPage() {
     console.warn('[TV] Error de reproducción en', el?.currentSrc, el?.error?.code)
     if (video && store.isLocal(video.path)) {
       store.discard(video.path)
-      setSrcs((prev) => {
+      const swap = () => setSrcs((prev) => {
         const next: [string, string] = [...prev] as [string, string]
         next[slot] = `${servidor}${video.path}`
         return next
       })
+      if (singlePlayer) remountPlayer(swap)
+      else swap()
+      return
+    }
+    if (singlePlayer) {
+      // Decoder error in the app: retry once in a fresh element, then move on.
+      const key = el?.currentSrc || ''
+      const attempts = (retried.current[key] || 0) + 1
+      retried.current[key] = attempts
+      if (attempts <= 1) remountPlayer()
+      else setTimeout(() => handleNext(), 1500)
       return
     }
     // Streaming source failed (network blip, playlist just changed...). Retry it once after a
@@ -619,7 +658,7 @@ export function ClientPage() {
       return
     }
     if (slot === activePlayer) setTimeout(() => handleNext(), 3000)
-  }, [videoList, activePlayer, currentIndex, nextIndex, store, servidor, handleNext, safePlay])
+  }, [videoList, activePlayer, currentIndex, nextIndex, store, servidor, handleNext, safePlay, singlePlayer, remountPlayer])
 
   // ─── Screenshot periódico ──────────────────────────────────────────────────
   const takeScreenshot = () => {
@@ -699,7 +738,9 @@ export function ClientPage() {
 
         {videoList.length > 0 ? (
           <>
+            {!playerHidden && (
             <video
+              key={playerEpoch}
               ref={videoRef0}
               src={srcs[0]}
               // Sin fundido: el saliente queda debajo con su último fotograma hasta que el
@@ -711,10 +752,12 @@ export function ClientPage() {
               onPlaying={() => { if (activePlayer === 0) { setStandby(false); playedCount.current += 1; reportFirstPlay(refs[0].current) } }}
               onTimeUpdate={() => activePlayer === 0 && store.isNative && warmNext()}
               onError={() => handleVideoError(0)}
+              onCanPlay={(e) => { if (activePlayer === 0 && isPlaying && e.currentTarget.paused) safePlay(e.currentTarget) }}
               preload="auto"
               poster={TRANSPARENT_POSTER}
               playsInline
             />
+            )}
             {!singlePlayer && (
             <video
               ref={videoRef1}
