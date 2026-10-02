@@ -2,7 +2,8 @@ import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import { useState, useEffect } from 'react'
 import { api } from '../lib/api'
 import { VideoItem } from '../components/VideoItem'
-import { Plus, Film, Search } from 'lucide-react'
+import { Plus, Film, Search, Tv } from 'lucide-react'
+import Swal from 'sweetalert2'
 
 export const Route = createFileRoute('/videos')({
   component: VideosPage,
@@ -32,6 +33,25 @@ function VideosPage() {
     return () => clearTimeout(timer)
   }, [])
 
+  const optimizeAll = async () => {
+    const result = await Swal.fire({
+      title: 'Optimizar todos los videos para TV',
+      text: `Se recodifican ${videos.length} videos, uno tras otro, al formato que reproducen todas las TVs. Cada video deja de verse en pantalla solo mientras se procesa.`,
+      icon: 'question',
+      showCancelButton: true,
+      confirmButtonText: 'Optimizar todos',
+      cancelButtonText: 'Cancelar',
+      cancelButtonColor: '#64748b',
+    })
+    if (!result.isConfirmed) return
+    try {
+      await api.post('/storage/optimize-all')
+      window.location.reload()
+    } catch {
+      Swal.fire('Error', 'No se pudo iniciar la optimización', 'error')
+    }
+  }
+
   const filteredVideos = videos.filter(v => 
     v.title.toLowerCase().includes(search.toLowerCase())
   )
@@ -58,6 +78,15 @@ function VideosPage() {
                className="w-full pl-12 pr-4 py-3 bg-slate-900/5 border border-slate-900/10 rounded-2xl focus:ring-2 focus:ring-primary/50 focus:border-primary outline-none transition-all text-sm"
              />
           </div>
+          <button
+            onClick={optimizeAll}
+            disabled={videos.some((v) => v.processing)}
+            title="Recodificar todos los videos al formato compatible con las TVs"
+            className="flex items-center gap-2 px-5 py-3 rounded-2xl bg-slate-900/5 hover:bg-slate-900/10 text-slate-700 font-bold transition-all disabled:opacity-50"
+          >
+            <Tv size={18} />
+            <span className="hidden sm:inline">Optimizar todos</span>
+          </button>
           <button 
             onClick={() => navigate({ to: '/upload' })}
             className="flex items-center gap-2 px-6 py-3 rounded-2xl bg-primary hover:bg-primary/90 font-bold transition-all shadow-lg shadow-primary/20 active:scale-95"

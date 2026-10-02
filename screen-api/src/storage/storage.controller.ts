@@ -86,6 +86,24 @@ export class StorageController {
       .catch((err) => console.error('optimizeForTv', err));
   }
 
+  @Post('optimize-all')
+  @RequirePermission(PERMISSIONS.CONTENT_MANAGE)
+  @ApiOperation({ summary: 'Re-encode every video to the TV-safe profile, one after another (background)' })
+  async optimizeAll(@Req() req: Request) {
+    const videos = await this.storageService.findAll();
+    const pending = videos.filter((v) => !v.processing);
+    const userid = getUserIdFromRequest(req, this.jwtService);
+    await this.historyService.create({ userid, action: `Optimización para TV de ${pending.length} videos` });
+    // Sequential so the server never runs several ffmpeg jobs at once.
+    (async () => {
+      for (const v of pending) {
+        await this.storageService.optimizeForTv(v.id).catch((err) => console.error('optimizeForTv', err));
+        await this.reloadScreensUsingVideo(v.id);
+      }
+    })();
+    return { ok: true, count: pending.length };
+  }
+
   @Post(':id/optimize')
   @RequirePermission(PERMISSIONS.CONTENT_MANAGE)
   @ApiOperation({ summary: 'Re-encode an existing video to the TV-safe profile (runs in background)' })

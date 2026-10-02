@@ -13,10 +13,10 @@ export class StorageService {
   constructor(private prisma: PrismaService) {}
 
   /**
-   * Re-encodes a video to a profile every Android TV decoder handles: H.264 Main level 4.0,
-   * yuv420p, at most 1920x1080 (never upscaled, even dimensions), at most 30 fps, bitrate
-   * capped around 6 Mb/s, AAC stereo 48 kHz, moov atom at the front. Uploads straight from a
-   * camera or an editor (33 Mb/s, odd sizes, High 10-bit...) stall cheap TVs at the first frame.
+   * Re-encodes a video to the most compatible profile for Android TV decoders: H.264 Baseline
+   * level 4.0 (no B-frames), yuv420p, at most 1920x1080 (never upscaled), width and height
+   * padded to multiples of 16 (a 1918-wide export gives MEDIA_ERR_DECODE on some TV SoCs),
+   * at most 30 fps, bitrate capped around 6 Mb/s, AAC stereo 48 kHz, moov atom at the front.
    * The result gets a new file name so TVs re-download it; the old file is removed.
    */
   async optimizeForTv(id: number): Promise<Video | null> {
@@ -38,15 +38,15 @@ export class StorageService {
         const cmd = Ffmpeg(input)
           .videoCodec('libx264')
           .outputOptions([
-            '-profile:v main',
+            '-profile:v baseline',
             '-level 4.0',
             '-pix_fmt yuv420p',
             '-preset veryfast',
             '-crf 23',
             '-maxrate 6M',
             '-bufsize 12M',
-            // Fit inside 1920x1080 without upscaling, then force even dimensions.
-            '-vf scale=w=min(1920\\,iw):h=min(1080\\,ih):force_original_aspect_ratio=decrease,scale=trunc(iw/2)*2:trunc(ih/2)*2',
+            // Fit inside 1920x1080 without upscaling, then pad to multiples of 16 (black, centered).
+            '-vf scale=w=min(1920\\,iw):h=min(1080\\,ih):force_original_aspect_ratio=decrease,pad=ceil(iw/16)*16:ceil(ih/16)*16:(ow-iw)/2:(oh-ih)/2',
             '-movflags +faststart',
           ])
           .audioCodec('aac')
