@@ -14,8 +14,9 @@ export class StorageService {
   constructor(private prisma: PrismaService) {}
 
   /**
-   * Re-encodes a video to the most compatible profile for Android TV decoders: H.264 Baseline
-   * level 4.0 (no B-frames), yuv420p, at most 1920x1080 (never upscaled), width and height
+   * Re-encodes a video the way phone cameras do, which is what TV decoders are tuned for:
+   * H.264 High level 4.1 with CABAC (Baseline/CAVLC streams gave PIPELINE_ERROR_DECODE on the
+   * Nikkei TVs while High-profile phone videos played), yuv420p, at most 1920x1080 (never upscaled), width and height
    * width padded to a multiple of 16 (a 1918-wide export gives MEDIA_ERR_DECODE on some TV SoCs), height even,
    * at most 30 fps, bitrate capped around 6 Mb/s, AAC stereo 48 kHz, moov atom at the front.
    * A silent audio track (common in signage exports) is dropped: AAC frames of pure silence
@@ -46,10 +47,11 @@ export class StorageService {
         const cmd = Ffmpeg(input)
           .videoCodec('libx264')
           .outputOptions([
-            '-profile:v baseline',
-            '-level 4.0',
+            '-profile:v high',
+            '-level 4.1',
             '-pix_fmt yuv420p',
-            '-preset veryfast',
+            '-preset medium',
+            '-x264-params cabac=1:ref=3:bframes=2:keyint=60:min-keyint=24',
             '-crf 23',
             '-maxrate 6M',
             '-bufsize 12M',
