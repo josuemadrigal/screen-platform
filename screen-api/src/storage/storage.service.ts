@@ -29,6 +29,9 @@ export class StorageService {
       return video;
     }
     await this.prisma.video.update({ where: { id }, data: { processing: true } });
+    // TV_MAX_HEIGHT=720 in the server .env limits output to 720p for TVs whose decoder rejects 1080p.
+    const maxH = Math.max(360, parseInt(process.env.TV_MAX_HEIGHT || '1080', 10) || 1080);
+    const maxW = Math.round((maxH * 16) / 9);
     const newName = `${randomBytes(16).toString('hex')}.mp4`;
     const tmp = path.join(dir, `${newName}.tmp.mp4`);
     const started = Date.now();
@@ -46,7 +49,7 @@ export class StorageService {
             '-maxrate 6M',
             '-bufsize 12M',
             // Fit inside 1920x1080 without upscaling, then pad to multiples of 16 (black, centered).
-            '-vf scale=w=min(1920\\,iw):h=min(1080\\,ih):force_original_aspect_ratio=decrease,pad=ceil(iw/16)*16:ceil(ih/16)*16:(ow-iw)/2:(oh-ih)/2',
+            `-vf scale=w=min(${maxW}\\,iw):h=min(${maxH}\\,ih):force_original_aspect_ratio=decrease,pad=ceil(iw/16)*16:ceil(ih/16)*16:(ow-iw)/2:(oh-ih)/2`,
             '-movflags +faststart',
           ])
           .audioCodec('aac')
@@ -65,7 +68,7 @@ export class StorageService {
         data: { fileName: newName, path: `/${newName}`, processing: false },
       });
       try { unlinkSync(input); } catch { /* already gone */ }
-      this.logger.log(`Video ${id} optimizado para TV en ${Math.round((Date.now() - started) / 1000)} s: ${video.fileName} -> ${newName}`);
+      this.logger.log(`Video ${id} optimizado para TV (máx. ${maxH}p) en ${Math.round((Date.now() - started) / 1000)} s: ${video.fileName} -> ${newName}`);
       return updated;
     } catch (err) {
       try { unlinkSync(tmp); } catch { /* nothing to clean */ }
