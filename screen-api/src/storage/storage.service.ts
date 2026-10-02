@@ -51,7 +51,10 @@ export class StorageService {
             '-level 4.1',
             '-pix_fmt yuv420p',
             '-preset medium',
-            '-x264-params cabac=1:ref=3:bframes=2:keyint=60:min-keyint=24',
+            // Mirror what phone encoders emit: no weighted prediction, 3 refs, 2 B-frames.
+            '-x264-params cabac=1:ref=3:bframes=2:weightp=0:keyint=60:min-keyint=24',
+            // Drop x264's SEI user-data NAL: some TV decoders fail on it (phone videos carry none).
+            '-bsf:v filter_units=remove_types=6',
             '-crf 23',
             '-maxrate 6M',
             '-bufsize 12M',

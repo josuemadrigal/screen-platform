@@ -573,14 +573,14 @@ export function ClientPage() {
       }
       // Recovery: reload the element once at 3 s (decoder/pipeline stuck with data buffered),
       // then move on at 8 s so the screen never stays frozen.
-      if (stalledFor > 3000 && !stallReloaded.current) {
+      if (stalledFor > 6000 && !stallReloaded.current) {
         stallReloaded.current = true
-        console.warn('[TV] Video sin datos durante 3 s, recargando el reproductor')
+        console.warn('[TV] Video sin datos durante 6 s, recargando el reproductor')
         el.load()
         safePlay(el)
       }
-      if (stalledFor > 8000) {
-        console.warn('[TV] Video sin datos durante 8 s, saltando al siguiente')
+      if (stalledFor > 15000) {
+        console.warn('[TV] Video sin datos durante 15 s, saltando al siguiente')
         stalledSince.current = null
         stallReloaded.current = false
         stallReported.current = false
@@ -684,7 +684,7 @@ export function ClientPage() {
           : 'relative w-full max-w-3xl md:max-w-none md:flex-1 md:basis-0 aspect-video rounded-[32px] border-4 border-white/5 z-0'
       )}>
         {/* Capa de espera: solo ante un fallo real (ver `standby`), nunca en el cambio entre videos. */}
-        <div className={cn('absolute inset-0 z-0 flex-col items-center justify-center gap-6 bg-[#000000]', standby ? 'flex' : 'hidden')}>
+        <div className={cn('absolute inset-0 z-20 flex-col items-center justify-center gap-6 bg-[#000000]', standby ? 'flex' : 'hidden')}>
           <img src="/icon-512.png" alt="2B Screen" className="w-36 h-36 rounded-[28px] drop-shadow-2xl animate-[breathe_2.4s_ease-in-out_infinite]" draggable={false} />
           <div className="flex items-center gap-3 text-white/70">
             <span className="size-5 rounded-full border-2 border-white/20 border-t-red-500 animate-spin" />
@@ -704,7 +704,7 @@ export function ClientPage() {
               src={srcs[0]}
               // Sin fundido: el saliente queda debajo con su último fotograma hasta que el
               // entrante pinta, así nunca se ve la capa de espera entre videos.
-              className={cn('absolute inset-0 w-full h-full object-cover', activePlayer === 0 ? 'z-10' : 'z-[1]', standby && activePlayer === 0 && 'invisible')}
+              className={cn('absolute inset-0 w-full h-full object-cover', activePlayer === 0 ? 'z-10' : 'z-[1]')}
               autoPlay={activePlayer === 0 && isPlaying}
               muted={activePlayer !== 0 || !hasInteracted || screenMuted}
               onEnded={() => activePlayer === 0 && handleNext()}
@@ -719,7 +719,7 @@ export function ClientPage() {
             <video
               ref={videoRef1}
               src={srcs[1]}
-              className={cn('absolute inset-0 w-full h-full object-cover', activePlayer === 1 ? 'z-10' : 'z-[1]', standby && activePlayer === 1 && 'invisible')}
+              className={cn('absolute inset-0 w-full h-full object-cover', activePlayer === 1 ? 'z-10' : 'z-[1]')}
               autoPlay={activePlayer === 1 && isPlaying}
               muted={activePlayer !== 1 || !hasInteracted || screenMuted}
               onEnded={() => activePlayer === 1 && handleNext()}
