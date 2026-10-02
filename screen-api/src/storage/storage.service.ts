@@ -4,6 +4,7 @@ import * as Ffmpeg from 'fluent-ffmpeg';
 import * as path from 'path';
 import { statSync, unlinkSync, existsSync, renameSync } from 'fs';
 import { randomBytes } from 'crypto';
+import { execFile } from 'child_process';
 import { Logger } from '@nestjs/common';
 import { Video } from '@prisma/client';
 
@@ -17,6 +18,8 @@ export class StorageService {
    * level 4.0 (no B-frames), yuv420p, at most 1920x1080 (never upscaled), width and height
    * padded to multiples of 16 (a 1918-wide export gives MEDIA_ERR_DECODE on some TV SoCs),
    * at most 30 fps, bitrate capped around 6 Mb/s, AAC stereo 48 kHz, moov atom at the front.
+   * A silent audio track (common in signage exports) is dropped: AAC frames of pure silence
+   * make the audio decoder of some TVs fail, and the video never starts (MEDIA_ERR_DECODE).
    * The result gets a new file name so TVs re-download it; the old file is removed.
    */
   async optimizeForTv(id: number): Promise<Video | null> {
@@ -37,6 +40,8 @@ export class StorageService {
     const started = Date.now();
     try {
       const fps = await this.probeFps(input);
+      const silent = await this.isSilent(input);
+      if (silent) this.logger.log(`Video ${id}: audio en silencio, se quita la pista`);
       await new Promise<void>((resolve, reject) => {
         const cmd = Ffmpeg(input)
           .videoCodec('libx264')
@@ -52,10 +57,8 @@ export class StorageService {
             `-vf scale=w=min(${maxW}\\,iw):h=min(${maxH}\\,ih):force_original_aspect_ratio=decrease,pad=ceil(iw/16)*16:ceil(ih/16)*16:(ow-iw)/2:(oh-ih)/2`,
             '-movflags +faststart',
           ])
-          .audioCodec('aac')
-          .audioBitrate('128k')
-          .audioFrequency(48000)
-          .audioChannels(2);
+        if (silent) cmd.noAudio();
+        else cmd.audioCodec('aac').audioBitrate('128k').audioFrequency(48000).audioChannels(2);
         if (fps && fps > 30) cmd.outputOptions(['-r 30']);
         cmd
           .on('end', () => resolve())
@@ -76,6 +79,22 @@ export class StorageService {
       // Keep the original playable rather than leaving the video hidden forever.
       return this.prisma.video.update({ where: { id }, data: { processing: false } });
     }
+  }
+
+  /** True when the first audio track is missing or never rises above -60 dB. */
+  private isSilent(file: string): Promise<boolean> {
+    return new Promise((resolve) => {
+      execFile(
+        'ffmpeg',
+        ['-hide_banner', '-nostats', '-i', file, '-map', '0:a:0?', '-vn', '-af', 'volumedetect', '-f', 'null', '-'],
+        { maxBuffer: 10 * 1024 * 1024 },
+        (_err, _stdout, stderr) => {
+          const m = /max_volume:\s*(-?[\d.]+) dB/.exec(stderr || '');
+          if (!m) return resolve(true); // no audio stream at all
+          resolve(parseFloat(m[1]) < -60);
+        },
+      );
+    });
   }
 
   private probeFps(file: string): Promise<number | null> {
