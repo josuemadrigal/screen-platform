@@ -143,7 +143,7 @@ export function ClientPage() {
       apply?.()
       setPlayerEpoch((e) => e + 1)
       setPlayerHidden(false)
-    }, 500)
+    }, 1500) // the Nikkei TVs need over a second to hand the single hardware decoder back
   }, [])
 
   // Siguiente video a reproducir. En la app, mientras haya descargas pendientes, la rotación
@@ -601,14 +601,14 @@ export function ClientPage() {
       }
       // Recovery: reload the element once at 3 s (decoder/pipeline stuck with data buffered),
       // then move on at 8 s so the screen never stays frozen.
-      if (stalledFor > 6000 && !stallReloaded.current) {
+      if (stalledFor > 4000 && !stallReloaded.current) {
         stallReloaded.current = true
-        console.warn('[TV] Video sin datos durante 6 s, recargando el reproductor')
+        console.warn('[TV] Video sin datos durante 4 s, recargando el reproductor')
         if (singlePlayer) remountPlayer()
         else { el.load(); safePlay(el) }
       }
-      if (stalledFor > 15000) {
-        console.warn('[TV] Video sin datos durante 15 s, saltando al siguiente')
+      if (stalledFor > 12000) {
+        console.warn('[TV] Video sin datos durante 12 s, saltando al siguiente')
         stalledSince.current = null
         stallReloaded.current = false
         stallReported.current = false
