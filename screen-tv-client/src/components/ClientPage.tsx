@@ -392,12 +392,14 @@ export function ClientPage() {
       return
     }
     if (singlePlayer) {
+      // Immediate: changing src on the same element makes Chromium destroy the previous player
+      // (and free the decoder) before creating the next one, so there is no gap to fill.
+      // Recreating the element is kept only as the recovery path (see the stall watchdog).
       const next = videoList[nextIndex]
       const nextSrc = next ? store.resolveSrc(next.path, servidor) : ''
-      remountPlayer(() => {
-        setCurrentIndex(nextIndex)
-        setSrcs([nextSrc, ''])
-      })
+      setCurrentIndex(nextIndex)
+      setSrcs([nextSrc, ''])
+      setTimeout(() => safePlay(refs[0].current), 10)
       return
     }
     const nextPlayer = (activePlayer + 1) % 2
@@ -631,8 +633,8 @@ export function ClientPage() {
         next[slot] = `${servidor}${video.path}`
         return next
       })
-      if (singlePlayer) remountPlayer(swap)
-      else swap()
+      swap()
+      if (singlePlayer) setTimeout(() => safePlay(refs[0].current), 10)
       return
     }
     if (singlePlayer) {
