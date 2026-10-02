@@ -45,6 +45,7 @@ function UploadPage() {
   const [items, setItems] = useState<UploadItem[]>([])
   const [isUploading, setIsUploading] = useState(false)
   const [dragActive, setDragActive] = useState(false)
+  const [optimize, setOptimize] = useState(true)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const user = useAuthStore((state) => state.user)
   const navigate = useNavigate()
@@ -104,6 +105,7 @@ function UploadPage() {
     formData.append('status', '1')
     formData.append('duration', it.duration)
     formData.append('user', user?.name || 'Admin')
+    formData.append('optimize', optimize ? '1' : '0')
     try {
       await api.post('/storage/upload', formData, {
         headers: { 'Content-Type': 'multipart/form-data' },
@@ -288,6 +290,13 @@ function UploadPage() {
               <div className="flex justify-between py-3 border-b border-slate-900/5"><span className="text-slate-600">Tamaño total</span><span className="font-semibold text-slate-900">{formatSize(totalBytes)}</span></div>
               <div className="flex justify-between py-3"><span className="text-slate-600">Vencimiento por defecto</span><span className="font-semibold text-slate-900">{inOneMonth()}</span></div>
             </div>
+            <label className="flex items-start gap-3 text-sm text-slate-700 cursor-pointer select-none">
+              <input type="checkbox" checked={optimize} onChange={(e) => setOptimize(e.target.checked)} className="mt-1 accent-[#d01f27]" />
+              <span>
+                <span className="font-semibold">Optimizar para TV</span>
+                <span className="block text-xs text-slate-500">Recodifica al formato compatible. Desmárcalo solo para subir un archivo tal cual, por ejemplo para una prueba.</span>
+              </span>
+            </label>
             <button
               type="submit"
               disabled={isUploading || pending.length === 0}

@@ -43,6 +43,7 @@ export class StorageController {
         duration: { type: 'string' },
         dateout: { type: 'string' },
         status: { type: 'string' },
+        optimize: { type: 'string', description: '"0" stores the file as uploaded, without the TV re-encode' },
       },
     },
   })
@@ -73,6 +74,11 @@ export class StorageController {
     const userid = getUserIdFromRequest(req, this.jwtService);
     await this.historyService.create({ userid, action: `Video subido: "${body.title}"` });
 
+    if (body.optimize === '0' || body.optimize === 'false') {
+      // Stored as uploaded (useful to test a known-good file on a TV).
+      await this.reloadScreensUsingVideo(record.id);
+      return record;
+    }
     // Re-encode for TV in the background; the video stays hidden from screens until done.
     this.optimizeInBackground(record.id);
     return { ...record, processing: true };
