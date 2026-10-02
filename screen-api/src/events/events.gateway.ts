@@ -165,6 +165,7 @@ export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect {
       if (data.screenshot !== undefined) screen.screenshot = data.screenshot;
       // Playback stall reported by the TV: keep it in the API logs for diagnosis.
       if (data.stall) this.logger.warn(`Pantalla ${screen.screenName} trabada: ${JSON.stringify(data.stall)}`);
+      if (data.played) this.logger.log(`Pantalla ${screen.screenName} reproduciendo: ${JSON.stringify(data.played)}`);
     }
     screen.lastUpdate = new Date();
     this.broadcastScreenList();

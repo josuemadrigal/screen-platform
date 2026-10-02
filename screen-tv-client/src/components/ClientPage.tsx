@@ -83,6 +83,14 @@ export function ClientPage() {
 
   // play() puede ser rechazado por el WebView (política de autoplay, decodificador ocupado).
   // Reintentar en silencio evita que el elemento quede en pausa mostrando un hueco.
+  const firstPlayReported = useRef(false)
+  const reportFirstPlay = (el: HTMLVideoElement | null) => {
+    if (firstPlayReported.current || !el) return
+    firstPlayReported.current = true
+    socketRef.current?.emit('update-screen-status', {
+      played: { src: el.currentSrc.split('/').pop(), local: el.currentSrc.includes('_capacitor_file_'), size: `${el.videoWidth}x${el.videoHeight}`, bundle: BUNDLE_VERSION },
+    })
+  }
   const lastPlayError = useRef<string>('')
   const playedCount = useRef(0)
   const safePlay = useCallback((el: HTMLVideoElement | null | undefined) => {
@@ -99,6 +107,8 @@ export function ClientPage() {
   const inputRef = useRef<HTMLInputElement>(null)
   const activeCode = linkedCode || 'GENERIC'
   const { socket, isConnected } = useScreen({ screenName: isRegistered ? activeCode : undefined })
+  const socketRef = useRef(socket)
+  socketRef.current = socket
   const cache = useSQLiteCache()
   // Native app: videos are downloaded once to the device and played from disk.
   const store = useVideoStore()
@@ -540,6 +550,13 @@ export function ClientPage() {
             readyState: el.readyState,
             networkState: el.networkState,
             error: el.error?.code ?? null,
+            errorMessage: el.error?.message || null,
+            canPlay: {
+              baseline: el.canPlayType('video/mp4; codecs="avc1.42E028"'),
+              main: el.canPlayType('video/mp4; codecs="avc1.4D4028"'),
+              high: el.canPlayType('video/mp4; codecs="avc1.640028"'),
+            },
+            size: `${el.videoWidth}x${el.videoHeight}`,
             currentTime: Number(el.currentTime.toFixed(1)),
             duration: Number.isFinite(el.duration) ? Number(el.duration.toFixed(1)) : null,
             buffered: ranges.join(','),
@@ -566,6 +583,7 @@ export function ClientPage() {
         console.warn('[TV] Video sin datos durante 8 s, saltando al siguiente')
         stalledSince.current = null
         stallReloaded.current = false
+        stallReported.current = false
         handleNext()
       }
     }, 1000)
@@ -690,7 +708,7 @@ export function ClientPage() {
               autoPlay={activePlayer === 0 && isPlaying}
               muted={activePlayer !== 0 || !hasInteracted || screenMuted}
               onEnded={() => activePlayer === 0 && handleNext()}
-              onPlaying={() => { if (activePlayer === 0) { setStandby(false); playedCount.current += 1 } }}
+              onPlaying={() => { if (activePlayer === 0) { setStandby(false); playedCount.current += 1; reportFirstPlay(refs[0].current) } }}
               onTimeUpdate={() => activePlayer === 0 && store.isNative && warmNext()}
               onError={() => handleVideoError(0)}
               preload="auto"
@@ -705,7 +723,7 @@ export function ClientPage() {
               autoPlay={activePlayer === 1 && isPlaying}
               muted={activePlayer !== 1 || !hasInteracted || screenMuted}
               onEnded={() => activePlayer === 1 && handleNext()}
-              onPlaying={() => { if (activePlayer === 1) { setStandby(false); playedCount.current += 1 } }}
+              onPlaying={() => { if (activePlayer === 1) { setStandby(false); playedCount.current += 1; reportFirstPlay(refs[1].current) } }}
               onTimeUpdate={() => activePlayer === 1 && store.isNative && warmNext()}
               onError={() => handleVideoError(1)}
               preload="auto"

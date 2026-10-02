@@ -16,7 +16,7 @@ export class StorageService {
   /**
    * Re-encodes a video to the most compatible profile for Android TV decoders: H.264 Baseline
    * level 4.0 (no B-frames), yuv420p, at most 1920x1080 (never upscaled), width and height
-   * padded to multiples of 16 (a 1918-wide export gives MEDIA_ERR_DECODE on some TV SoCs),
+   * width padded to a multiple of 16 (a 1918-wide export gives MEDIA_ERR_DECODE on some TV SoCs), height even,
    * at most 30 fps, bitrate capped around 6 Mb/s, AAC stereo 48 kHz, moov atom at the front.
    * A silent audio track (common in signage exports) is dropped: AAC frames of pure silence
    * make the audio decoder of some TVs fail, and the video never starts (MEDIA_ERR_DECODE).
@@ -53,8 +53,8 @@ export class StorageService {
             '-crf 23',
             '-maxrate 6M',
             '-bufsize 12M',
-            // Fit inside 1920x1080 without upscaling, then pad to multiples of 16 (black, centered).
-            `-vf scale=w=min(${maxW}\\,iw):h=min(${maxH}\\,ih):force_original_aspect_ratio=decrease,pad=ceil(iw/16)*16:ceil(ih/16)*16:(ow-iw)/2:(oh-ih)/2`,
+            // Fit inside the max size without upscaling; width to a multiple of 16, height even (black, centered).
+            `-vf scale=w=min(${maxW}\\,iw):h=min(${maxH}\\,ih):force_original_aspect_ratio=decrease,pad=ceil(iw/16)*16:ceil(ih/2)*2:(ow-iw)/2:(oh-ih)/2`,
             '-movflags +faststart',
           ])
         if (silent) cmd.noAudio();
