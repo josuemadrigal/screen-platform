@@ -83,11 +83,14 @@ export function ClientPage() {
 
   // play() puede ser rechazado por el WebView (política de autoplay, decodificador ocupado).
   // Reintentar en silencio evita que el elemento quede en pausa mostrando un hueco.
+  const lastPlayError = useRef<string>('')
+  const playedCount = useRef(0)
   const safePlay = useCallback((el: HTMLVideoElement | null | undefined) => {
     if (!el) return
-    el.play().catch(() => {
+    el.play().catch((e1) => {
+      lastPlayError.current = `${e1?.name || e1}`
       el.muted = true
-      el.play().catch(() => { })
+      el.play().catch((e2) => { lastPlayError.current = `${e1?.name || e1} / muted: ${e2?.name || e2}` })
     })
   }, [])
 
@@ -507,6 +510,7 @@ export function ClientPage() {
   const [standby, setStandby] = useState(false)
   const stalledSince = useRef<number | null>(null)
   const stallReported = useRef(false)
+  const stallReloaded = useRef(false)
   useEffect(() => {
     if (!isRegistered || videoList.length === 0) return
     const tick = setInterval(() => {
@@ -515,6 +519,7 @@ export function ClientPage() {
       if (el.readyState >= 2 && !el.error) {
         stalledSince.current = null
         stallReported.current = false
+        stallReloaded.current = false
         setStandby(false)
         if (el.paused && !el.ended) el.play().catch(() => { })
         return
@@ -539,19 +544,33 @@ export function ClientPage() {
             duration: Number.isFinite(el.duration) ? Number(el.duration.toFixed(1)) : null,
             buffered: ranges.join(','),
             paused: el.paused,
+            muted: el.muted,
+            index: currentIndex,
+            total: videoList.length,
+            played: playedCount.current,
+            playError: lastPlayError.current || null,
+            ua: navigator.userAgent.replace(/^.*Chrome\//, 'Chrome/').split(' ')[0],
             bundle: BUNDLE_VERSION,
           },
         })
       }
-      // No data for this source: give it 20 s, then move on so the screen never freezes.
-      if (stalledFor > 20000) {
-        console.warn('[TV] Video sin datos durante 20 s, saltando al siguiente')
+      // Recovery: reload the element once at 3 s (decoder/pipeline stuck with data buffered),
+      // then move on at 8 s so the screen never stays frozen.
+      if (stalledFor > 3000 && !stallReloaded.current) {
+        stallReloaded.current = true
+        console.warn('[TV] Video sin datos durante 3 s, recargando el reproductor')
+        el.load()
+        safePlay(el)
+      }
+      if (stalledFor > 8000) {
+        console.warn('[TV] Video sin datos durante 8 s, saltando al siguiente')
         stalledSince.current = null
+        stallReloaded.current = false
         handleNext()
       }
     }, 1000)
     return () => clearInterval(tick)
-  }, [isRegistered, videoList.length, activePlayer, isPlaying, handleNext])
+  }, [isRegistered, videoList.length, activePlayer, isPlaying, handleNext, safePlay, socket, currentIndex])
 
   // A source that fails to load: if it was the local copy, drop it and fall back to the API.
   const retried = useRef<Record<string, number>>({})
@@ -671,7 +690,7 @@ export function ClientPage() {
               autoPlay={activePlayer === 0 && isPlaying}
               muted={activePlayer !== 0 || !hasInteracted || screenMuted}
               onEnded={() => activePlayer === 0 && handleNext()}
-              onPlaying={() => activePlayer === 0 && setStandby(false)}
+              onPlaying={() => { if (activePlayer === 0) { setStandby(false); playedCount.current += 1 } }}
               onTimeUpdate={() => activePlayer === 0 && store.isNative && warmNext()}
               onError={() => handleVideoError(0)}
               preload="auto"
@@ -686,7 +705,7 @@ export function ClientPage() {
               autoPlay={activePlayer === 1 && isPlaying}
               muted={activePlayer !== 1 || !hasInteracted || screenMuted}
               onEnded={() => activePlayer === 1 && handleNext()}
-              onPlaying={() => activePlayer === 1 && setStandby(false)}
+              onPlaying={() => { if (activePlayer === 1) { setStandby(false); playedCount.current += 1 } }}
               onTimeUpdate={() => activePlayer === 1 && store.isNative && warmNext()}
               onError={() => handleVideoError(1)}
               preload="auto"
