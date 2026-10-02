@@ -15,10 +15,13 @@ function VideosPage() {
   const navigate = useNavigate()
 
   useEffect(() => {
+    let timer: ReturnType<typeof setTimeout> | undefined
     const fetchVideos = async () => {
       try {
         const { data } = await api.get('/storage')
         setVideos(data)
+        // Videos being re-encoded for TV: poll until they are ready.
+        if (data.some((v: any) => v.processing)) timer = setTimeout(fetchVideos, 5000)
       } catch (error) {
         console.error(error)
       } finally {
@@ -26,6 +29,7 @@ function VideosPage() {
       }
     }
     fetchVideos()
+    return () => clearTimeout(timer)
   }, [])
 
   const filteredVideos = videos.filter(v => 

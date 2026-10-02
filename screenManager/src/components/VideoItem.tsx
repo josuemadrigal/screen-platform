@@ -1,6 +1,6 @@
 import { useState, useRef } from 'react'
 import { useNavigate } from '@tanstack/react-router'
-import { Play, Calendar, MoreVertical, Trash2, Edit, HardDrive, Clock } from 'lucide-react'
+import { Play, Calendar, MoreVertical, Trash2, Edit, HardDrive, Clock, Loader2, Tv } from 'lucide-react'
 import { cn } from '../lib/utils'
 import { formatSize, parseDuration, formatDuration, todayISO } from '../lib/media'
 import { api } from '../lib/api'
@@ -17,6 +17,7 @@ interface VideoProps {
     thumbnail: string;
     status: string | number;
     size?: number | null;
+    processing?: boolean;
   }
 }
 
@@ -48,6 +49,25 @@ export function VideoItem({ data }: VideoProps) {
     : left === 0 ? { text: 'Vence hoy', tone: 'text-red-600' }
     : left <= 7 ? { text: `Vence en ${left} d · ${formatDate(data.dateout)}`, tone: 'text-amber-600' }
     : { text: `Vence ${formatDate(data.dateout)}`, tone: 'text-slate-600' }
+
+  const optimize = async () => {
+    const result = await Swal.fire({
+      title: 'Optimizar para TV',
+      text: 'Se vuelve a codificar el video en el formato que reproducen todas las TVs (H.264 1080p). Mientras tanto no se mostrará en las pantallas.',
+      icon: 'question',
+      showCancelButton: true,
+      confirmButtonText: 'Optimizar',
+      cancelButtonText: 'Cancelar',
+      cancelButtonColor: '#64748b',
+    })
+    if (!result.isConfirmed) return
+    try {
+      await api.post(`/storage/${data.id}/optimize`)
+      window.location.reload()
+    } catch {
+      Swal.fire('Error', 'No se pudo iniciar la optimización', 'error')
+    }
+  }
 
   const handleMouseEnter = () => videoRef.current?.play().catch(() => {})
   const handleMouseLeave = () => {
@@ -90,12 +110,18 @@ export function VideoItem({ data }: VideoProps) {
             <Play size={22} fill="currentColor" />
           </div>
         </div>
-        <span className={cn(
-          'absolute top-3 left-3 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest backdrop-blur-md',
-          isActive ? 'bg-emerald-500/90 text-white' : 'bg-slate-900/80 text-white'
-        )}>
-          {isActive ? 'Activo' : 'Inactivo'}
-        </span>
+        {data.processing ? (
+          <span className="absolute top-3 left-3 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest backdrop-blur-md bg-amber-500/90 text-white flex items-center gap-1.5">
+            <Loader2 size={11} className="animate-spin" /> Procesando
+          </span>
+        ) : (
+          <span className={cn(
+            'absolute top-3 left-3 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest backdrop-blur-md',
+            isActive ? 'bg-emerald-500/90 text-white' : 'bg-slate-900/80 text-white'
+          )}>
+            {isActive ? 'Activo' : 'Inactivo'}
+          </span>
+        )}
         <span className="absolute bottom-3 right-3 px-2 py-1 rounded-lg bg-black/70 backdrop-blur-md text-[11px] font-bold text-white flex items-center gap-1 tabular-nums">
           <Clock size={11} />
           {formatDuration(parseDuration(data.duration))}
@@ -122,6 +148,13 @@ export function VideoItem({ data }: VideoProps) {
                   className="w-full flex items-center gap-3 px-4 py-2 text-sm text-slate-700 hover:bg-slate-900/5 hover:text-slate-900 transition-colors text-left"
                 >
                   <Edit size={16} /> Editar
+                </button>
+                <button
+                  onMouseDown={optimize}
+                  disabled={data.processing}
+                  className="w-full flex items-center gap-3 px-4 py-2 text-sm text-slate-700 hover:bg-slate-900/5 hover:text-slate-900 transition-colors text-left disabled:opacity-50"
+                >
+                  <Tv size={16} /> Optimizar para TV
                 </button>
                 <button
                   onMouseDown={remove}

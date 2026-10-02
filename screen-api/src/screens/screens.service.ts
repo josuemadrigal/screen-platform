@@ -35,7 +35,7 @@ export class ScreensService {
       if (playlist) {
         const videoIds = playlist.videos.split(',').filter(id => id).map(id => parseInt(id, 10));
         const videos = await this.prisma.video.findMany({
-          where: { id: { in: videoIds }, status: 1 }
+          where: { id: { in: videoIds }, status: 1, processing: false }
         });
 
         // Ordenar videos según la secuencia en la playlist
@@ -65,7 +65,7 @@ export class ScreensService {
       if (playlist) {
         const videoIds = playlist.videos.split(',').filter(id => id).map(id => parseInt(id, 10));
         const videos = await this.prisma.video.findMany({
-          where: { id: { in: videoIds }, status: 1 }
+          where: { id: { in: videoIds }, status: 1, processing: false }
         });
 
         const videosData = videoIds.map(id => videos.find(v => v.id === id)).filter(Boolean);

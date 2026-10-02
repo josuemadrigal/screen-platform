@@ -56,6 +56,7 @@ export class PlaylistsService {
           where: {
             id: { in: videoIds },
             status: 1,
+            processing: false,
           }
         });
         

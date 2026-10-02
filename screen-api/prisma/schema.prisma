@@ -95,6 +95,8 @@ model Video {
   duration  String
   dateout   String
   status    Int       @default(1)
+  /// True while ffmpeg re-encodes the file to the TV-safe profile; hidden from TVs meanwhile.
+  processing Boolean  @default(false)
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
 

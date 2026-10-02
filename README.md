@@ -24,6 +24,12 @@ npm run start:dev
 
 Register the first user through Swagger (`POST /auth/register`) or from the panel's login page: the very first account becomes **admin**. After that, only users whose role has `users.manage` can create accounts (panel → Usuarios).
 
+**Video encoding.** Every upload is re-encoded in the background by the API (ffmpeg, already in the
+image) to a profile all Android TV decoders play: H.264 Main 4.0, yuv420p, up to 1080p, up to 30 fps,
+about 6 Mb/s, AAC, faststart. While that runs the video shows "Procesando" in the panel and is not
+sent to screens. Videos uploaded before this existed can be converted from the card menu
+("Optimizar para TV"); camera/editor exports (30+ Mb/s, odd sizes) otherwise freeze cheap TVs at the first frame.
+
 **Roles and permissions.** Every user has one role; a role is a set of permission keys:
 
 | Key | Grants |

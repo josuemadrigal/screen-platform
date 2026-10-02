@@ -73,7 +73,29 @@ export class StorageController {
     const userid = getUserIdFromRequest(req, this.jwtService);
     await this.historyService.create({ userid, action: `Video subido: "${body.title}"` });
 
-    return record;
+    // Re-encode for TV in the background; the video stays hidden from screens until done.
+    this.optimizeInBackground(record.id);
+    return { ...record, processing: true };
+  }
+
+  /** Runs the TV re-encode without blocking the request, then refreshes the screens that use it. */
+  private optimizeInBackground(id: number) {
+    this.storageService
+      .optimizeForTv(id)
+      .then(() => this.reloadScreensUsingVideo(id))
+      .catch((err) => console.error('optimizeForTv', err));
+  }
+
+  @Post(':id/optimize')
+  @RequirePermission(PERMISSIONS.CONTENT_MANAGE)
+  @ApiOperation({ summary: 'Re-encode an existing video to the TV-safe profile (runs in background)' })
+  async optimize(@Param('id', ParseIntPipe) id: number, @Req() req: Request) {
+    const video = await this.storageService.findOne(id);
+    if (!video) return { ok: false };
+    const userid = getUserIdFromRequest(req, this.jwtService);
+    await this.historyService.create({ userid, action: `Video optimizado para TV: "${video.title}" (ID: ${id})` });
+    this.optimizeInBackground(id);
+    return { ok: true, processing: true };
   }
 
   @Get()

@@ -2,12 +2,90 @@ import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import * as Ffmpeg from 'fluent-ffmpeg';
 import * as path from 'path';
-import { statSync } from 'fs';
+import { statSync, unlinkSync, existsSync, renameSync } from 'fs';
+import { randomBytes } from 'crypto';
+import { Logger } from '@nestjs/common';
 import { Video } from '@prisma/client';
 
 @Injectable()
 export class StorageService {
+  private readonly logger = new Logger(StorageService.name);
   constructor(private prisma: PrismaService) {}
+
+  /**
+   * Re-encodes a video to a profile every Android TV decoder handles: H.264 Main level 4.0,
+   * yuv420p, at most 1920x1080 (never upscaled, even dimensions), at most 30 fps, bitrate
+   * capped around 6 Mb/s, AAC stereo 48 kHz, moov atom at the front. Uploads straight from a
+   * camera or an editor (33 Mb/s, odd sizes, High 10-bit...) stall cheap TVs at the first frame.
+   * The result gets a new file name so TVs re-download it; the old file is removed.
+   */
+  async optimizeForTv(id: number): Promise<Video | null> {
+    const video = await this.prisma.video.findUnique({ where: { id } });
+    if (!video) return null;
+    const dir = path.join(process.cwd(), 'storage');
+    const input = path.join(dir, video.fileName);
+    if (!existsSync(input)) {
+      this.logger.warn(`optimizeForTv: archivo no encontrado ${video.fileName}`);
+      return video;
+    }
+    await this.prisma.video.update({ where: { id }, data: { processing: true } });
+    const newName = `${randomBytes(16).toString('hex')}.mp4`;
+    const tmp = path.join(dir, `${newName}.tmp.mp4`);
+    const started = Date.now();
+    try {
+      const fps = await this.probeFps(input);
+      await new Promise<void>((resolve, reject) => {
+        const cmd = Ffmpeg(input)
+          .videoCodec('libx264')
+          .outputOptions([
+            '-profile:v main',
+            '-level 4.0',
+            '-pix_fmt yuv420p',
+            '-preset veryfast',
+            '-crf 23',
+            '-maxrate 6M',
+            '-bufsize 12M',
+            // Fit inside 1920x1080 without upscaling, then force even dimensions.
+            '-vf scale=w=min(1920\\,iw):h=min(1080\\,ih):force_original_aspect_ratio=decrease,scale=trunc(iw/2)*2:trunc(ih/2)*2',
+            '-movflags +faststart',
+          ])
+          .audioCodec('aac')
+          .audioBitrate('128k')
+          .audioFrequency(48000)
+          .audioChannels(2);
+        if (fps && fps > 30) cmd.outputOptions(['-r 30']);
+        cmd
+          .on('end', () => resolve())
+          .on('error', (err) => reject(err))
+          .save(tmp);
+      });
+      renameSync(tmp, path.join(dir, newName));
+      const updated = await this.prisma.video.update({
+        where: { id },
+        data: { fileName: newName, path: `/${newName}`, processing: false },
+      });
+      try { unlinkSync(input); } catch { /* already gone */ }
+      this.logger.log(`Video ${id} optimizado para TV en ${Math.round((Date.now() - started) / 1000)} s: ${video.fileName} -> ${newName}`);
+      return updated;
+    } catch (err) {
+      try { unlinkSync(tmp); } catch { /* nothing to clean */ }
+      this.logger.error(`optimizeForTv falló para el video ${id} (${video.fileName}): ${err?.message || err}`);
+      // Keep the original playable rather than leaving the video hidden forever.
+      return this.prisma.video.update({ where: { id }, data: { processing: false } });
+    }
+  }
+
+  private probeFps(file: string): Promise<number | null> {
+    return new Promise((resolve) => {
+      Ffmpeg.ffprobe(file, (err, data) => {
+        if (err) return resolve(null);
+        const v = data.streams?.find((s) => s.codec_type === 'video');
+        const rate = v?.r_frame_rate || '';
+        const [n, d] = rate.split('/').map(Number);
+        resolve(n && d ? n / d : null);
+      });
+    });
+  }
 
   async createVideoRecord(data: any) {
     return this.prisma.video.create({
