@@ -115,7 +115,7 @@ function ScreenAddPage() {
             <select
               value={formData.playlist}
               onChange={(e) => setFormData({ ...formData, playlist: e.target.value })}
-              className="w-full bg-[#1e293b] border border-slate-900/10 rounded-2xl py-4 px-5 text-slate-900 focus:outline-none focus:border-primary transition-all appearance-none"
+              className="w-full bg-slate-900/5 border border-slate-900/10 rounded-2xl py-4 px-5 text-slate-900 focus:outline-none focus:border-primary transition-all appearance-none"
               required
             >
               <option value="">Selecciona una playlist</option>
