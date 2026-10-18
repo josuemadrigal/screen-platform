@@ -113,6 +113,19 @@ Router: translate TCP `PUBLIC_PORT` of the public IP to `PUBLIC_PORT` of this se
 are then reached at `https://DOMAIN:8443`, `https://tv.DOMAIN:8443` and
 `https://api.DOMAIN:8443`; the panel and TVs pick the port up from `/config.js` automatically.
 
+## Other apps behind this Caddy
+
+The public port (8443) belongs to this Caddy, with the wildcard certificate. Other apps on the same server get their
+hostnames through it instead of opening another port on the router:
+
+1. The app's compose joins the `edge` network (created by this compose) as external, with its own aliases.
+2. A file in `/opt/screen-platform/caddy-extra/` (mounted at `/etc/caddy/extra`, imported by the wildcard site) routes
+   its hostnames, e.g. `handle @farmacia { reverse_proxy farma-panel:80 }`. Only with the wildcard layout
+   (`TLS_MODE=duckdns` or `duckdns-delegated`), and the hostnames must be subdomains of `DOMAIN`.
+3. After adding or changing a file: `docker compose exec web caddy reload --config /etc/caddy/Caddyfile`.
+
+2B Farma does this (`2b-api/deploy/README.md`). Without files in `caddy-extra/` nothing changes.
+
 ## Android app live updates
 
 Every web image also carries a live-update package for the Android app: `/updates/latest.json`

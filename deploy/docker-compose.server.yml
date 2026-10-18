@@ -90,6 +90,9 @@ services:
       - caddy_config:/config
       # APK published with `npm run apk:publish` (screen-tv-client); served at /apk/screentv.apk
       - ./apk:/srv/apk:ro
+      # Hostnames of other apps on this server (README.md, "Other apps behind this Caddy").
+      - ./caddy-extra:/etc/caddy/extra:ro
+    networks: [default, edge]
     depends_on:
       - api
 
@@ -133,3 +136,9 @@ volumes:
   postgres_data:
   caddy_data:
   caddy_config:
+
+networks:
+  # Shared with other apps on this server whose sites this Caddy serves (e.g. 2B Farma): created here, they join it
+  # as an external network and the files in ./caddy-extra route their hostnames to them.
+  edge:
+    name: edge

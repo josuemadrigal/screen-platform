@@ -32,6 +32,10 @@
 		}
 	}
 
+	# Other apps on this server add their own hostnames here: files mounted at /etc/caddy/extra
+	# (deploy/README.md, "Other apps behind this Caddy"). Without files, nothing changes.
+	import /etc/caddy/extra/*.caddyfile
+
 	handle {
 		respond "Unknown host" 404
 	}
