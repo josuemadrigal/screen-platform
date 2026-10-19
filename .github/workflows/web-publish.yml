@@ -8,6 +8,9 @@ on:
       - "screen-tv-client/**"
       - "deploy/Dockerfile.web"
       - "deploy/Caddyfile"
+      # The image also carries these (COPY deploy/tls, deploy/layout in Dockerfile.web).
+      - "deploy/tls/**"
+      - "deploy/layout/**"
       - ".github/workflows/web-publish.yml"
   workflow_dispatch:
 
