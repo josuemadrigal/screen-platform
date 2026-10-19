@@ -120,7 +120,7 @@ hostnames through it instead of opening another port on the router:
 
 1. The app's compose joins the `edge` network (created by this compose) as external, with its own aliases.
 2. A file in `/opt/screen-platform/caddy-extra/` (mounted at `/etc/caddy/extra`, imported by the wildcard site) routes
-   its hostnames, e.g. `handle @farmacia { reverse_proxy farma-panel:80 }`. Only with the wildcard layout
+   its hostnames, e.g. `handle @backoffice { reverse_proxy farma-panel:80 }`. Only with the wildcard layout
    (`TLS_MODE=duckdns` or `duckdns-delegated`), and the hostnames must be subdomains of `DOMAIN`.
 3. After adding or changing a file: `docker compose exec web caddy reload --config /etc/caddy/Caddyfile`.
 
