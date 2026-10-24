@@ -2,7 +2,7 @@ import { createFileRoute, Link } from '@tanstack/react-router'
 import { useState, useEffect, useRef } from 'react'
 import { api } from '../lib/api'
 import { Library, Play, Clock, Video as VideoIcon, ListMusic, ChevronRight, Monitor, Edit3 } from 'lucide-react'
-import { totalDuration, formatDuration } from '../lib/media'
+import { totalDuration, formatDuration, fitClass } from '../lib/media'
 import { cn } from '../lib/utils'
 import { API_URL } from '../lib/config'
 
@@ -16,6 +16,7 @@ function PlaylistViewPage() {
   const [isLoading, setIsLoading] = useState(true)
   const [currentVideoIndex, setCurrentVideoIndex] = useState(0)
   const playerRef = useRef<HTMLVideoElement>(null)
+  const [aspect, setAspect] = useState<number | undefined>()
   
   const servidor = API_URL
 
@@ -23,8 +24,7 @@ function PlaylistViewPage() {
     const fetchPlaylist = async () => {
       try {
         const { data } = await api.get(`/playlists/${id}`)
-        console.log('Playlist Data:', data)
-        setData(data)
+                setData(data)
       } catch (error) {
         console.error(error)
       } finally {
@@ -35,7 +35,7 @@ function PlaylistViewPage() {
   }, [id])
 
   if (isLoading) return <div className="animate-pulse glass h-96 rounded-3xl" />
-  if (!data) return <div className="text-center py-20 text-slate-500">Playlist no encontrada.</div>
+  if (!data) return <div className="text-center py-20 text-slate-500">Circuito no encontrado.</div>
 
   const videoList = data.videosData || []
   const currentVideo = videoList[currentVideoIndex]
@@ -53,7 +53,7 @@ function PlaylistViewPage() {
           </div>
           <div>
             <div className="flex items-center gap-2 text-slate-500 text-sm mb-1">
-              <span>Playlists</span>
+              <span>Circuitos</span>
               <ChevronRight size={14} />
               <span className="text-slate-700">Vista Previa</span>
             </div>
@@ -72,13 +72,14 @@ function PlaylistViewPage() {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <div className="lg:col-span-2 space-y-6">
-          <div className="relative aspect-video rounded-[32px] overflow-hidden bg-white border border-slate-900/5 shadow-2xl">
+          <div className="relative aspect-video rounded-[32px] overflow-hidden bg-black border border-slate-900/5 shadow-2xl">
             {videoList.length > 0 ? (
               <video
                 ref={playerRef}
                 key={currentVideo?.id}
                 src={`${servidor}${currentVideo?.path}`}
-                className="w-full h-full object-cover"
+                className={`w-full h-full ${fitClass(currentVideo?.fit, aspect)}`}
+                onLoadedMetadata={(e) => setAspect(e.currentTarget.videoWidth / e.currentTarget.videoHeight || undefined)}
                 autoPlay
                 muted
                 controls
@@ -100,7 +101,7 @@ function PlaylistViewPage() {
           <div className="glass p-8 rounded-3xl space-y-4">
             <h2 className="text-xl font-bold flex items-center gap-2">
               <Monitor size={20} className="text-primary" />
-              Detalles de la Playlist
+              Detalles del circuito
             </h2>
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-6 pt-4">
                <div className="space-y-1">

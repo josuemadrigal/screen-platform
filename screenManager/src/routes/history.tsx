@@ -13,10 +13,10 @@ function getActionMeta(action: string): { icon: React.ReactNode; color: string }
   if (a.includes('inicio de sesión'))  return { icon: <LogIn size={16} />,    color: 'bg-emerald-500/10 text-emerald-600' }
   if (a.includes('registrado'))        return { icon: <UserPlus size={16} />,  color: 'bg-purple-500/10 text-purple-400' }
   if (a.includes('subido'))            return { icon: <Upload size={16} />,    color: 'bg-blue-500/10 text-blue-600' }
-  if (a.includes('eliminado'))         return { icon: <Trash2 size={16} />,    color: 'bg-red-500/10 text-red-600' }
+  if (a.includes('eliminado') || a.includes('eliminada'))         return { icon: <Trash2 size={16} />,    color: 'bg-red-500/10 text-red-600' }
   if (a.includes('actualizado') || a.includes('actualizada')) return { icon: <Edit size={16} />, color: 'bg-amber-500/10 text-amber-600' }
   if (a.includes('pantalla creada'))   return { icon: <Monitor size={16} />,   color: 'bg-orange-500/10 text-orange-400' }
-  if (a.includes('playlist creada'))   return { icon: <Library size={16} />,   color: 'bg-indigo-500/10 text-indigo-600' }
+  if (a.includes('playlist creada') || a.includes('circuito creado'))   return { icon: <Library size={16} />,   color: 'bg-indigo-500/10 text-indigo-600' }
   return { icon: <RefreshCw size={16} />, color: 'bg-slate-900/5 text-slate-600' }
 }
 

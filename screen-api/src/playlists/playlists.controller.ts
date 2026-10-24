@@ -29,7 +29,7 @@ export class PlaylistsController {
   async create(@Body() dto: CreatePlaylistDto, @Req() req: Request) {
     const result = await this.playlistsService.create(dto);
     const userid = getUserIdFromRequest(req, this.jwtService);
-    await this.historyService.create({ userid, action: `Playlist creada: "${dto.playlistname}"` });
+    await this.historyService.create({ userid, action: `Circuito creado: "${dto.playlistname}"` });
     return result;
   }
 
@@ -52,7 +52,7 @@ export class PlaylistsController {
     const previous = await this.playlistsService.findOne(id);
     const result = await this.playlistsService.update(id, dto);
     const userid = getUserIdFromRequest(req, this.jwtService);
-    await this.historyService.create({ userid, action: `Playlist actualizada: "${result.playlistname}" (ID: ${id})` });
+    await this.historyService.create({ userid, action: `Circuito actualizado: "${result.playlistname}" (ID: ${id})` });
     // Reload every TV client whose screen uses this playlist (matched by id, old name or new name).
     const codes = await this.playlistsService.findScreenCodesUsingPlaylist(id, [
       previous?.playlist?.playlistname,
@@ -69,7 +69,7 @@ export class PlaylistsController {
     const playlist = await this.playlistsService.findOne(id);
     const result = await this.playlistsService.remove(id);
     const userid = getUserIdFromRequest(req, this.jwtService);
-    await this.historyService.create({ userid, action: `Playlist eliminada: "${playlist.playlist.playlistname}" (ID: ${id})` });
+    await this.historyService.create({ userid, action: `Circuito eliminado: "${playlist.playlist.playlistname}" (ID: ${id})` });
     return result;
   }
 }

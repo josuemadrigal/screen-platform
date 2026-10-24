@@ -23,6 +23,8 @@ export interface VideoData {
   duration?: number
   /** Expiry date as YYYY-MM-DD; the video must not play after this day. */
   dateout?: string | null
+  /** auto | cover | contain: how the video fits the screen (set per video in the panel). */
+  fit?: string
 }
 
 // Use the native store only when the installed app actually ships the plugin. A live update

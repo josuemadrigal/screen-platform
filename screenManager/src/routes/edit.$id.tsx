@@ -129,14 +129,14 @@ function ScreenEditPage() {
           <div className="glass p-8 rounded-3xl space-y-6">
             <div className="space-y-2">
               <label className="text-sm font-medium text-slate-600 ml-1 flex items-center gap-2">
-                <Library size={14} /> Playlist Asignada
+                <Library size={14} /> Circuito asignado
               </label>
               <select 
                 value={formData.playlist}
                 onChange={(e) => setFormData({ ...formData, playlist: e.target.value })}
                 className="w-full px-6 py-4 rounded-2xl bg-slate-900/5 border border-slate-900/10 focus:ring-2 focus:ring-primary/50 focus:border-primary outline-none transition-all appearance-none cursor-pointer"
               >
-                <option value="none">Sin Playlist (Manual)</option>
+                <option value="none">Sin circuito (manual)</option>
                 {playlists.map(p => (
                   <option key={p.id} value={p.id}>{p.playlistname}</option>
                 ))}
@@ -145,7 +145,7 @@ function ScreenEditPage() {
 
             <div className="p-6 bg-primary/5 border border-primary/10 rounded-2xl">
               <p className="text-xs text-slate-600 leading-relaxed italic">
-                Nota: Cambiar la playlist afectará lo que se muestra en la pantalla de inmediato si esta se encuentra conectada.
+                Nota: Cambiar el circuito afectará lo que se muestra en la pantalla de inmediato si esta se encuentra conectada.
               </p>
             </div>
 

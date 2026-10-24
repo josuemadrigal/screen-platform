@@ -140,7 +140,7 @@ function ScreenEditPage() {
 
             <div className="space-y-2">
               <label className="text-sm font-bold text-slate-600 uppercase tracking-widest flex items-center gap-2">
-                <Layout size={14} /> Playlist Asignada
+                <Layout size={14} /> Circuito asignado
               </label>
               <select
                 value={formData.playlist}
@@ -148,7 +148,7 @@ function ScreenEditPage() {
                 className="w-full bg-slate-900/5 border border-slate-900/10 rounded-2xl py-4 px-5 text-slate-900 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/30 transition-all appearance-none"
                 required
               >
-                <option value="">Selecciona una playlist</option>
+                <option value="">Selecciona un circuito</option>
                 {playlists.map((pl) => (
                   <option key={pl.id} value={pl.playlistname}>
                     {pl.playlistname}

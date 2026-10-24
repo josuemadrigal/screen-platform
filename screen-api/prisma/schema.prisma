@@ -97,6 +97,9 @@ model Video {
   status    Int       @default(1)
   /// True while ffmpeg re-encodes the file to the TV-safe profile; hidden from TVs meanwhile.
   processing Boolean  @default(false)
+  /// How the TV fits the video: auto (no stretch when its shape differs from the screen),
+  /// cover (fill, cropping) or contain (whole video, black bars).
+  fit        String   @default("auto")
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
 

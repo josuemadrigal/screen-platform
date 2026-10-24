@@ -10,12 +10,12 @@ function PlaylistsPage() {
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
       <header className="flex justify-between items-end">
         <div>
-          <h1 className="text-4xl font-bold tracking-tight">Playlists</h1>
+          <h1 className="text-4xl font-bold tracking-tight">Circuitos</h1>
           <p className="text-slate-600 mt-2">Create and organize content for your screens.</p>
         </div>
         <button className="flex items-center gap-2 px-6 py-3 rounded-xl bg-primary hover:bg-primary/90 font-semibold transition-all shadow-lg shadow-primary/20">
           <Plus size={20} />
-          New Playlist
+          Nuevo circuito
         </button>
       </header>
 

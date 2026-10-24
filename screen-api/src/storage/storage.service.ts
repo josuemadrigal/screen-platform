@@ -125,8 +125,14 @@ export class StorageService {
         duration: data.duration,
         dateout: data.dateout,
         status: parseInt(data.status) || 1,
+        fit: StorageService.normalizeFit(data.fit),
       },
     });
+  }
+
+  static readonly FITS = ['auto', 'cover', 'contain'] as const;
+  static normalizeFit(fit: unknown): string {
+    return typeof fit === 'string' && (StorageService.FITS as readonly string[]).includes(fit) ? fit : 'auto';
   }
 
   /** Size in bytes of the stored file, or null when it is missing on disk. */
@@ -149,14 +155,52 @@ export class StorageService {
   }
 
   async update(id: number, data: any) {
-    const { status, ...rest } = data;
+    const { title, dateout, status, fit } = data ?? {};
     return this.prisma.video.update({
       where: { id },
       data: {
-        ...rest,
+        title: typeof title === 'string' ? title : undefined,
+        dateout: typeof dateout === 'string' ? dateout : undefined,
         status: status !== undefined ? parseInt(status) : undefined,
+        fit: fit !== undefined ? StorageService.normalizeFit(fit) : undefined,
       },
     });
+  }
+
+  private static idsOf(videos: string | null | undefined): number[] {
+    return (videos || '').split(',').map((v) => parseInt(v.trim(), 10)).filter((v) => !isNaN(v));
+  }
+
+  /** Ids of the circuits (playlists) that contain this video. */
+  async playlistIdsOf(videoId: number): Promise<number[]> {
+    const playlists = await this.prisma.playlist.findMany({ select: { id: true, videos: true } });
+    return playlists.filter((p) => StorageService.idsOf(p.videos).includes(videoId)).map((p) => p.id);
+  }
+
+  /**
+   * Makes the video belong exactly to the given circuits ('all' = every circuit): appends it at
+   * the end of the circuits that lack it and removes every occurrence from the others.
+   * With onlyAdd, circuits not listed are left untouched (used right after an upload).
+   * Returns the screen codes whose content changed.
+   */
+  async setPlaylists(videoId: number, target: number[] | 'all', onlyAdd = false): Promise<string[]> {
+    const playlists = await this.prisma.playlist.findMany({ select: { id: true, playlistname: true, videos: true } });
+    const wanted = target === 'all' ? new Set(playlists.map((p) => p.id)) : new Set(target);
+    const changed: { id: number; playlistname: string }[] = [];
+    for (const p of playlists) {
+      const ids = StorageService.idsOf(p.videos);
+      const has = ids.includes(videoId);
+      let next: number[] | null = null;
+      if (wanted.has(p.id) && !has) next = [...ids, videoId];
+      else if (!wanted.has(p.id) && has && !onlyAdd) next = ids.filter((v) => v !== videoId);
+      if (!next) continue;
+      await this.prisma.playlist.update({ where: { id: p.id }, data: { videos: next.join(',') } });
+      changed.push(p);
+    }
+    if (changed.length === 0) return [];
+    const references = changed.flatMap((p) => [String(p.id), p.playlistname]);
+    const screens = await this.prisma.screen.findMany({ where: { playlist: { in: references } }, select: { code: true } });
+    return [...new Set(screens.map((s) => s.code))];
   }
 
   async remove(id: number) {

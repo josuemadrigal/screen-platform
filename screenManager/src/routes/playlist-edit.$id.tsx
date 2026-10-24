@@ -98,7 +98,7 @@ function PlaylistEditPage() {
 
       Swal.fire({
         icon: 'success',
-        title: 'Playlist actualizada',
+        title: 'Circuito actualizado',
         showConfirmButton: false,
         timer: 1500
       })
@@ -106,7 +106,7 @@ function PlaylistEditPage() {
       setTimeout(() => navigate({ to: '/playlist' }), 1500)
     } catch (error) {
       console.error(error)
-      Swal.fire('Error', 'No se pudo actualizar la playlist', 'error')
+      Swal.fire('Error', 'No se pudo actualizar el circuito', 'error')
     } finally {
       setIsSaving(false)
     }
@@ -126,7 +126,7 @@ function PlaylistEditPage() {
             <Library size={32} />
           </div>
           <div>
-            <h1 className="text-4xl font-bold tracking-tight text-slate-900">Editar Playlist</h1>
+            <h1 className="text-4xl font-bold tracking-tight text-slate-900">Editar circuito</h1>
             <p className="text-slate-600 mt-1">Modifica el nombre y los videos de la lista.</p>
           </div>
         </div>
@@ -142,7 +142,7 @@ function PlaylistEditPage() {
         <div className="lg:col-span-2 space-y-6">
           <div className="glass p-8 rounded-3xl space-y-6">
             <div className="space-y-2">
-              <label className="text-sm font-medium text-slate-600 ml-1">Nombre de la Playlist</label>
+              <label className="text-sm font-medium text-slate-600 ml-1">Nombre del circuito</label>
               <input
                 type="text"
                 value={name}

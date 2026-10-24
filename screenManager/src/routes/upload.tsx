@@ -6,6 +6,7 @@ import { useAuthStore } from '../store/authStore'
 import Swal from 'sweetalert2'
 import { cn } from '../lib/utils'
 import { formatSize } from '../lib/media'
+import { FitSelect, CircuitPicker, type VideoFit } from '../components/VideoOptions'
 
 export const Route = createFileRoute('/upload')({
   component: UploadPage,
@@ -46,6 +47,8 @@ function UploadPage() {
   const [isUploading, setIsUploading] = useState(false)
   const [dragActive, setDragActive] = useState(false)
   const [optimize, setOptimize] = useState(true)
+  const [fit, setFit] = useState<VideoFit>('auto')
+  const [circuits, setCircuits] = useState<number[]>([])
   const fileInputRef = useRef<HTMLInputElement>(null)
   const user = useAuthStore((state) => state.user)
   const navigate = useNavigate()
@@ -106,6 +109,8 @@ function UploadPage() {
     formData.append('duration', it.duration)
     formData.append('user', user?.name || 'Admin')
     formData.append('optimize', optimize ? '1' : '0')
+    formData.append('fit', fit)
+    if (circuits.length) formData.append('playlists', circuits.join(','))
     try {
       await api.post('/storage/upload', formData, {
         headers: { 'Content-Type': 'multipart/form-data' },
@@ -274,6 +279,20 @@ function UploadPage() {
                   </button>
                 </div>
               ))}
+            </div>
+          )}
+          {items.length > 0 && (
+            <div className="glass rounded-3xl p-6 space-y-5">
+              <h2 className="text-lg font-bold text-slate-900">Opciones para estos videos</h2>
+              <div className="space-y-2">
+                <label className="text-[10px] font-bold uppercase tracking-widest text-slate-500">Agregar a circuitos</label>
+                <CircuitPicker value={circuits} onChange={setCircuits} disabled={isUploading} />
+                <p className="text-xs text-slate-500">Se agregan al final de cada circuito elegido. Puedes cambiarlo después desde el video.</p>
+              </div>
+              <div className="space-y-2">
+                <label className="text-[10px] font-bold uppercase tracking-widest text-slate-500">Ajuste en pantalla</label>
+                <FitSelect value={fit} onChange={setFit} disabled={isUploading} />
+              </div>
             </div>
           )}
         </div>

@@ -54,7 +54,7 @@ function PlaylistAddPage() {
       
       Swal.fire({
         icon: 'success',
-        title: 'Playlist creada',
+        title: 'Circuito creado',
         showConfirmButton: false,
         timer: 1500
       })
@@ -62,7 +62,7 @@ function PlaylistAddPage() {
       setTimeout(() => navigate({ to: '/playlist' }), 1500)
     } catch (error) {
       console.error(error)
-      Swal.fire('Error', 'No se pudo crear la playlist', 'error')
+      Swal.fire('Error', 'No se pudo crear el circuito', 'error')
     } finally {
       setIsSaving(false)
     }
@@ -79,7 +79,7 @@ function PlaylistAddPage() {
           <Library size={32} />
         </div>
         <div>
-          <h1 className="text-4xl font-bold tracking-tight text-slate-900">Nueva Playlist</h1>
+          <h1 className="text-4xl font-bold tracking-tight text-slate-900">Nuevo circuito</h1>
           <p className="text-slate-600 mt-1">Crea una secuencia de videos para tus pantallas.</p>
         </div>
       </header>
@@ -88,7 +88,7 @@ function PlaylistAddPage() {
         <div className="lg:col-span-2 space-y-6">
           <div className="glass p-8 rounded-3xl space-y-6">
             <div className="space-y-2">
-              <label className="text-sm font-medium text-slate-600 ml-1">Nombre de la Playlist</label>
+              <label className="text-sm font-medium text-slate-600 ml-1">Nombre del circuito</label>
               <input 
                 type="text" 
                 value={name}
@@ -202,7 +202,7 @@ function PlaylistAddPage() {
                     : "bg-primary hover:bg-primary/90 text-white shadow-primary/20"
                 )}
               >
-                {isSaving ? 'Guardando...' : 'Crear Playlist'}
+                {isSaving ? 'Guardando...' : 'Crear circuito'}
               </button>
             </div>
           </div>

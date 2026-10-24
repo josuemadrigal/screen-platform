@@ -57,9 +57,10 @@ USER node
 # Exponer puerto
 EXPOSE 4006
 
-# Health check
+# Health check: sale en cuanto llega la respuesta (si no, la conexión keep-alive
+# deja a node vivo ~6 s y Docker lo corta a los 3 s como «unhealthy»)
 HEALTHCHECK --interval=30s --timeout=3s --start-period=40s --retries=3 \
-    CMD node -e "require('http').get('http://localhost:4006/health', (r) => {if (r.statusCode !== 200) throw new Error(r.statusCode)})"
+    CMD node -e "require('http').get('http://127.0.0.1:4006/health', (r) => process.exit(r.statusCode === 200 ? 0 : 1)).on('error', () => process.exit(1))"
 
 # Aplica migraciones pendientes y arranca
 CMD [ "sh", "-c", "npx prisma migrate deploy && node dist/main.js" ]

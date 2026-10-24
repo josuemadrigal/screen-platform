@@ -5,6 +5,7 @@ import { useScreen } from '../hooks/useScreen'
 import { Cast, AlertCircle, XCircle } from 'lucide-react'
 import { cn } from '../lib/utils'
 import { API_URL } from '../lib/config'
+import { fitClass } from '../lib/media'
 
 export const Route = createFileRoute('/client')({
   component: ClientPage,
@@ -23,6 +24,15 @@ function ClientPage() {
   const [error, setError] = useState<string | null>(null)
   const [hasInteracted, setHasInteracted] = useState(false)
   const [screenMuted, setScreenMuted] = useState(false)
+  const [aspects, setAspects] = useState<Record<string, number>>({})
+  const fitFor = (slot: 0 | 1) => {
+    const v = videoList[slot === activePlayer ? currentIndex : nextIndex]
+    const src = `${API_URL}${v?.path}`
+    return fitClass(v?.fit, aspects[src], isFullscreen ? window.innerWidth / window.innerHeight : 16 / 9)
+  }
+  const rememberAspect = (el: HTMLVideoElement) => {
+    if (el.videoWidth && el.videoHeight) setAspects((p) => ({ ...p, [el.src]: el.videoWidth / el.videoHeight }))
+  }
   
   const [activePlayer, setActivePlayer] = useState(0) 
   const videoRef0 = useRef<HTMLVideoElement>(null)
@@ -203,7 +213,8 @@ function ClientPage() {
             <video
               ref={videoRef0}
               src={`${servidor}${videoList[activePlayer === 0 ? currentIndex : nextIndex]?.path}`}
-              className={cn("absolute inset-0 w-full h-full object-cover transition-opacity duration-700", activePlayer === 0 ? "opacity-100 z-10" : "opacity-0 z-0")}
+              className={cn("absolute inset-0 w-full h-full bg-black transition-opacity duration-700", fitFor(0), activePlayer === 0 ? "opacity-100 z-10" : "opacity-0 z-0")}
+              onLoadedMetadata={(e) => rememberAspect(e.currentTarget)}
               autoPlay={activePlayer === 0 && isPlaying}
               // OPTIMIZACIÓN: Muted inicial para permitir Autoplay forzado
               muted={activePlayer !== 0 || !hasInteracted || screenMuted}
@@ -214,7 +225,8 @@ function ClientPage() {
             <video
               ref={videoRef1}
               src={`${servidor}${videoList[activePlayer === 1 ? currentIndex : nextIndex]?.path}`}
-              className={cn("absolute inset-0 w-full h-full object-cover transition-opacity duration-700", activePlayer === 1 ? "opacity-100 z-10" : "opacity-0 z-0")}
+              className={cn("absolute inset-0 w-full h-full bg-black transition-opacity duration-700", fitFor(1), activePlayer === 1 ? "opacity-100 z-10" : "opacity-0 z-0")}
+              onLoadedMetadata={(e) => rememberAspect(e.currentTarget)}
               autoPlay={activePlayer === 1 && isPlaying}
               muted={activePlayer !== 1 || !hasInteracted || screenMuted}
               onEnded={() => activePlayer === 1 && handleNext()}

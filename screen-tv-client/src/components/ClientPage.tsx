@@ -17,6 +17,8 @@ interface VideoData {
   title?: string
   thumbnail?: string
   dateout?: string | null
+  /** auto | cover | contain: how the video fits the screen (set per video in the panel). */
+  fit?: string
 }
 
 // Short git sha stamped at build time (see useLiveUpdate); 'dev' when running locally.
@@ -120,6 +122,29 @@ export function ClientPage() {
   // es readyState 1 con varios segundos en buffer y networkState IDLE. En el navegador sí se
   // usan dos para el cambio sin corte.
   const singlePlayer = store.isNative
+
+  // Aspect ratio of each loaded source, to resolve fit "auto".
+  const [aspects, setAspects] = useState<Record<string, number>>({})
+  const rememberAspect = (el: HTMLVideoElement) => {
+    if (!el.videoWidth || !el.videoHeight) return
+    const ratio = el.videoWidth / el.videoHeight
+    setAspects((prev) => (prev[el.src] === ratio ? prev : { ...prev, [el.src]: ratio }))
+  }
+  /**
+   * "No estirar": contain shows the whole video with black bars; cover fills the screen
+   * cropping the edges. auto = contain when the video's shape differs from the screen's by
+   * more than 10% (vertical or square videos on a TV), cover otherwise.
+   */
+  const fitClass = (slot: 0 | 1): string => {
+    const video = videoList[singlePlayer || slot === activePlayer ? currentIndex : nextIndex]
+    const mode = video?.fit || 'auto'
+    if (mode === 'cover') return 'object-cover'
+    if (mode === 'contain') return 'object-contain'
+    const ratio = aspects[srcs[slot]]
+    if (!ratio) return 'object-contain'
+    const screen = isFullscreen ? window.innerWidth / window.innerHeight : 16 / 9
+    return Math.abs(ratio / screen - 1) > 0.1 ? 'object-contain' : 'object-cover'
+  }
 
   // En la app, cada video se reproduce en un elemento <video> NUEVO. Cambiar el src del mismo
   // elemento recrea el reproductor de Chromium mientras el decodificador de hardware anterior
@@ -747,7 +772,8 @@ export function ClientPage() {
               src={srcs[0]}
               // Sin fundido: el saliente queda debajo con su último fotograma hasta que el
               // entrante pinta, así nunca se ve la capa de espera entre videos.
-              className={cn('absolute inset-0 w-full h-full object-cover', activePlayer === 0 ? 'z-10' : 'z-[1]')}
+              className={cn('absolute inset-0 w-full h-full bg-black', fitClass(0), activePlayer === 0 ? 'z-10' : 'z-[1]')}
+              onLoadedMetadata={(e) => rememberAspect(e.currentTarget)}
               autoPlay={activePlayer === 0 && isPlaying}
               muted={activePlayer !== 0 || !hasInteracted || screenMuted}
               onEnded={() => activePlayer === 0 && handleNext()}
@@ -764,7 +790,8 @@ export function ClientPage() {
             <video
               ref={videoRef1}
               src={srcs[1]}
-              className={cn('absolute inset-0 w-full h-full object-cover', activePlayer === 1 ? 'z-10' : 'z-[1]')}
+              className={cn('absolute inset-0 w-full h-full bg-black', fitClass(1), activePlayer === 1 ? 'z-10' : 'z-[1]')}
+              onLoadedMetadata={(e) => rememberAspect(e.currentTarget)}
               autoPlay={activePlayer === 1 && isPlaying}
               muted={activePlayer !== 1 || !hasInteracted || screenMuted}
               onEnded={() => activePlayer === 1 && handleNext()}

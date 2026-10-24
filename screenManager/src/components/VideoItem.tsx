@@ -1,6 +1,6 @@
 import { useState, useRef } from 'react'
 import { useNavigate } from '@tanstack/react-router'
-import { Play, Calendar, MoreVertical, Trash2, Edit, HardDrive, Clock, Loader2, Tv } from 'lucide-react'
+import { Play, Calendar, MoreVertical, Trash2, Edit, HardDrive, Clock, Loader2, Tv, Library, Minimize2 } from 'lucide-react'
 import { cn } from '../lib/utils'
 import { formatSize, parseDuration, formatDuration, todayISO } from '../lib/media'
 import { api } from '../lib/api'
@@ -18,6 +18,7 @@ interface VideoProps {
     status: string | number;
     size?: number | null;
     processing?: boolean;
+    fit?: string;
   }
 }
 
@@ -80,7 +81,7 @@ export function VideoItem({ data }: VideoProps) {
   const remove = async () => {
     const result = await Swal.fire({
       title: `¿Eliminar "${data.title}"?`,
-      text: 'Se borra el archivo y sale de todas las playlists.',
+      text: 'Se borra el archivo y sale de todos los circuitos.',
       icon: 'warning',
       showCancelButton: true,
       confirmButtonText: 'Sí, eliminar',
@@ -150,6 +151,12 @@ export function VideoItem({ data }: VideoProps) {
                   <Edit size={16} /> Editar
                 </button>
                 <button
+                  onMouseDown={() => navigate({ to: `/video-edit/${data.id}`, hash: 'circuitos' })}
+                  className="w-full flex items-center gap-3 px-4 py-2 text-sm text-slate-700 hover:bg-slate-900/5 hover:text-slate-900 transition-colors text-left"
+                >
+                  <Library size={16} /> Circuitos
+                </button>
+                <button
                   onMouseDown={optimize}
                   disabled={data.processing}
                   className="w-full flex items-center gap-3 px-4 py-2 text-sm text-slate-700 hover:bg-slate-900/5 hover:text-slate-900 transition-colors text-left disabled:opacity-50"
@@ -175,6 +182,14 @@ export function VideoItem({ data }: VideoProps) {
           <div className="flex items-center gap-2 text-slate-500">
             <HardDrive size={13} className="shrink-0" />
             <span>{formatSize(data.size)}</span>
+            {data.fit === 'contain' && (
+              <span className="ml-auto inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-slate-500" title="Se muestra completo, con bandas negras">
+                <Minimize2 size={11} /> No estirar
+              </span>
+            )}
+            {data.fit === 'cover' && (
+              <span className="ml-auto text-[10px] font-bold uppercase tracking-wider text-slate-500" title="Llena la pantalla recortando los bordes">Llenar</span>
+            )}
           </div>
         </div>
       </div>

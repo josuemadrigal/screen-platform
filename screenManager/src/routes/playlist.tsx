@@ -54,7 +54,7 @@ function PlaylistsPage() {
       await api.delete(`/playlists/${playlist.id}`)
       setPlaylists((prev) => prev.filter((p) => p.id !== playlist.id))
     } catch {
-      Swal.fire('Error', 'No se pudo eliminar la playlist', 'error')
+      Swal.fire('Error', 'No se pudo eliminar el circuito', 'error')
     }
   }
 
@@ -64,7 +64,7 @@ function PlaylistsPage() {
         <div className="space-y-2">
           <div className="flex items-center gap-3 text-primary">
             <Library size={24} />
-            <h1 className="text-4xl font-bold tracking-tight text-slate-900">Playlists</h1>
+            <h1 className="text-4xl font-bold tracking-tight text-slate-900">Circuitos</h1>
           </div>
           <p className="text-slate-600 text-lg">Gestiona las listas de reproducción para tus pantallas.</p>
         </div>
@@ -76,7 +76,7 @@ function PlaylistsPage() {
               type="text"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              placeholder="Buscar playlists..."
+              placeholder="Buscar circuitos..."
               className="w-full pl-12 pr-4 py-3 bg-slate-900/5 border border-slate-900/10 rounded-2xl focus:ring-2 focus:ring-primary/50 focus:border-primary outline-none transition-all text-sm"
             />
           </div>
@@ -85,7 +85,7 @@ function PlaylistsPage() {
             className="flex items-center gap-2 px-6 py-3 rounded-2xl bg-primary hover:bg-primary/90 text-white font-bold transition-all shadow-lg shadow-primary/20 active:scale-95"
           >
             <Plus size={20} />
-            <span className="hidden sm:inline">Nueva Playlist</span>
+            <span className="hidden sm:inline">Nuevo circuito</span>
           </button>
         </div>
       </header>

@@ -21,7 +21,7 @@ import { cn } from '../lib/utils'
 const navLinks = [
   { title: "Dashboard", path: "/", icon: LayoutDashboard },
   { title: "Pantallas", path: "/screens", icon: Monitor },
-  { title: "Playlist", path: "/playlist", icon: Library },
+  { title: "Circuitos", path: "/playlist", icon: Library },
   { title: "Videos", path: "/videos", icon: Film },
   { title: "Estado", path: "/estado", icon: Activity },
   { title: "Historial", path: "/history", icon: Activity, permission: PERM.HISTORY_VIEW },

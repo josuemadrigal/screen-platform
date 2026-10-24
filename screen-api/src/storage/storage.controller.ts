@@ -1,4 +1,4 @@
-import { Controller, Post, Get, Patch, Delete, Param, UseInterceptors, UploadedFile, Body, ParseIntPipe, Req } from '@nestjs/common';
+import { Controller, Post, Get, Patch, Put, Delete, Param, UseInterceptors, UploadedFile, Body, ParseIntPipe, Req, BadRequestException } from '@nestjs/common';
 import { Request } from 'express';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { StorageService } from './storage.service';
@@ -44,6 +44,8 @@ export class StorageController {
         dateout: { type: 'string' },
         status: { type: 'string' },
         optimize: { type: 'string', description: '"0" stores the file as uploaded, without the TV re-encode' },
+        fit: { type: 'string', description: 'auto | cover | contain (default auto)' },
+        playlists: { type: 'string', description: 'Circuits to add the video to: "all" or comma-separated ids' },
       },
     },
   })
@@ -69,10 +71,15 @@ export class StorageController {
       duration: body.duration,
       dateout: body.dateout,
       status: body.status ? parseInt(body.status, 10) : 1,
+      fit: body.fit,
     });
 
     const userid = getUserIdFromRequest(req, this.jwtService);
     await this.historyService.create({ userid, action: `Video subido: "${body.title}"` });
+
+    // Circuits chosen at upload time. While the video is processing, screens do not get it yet.
+    const circuits = StorageController.parseCircuits(body.playlists);
+    if (circuits) await this.storageService.setPlaylists(record.id, circuits, true);
 
     if (body.optimize === '0' || body.optimize === 'false') {
       // Stored as uploaded (useful to test a known-good file on a TV).
@@ -126,6 +133,34 @@ export class StorageController {
   @ApiOperation({ summary: 'Get all videos' })
   findAll() {
     return this.storageService.findAll();
+  }
+
+  /** "all" | "1,2,3" | [1,2,3] -> 'all' | number[]; undefined/empty -> null (no change). */
+  private static parseCircuits(value: unknown): number[] | 'all' | null {
+    if (value === 'all') return 'all';
+    const list = Array.isArray(value) ? value : typeof value === 'string' ? value.split(',') : [];
+    const ids = list.map((v) => parseInt(String(v).trim(), 10)).filter((v) => !isNaN(v));
+    return ids.length ? ids : null;
+  }
+
+  @Get(':id/playlists')
+  @ApiOperation({ summary: 'Circuits (playlists) that contain this video' })
+  async playlistsOf(@Param('id', ParseIntPipe) id: number) {
+    return { playlistIds: await this.storageService.playlistIdsOf(id) };
+  }
+
+  @Put(':id/playlists')
+  @RequirePermission(PERMISSIONS.CONTENT_MANAGE)
+  @ApiOperation({ summary: 'Set the circuits (playlists) this video belongs to: { playlistIds: number[] | "all" }' })
+  async setPlaylists(@Param('id', ParseIntPipe) id: number, @Body() body: any, @Req() req: Request) {
+    const video = await this.storageService.findOne(id);
+    if (!video) throw new BadRequestException('Video no encontrado');
+    const target = body?.playlistIds === 'all' ? 'all' : StorageController.parseCircuits(body?.playlistIds) ?? [];
+    const codes = await this.storageService.setPlaylists(id, target);
+    const userid = getUserIdFromRequest(req, this.jwtService);
+    await this.historyService.create({ userid, action: `Video "${video.title}" asignado a circuitos (ID: ${id})` });
+    for (const code of codes) this.eventsGateway.reloadScreensByCode(code);
+    return { playlistIds: await this.storageService.playlistIdsOf(id) };
   }
 
   @Get(':id')

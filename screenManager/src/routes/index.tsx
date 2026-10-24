@@ -54,13 +54,13 @@ function Dashboard() {
   const actions = [
     { title: "Subir videos", icon: Upload, color: "bg-primary/10 text-primary", path: "/upload", desc: "Añade contenido a la biblioteca" },
     { title: "Pantallas", icon: Monitor, color: "bg-secondary/10 text-secondary", path: "/status", desc: "Monitor en tiempo real" },
-    { title: "Nueva playlist", icon: ListPlus, color: "bg-primary/10 text-primary", path: "/playlist-new", desc: "Organiza tus videos" },
+    { title: "Nuevo circuito", icon: ListPlus, color: "bg-primary/10 text-primary", path: "/playlist-new", desc: "Organiza tus videos" },
     { title: "Usuarios", icon: UserPlus, color: "bg-secondary/10 text-secondary", path: "/users", desc: "Gestiona el acceso" }
   ]
 
   const kpis = [
     { label: "Videos", value: videos.length, icon: PlayCircle, color: "bg-primary/10 text-primary", loading: loadingVideos },
-    { label: "Playlists", value: playlists.length, icon: Database, color: "bg-primary/10 text-primary", loading: loadingPlaylists },
+    { label: "Circuitos", value: playlists.length, icon: Database, color: "bg-primary/10 text-primary", loading: loadingPlaylists },
     { label: "Pantallas en línea", value: connectedScreens.length, icon: Radio, color: "bg-secondary/10 text-secondary", loading: false },
     { label: "Usuarios", value: users.length, icon: ShieldCheck, color: "bg-secondary/10 text-secondary", loading: loadingUsers }
   ]

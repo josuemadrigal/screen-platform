@@ -33,3 +33,15 @@ export const todayISO = (): string => {
   const pad = (n: number) => String(n).padStart(2, '0')
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`
 }
+
+/**
+ * CSS object-fit class for a video, matching the TV app: cover fills (cropping), contain shows
+ * it whole with black bars, auto = contain when the video's shape differs from the screen's by
+ * more than 10%.
+ */
+export const fitClass = (fit: string | undefined, videoAspect: number | undefined, screenAspect = 16 / 9): string => {
+  if (fit === 'cover') return 'object-cover'
+  if (fit === 'contain') return 'object-contain'
+  if (!videoAspect) return 'object-contain'
+  return Math.abs(videoAspect / screenAspect - 1) > 0.1 ? 'object-contain' : 'object-cover'
+}

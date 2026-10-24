@@ -5,6 +5,7 @@ import { api } from '../lib/api'
 import { Film, Calendar, Save, ArrowLeft, Circle } from 'lucide-react'
 import Swal from 'sweetalert2'
 import { API_URL } from '../lib/config'
+import { FitSelect, CircuitPicker, type VideoFit } from '../components/VideoOptions'
 
 export const Route = createFileRoute('/video-edit/$id')({
   component: VideoEditPage,
@@ -20,17 +21,26 @@ function VideoEditPage() {
   const [title, setTitle] = useState('')
   const [dateout, setDateout] = useState('')
   const [status, setStatus] = useState('1')
+  const [fit, setFit] = useState<VideoFit>('auto')
+  const [circuits, setCircuits] = useState<number[]>([])
 
   const servidor = API_URL
 
   useEffect(() => {
     const fetchVideo = async () => {
       try {
-        const { data } = await api.get(`/storage/${id}`)
+        const [{ data }, { data: membership }] = await Promise.all([
+          api.get(`/storage/${id}`),
+          api.get(`/storage/${id}/playlists`),
+        ])
         setData(data)
         setTitle(data.title)
         setDateout(data.dateout)
         setStatus(data.status.toString())
+        setFit((data.fit as VideoFit) || 'auto')
+        setCircuits(membership.playlistIds || [])
+        // Opened from the card menu "Circuitos": scroll to that section.
+        if (window.location.hash === '#circuitos') setTimeout(() => document.getElementById('circuitos')?.scrollIntoView({ behavior: 'smooth' }), 100)
       } catch (error) {
         console.error(error)
       } finally {
@@ -48,7 +58,9 @@ function VideoEditPage() {
         title,
         dateout,
         status: parseInt(status),
+        fit,
       })
+      await api.put(`/storage/${id}/playlists`, { playlistIds: circuits })
       
       await Swal.fire({
         icon: 'success',
@@ -148,11 +160,21 @@ function VideoEditPage() {
               </div>
             </div>
 
+            <div className="space-y-2">
+              <label className="text-sm font-bold text-slate-600 ml-1">Ajuste en pantalla</label>
+              <FitSelect value={fit} onChange={setFit} />
+            </div>
+
+            <div id="circuitos" className="space-y-2 scroll-mt-8">
+              <label className="text-sm font-bold text-slate-600 ml-1">Circuitos donde se muestra</label>
+              <CircuitPicker value={circuits} onChange={setCircuits} />
+            </div>
+
             <div className="pt-4">
               <button 
                 type="submit"
                 disabled={isSaving}
-                className="w-full flex items-center justify-center gap-3 px-8 py-4 rounded-2xl bg-primary hover:bg-primary/90 font-bold transition-all shadow-lg shadow-primary/20 active:scale-[0.98] disabled:opacity-50 disabled:pointer-events-none"
+                className="w-full flex items-center justify-center gap-3 px-8 py-4 rounded-2xl bg-primary hover:bg-primary/90 text-white font-bold transition-all shadow-lg shadow-primary/20 active:scale-[0.98] disabled:opacity-50 disabled:pointer-events-none"
               >
                 <Save size={20} />
                 {isSaving ? 'Guardando cambios...' : 'Guardar Cambios'}
@@ -196,7 +218,7 @@ function VideoEditPage() {
           <div className="p-6 rounded-[32px] bg-amber-500/10 border border-amber-500/20 space-y-2">
             <p className="text-xs font-bold text-amber-700 uppercase tracking-wider">Aviso</p>
             <p className="text-xs text-amber-900/70 leading-relaxed">
-              Los cambios en el estado afectarán la visibilidad del video en todas las playlists donde esté asignado.
+              Los cambios en el estado afectarán la visibilidad del video en todos los circuitos donde esté asignado.
             </p>
           </div>
         </div>
