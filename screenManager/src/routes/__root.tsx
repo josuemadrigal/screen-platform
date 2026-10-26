@@ -2,6 +2,7 @@ import { createRootRoute, Outlet, useLocation, useNavigate } from '@tanstack/rea
 import { useEffect } from 'react'
 import { TanStackRouterDevtools } from '@tanstack/router-devtools'
 import { Sidebar } from '../components/Sidebar'
+import { cn } from '../lib/utils'
 import { useAuthStore } from '../store/authStore'
 
 export const Route = createRootRoute({
@@ -40,10 +41,10 @@ function RootLayout() {
   if (!isPublic && !token) return null
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-900 selection:bg-primary/30 flex">
+    <div className="min-h-screen bg-slate-50 text-slate-900 selection:bg-primary/30 flex flex-col lg:flex-row">
       {showSidebar && <Sidebar />}
-      <main className="flex-1 overflow-x-hidden h-screen">
-        <div className={showSidebar ? 'p-8 max-w-7xl mx-auto' : 'h-full w-full'}>
+      <main className={cn('flex-1 overflow-x-hidden', showSidebar ? 'lg:h-screen' : 'h-screen')}>
+        <div className={showSidebar ? 'p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto' : 'h-full w-full'}>
           <Outlet />
         </div>
       </main>

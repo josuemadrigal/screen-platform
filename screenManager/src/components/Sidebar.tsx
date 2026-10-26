@@ -1,4 +1,4 @@
-import { Link, useNavigate } from '@tanstack/react-router'
+import { Link, useNavigate, useLocation } from '@tanstack/react-router'
 import { 
   LayoutDashboard, 
   Monitor, 
@@ -11,9 +11,11 @@ import {
   LogOut,
   ChevronLeft,
   ChevronRight,
-  Settings
+  Settings,
+  Menu,
+  X
 } from 'lucide-react'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useAuthStore, PERM } from '../store/authStore'
 import { cn } from '../lib/utils'
 
@@ -38,16 +40,86 @@ export function Sidebar() {
   const user = useAuthStore(state => state.user)
   const visibleLinks = navLinks.filter(link => !link.permission || hasPermission(link.permission))
   const navigate = useNavigate()
+  const location = useLocation()
+  // Small screens: top bar + slide-in drawer instead of the fixed side column.
+  const [mobileOpen, setMobileOpen] = useState(false)
+  useEffect(() => { setMobileOpen(false) }, [location.pathname])
+  useEffect(() => {
+    if (!mobileOpen) return
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setMobileOpen(false) }
+    document.addEventListener('keydown', onKey)
+    document.body.style.overflow = 'hidden'
+    return () => { document.removeEventListener('keydown', onKey); document.body.style.overflow = '' }
+  }, [mobileOpen])
 
   const handleLogout = () => {
     logout()
     navigate({ to: '/login' })
   }
 
+  const activeTitle = visibleLinks.find((l) => l.path === '/' ? location.pathname === '/' : location.pathname.startsWith(l.path))?.title
+
   return (
+    <>
+    {/* ── Móvil / pantalla reducida: barra superior ── */}
+    <header className="lg:hidden sticky top-0 z-50 flex items-center justify-between gap-3 px-4 h-16 bg-white/90 backdrop-blur-md border-b border-slate-900/10">
+      <img src="/logo.png" alt="2B Screen" className="h-9 w-auto object-contain" draggable={false} />
+      {activeTitle && <span className="flex-1 text-center text-sm font-bold text-slate-700 truncate">{activeTitle}</span>}
+      <button
+        onClick={() => setMobileOpen(true)}
+        aria-label="Abrir menú"
+        className="p-2.5 rounded-xl bg-slate-900/5 hover:bg-slate-900/10 text-slate-700 transition-colors"
+      >
+        <Menu size={22} />
+      </button>
+    </header>
+
+    {/* ── Móvil: panel deslizante ── */}
+    <div className={cn('lg:hidden fixed inset-0 z-[60] transition-opacity', mobileOpen ? 'opacity-100' : 'opacity-0 pointer-events-none')}>
+      <div className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm" onClick={() => setMobileOpen(false)} />
+      <aside className={cn(
+        'absolute left-0 top-0 h-full w-72 max-w-[85vw] bg-white shadow-2xl flex flex-col transition-transform duration-300',
+        mobileOpen ? 'translate-x-0' : '-translate-x-full'
+      )}>
+        <div className="px-5 h-16 flex items-center justify-between border-b border-slate-900/10">
+          <img src="/logo.png" alt="2B Screen" className="h-9 w-auto object-contain" draggable={false} />
+          <button onClick={() => setMobileOpen(false)} aria-label="Cerrar menú" className="p-2 rounded-xl hover:bg-slate-900/5 text-slate-600">
+            <X size={22} />
+          </button>
+        </div>
+        <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
+          {visibleLinks.map((link) => (
+            <Link
+              key={link.path}
+              to={link.path}
+              activeProps={{ className: 'bg-primary text-white' }}
+              inactiveProps={{ className: 'text-slate-700 hover:bg-slate-900/5' }}
+              activeOptions={{ exact: link.path === '/' }}
+              className="flex items-center gap-4 px-4 py-3 rounded-2xl font-medium transition-all"
+            >
+              <link.icon size={20} className="shrink-0" />
+              {link.title}
+            </Link>
+          ))}
+        </nav>
+        <div className="p-3 border-t border-slate-900/10 space-y-1">
+          {user && (
+            <div className="px-4 py-2 text-xs text-slate-500 truncate">
+              <span className="text-slate-700 font-bold">{user.name}</span>
+              {user.role && <span className="ml-2 uppercase tracking-widest text-[10px] text-primary">{user.role.name}</span>}
+            </div>
+          )}
+          <button onClick={handleLogout} className="w-full flex items-center gap-4 px-4 py-3 rounded-2xl text-slate-700 hover:text-red-600 hover:bg-red-500/10 transition-all font-medium">
+            <LogOut size={20} className="shrink-0" /> Salir
+          </button>
+        </div>
+      </aside>
+    </div>
+
+    {/* ── Escritorio: columna lateral ── */}
     <aside 
       className={cn(
-        "glass sticky top-0 h-screen transition-all duration-300 flex flex-col z-50",
+        "glass sticky top-0 h-screen transition-all duration-300 hidden lg:flex flex-col z-50",
         isCollapsed ? "w-20" : "w-64"
       )}
     >
@@ -104,5 +176,6 @@ export function Sidebar() {
         </button>
       </div>
     </aside>
+    </>
   )
 }

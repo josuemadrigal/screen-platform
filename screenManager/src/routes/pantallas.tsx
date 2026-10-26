@@ -23,7 +23,7 @@ function PantallasPage() {
         </div>
         <button 
           onClick={() => navigate({ to: '/nueva-pantalla' })}
-          className="flex items-center gap-2 px-8 py-4 rounded-2xl bg-primary hover:bg-primary/90 font-bold transition-all shadow-lg shadow-primary/20 active:scale-95"
+          className="flex items-center gap-2 px-8 py-4 rounded-2xl bg-primary text-white hover:bg-primary/90 font-bold transition-all shadow-lg shadow-primary/20 active:scale-95"
         >
           <Plus size={24} />
           Nueva Pantalla

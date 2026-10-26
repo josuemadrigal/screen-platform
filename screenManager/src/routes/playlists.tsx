@@ -13,7 +13,7 @@ function PlaylistsPage() {
           <h1 className="text-4xl font-bold tracking-tight">Circuitos</h1>
           <p className="text-slate-600 mt-2">Create and organize content for your screens.</p>
         </div>
-        <button className="flex items-center gap-2 px-6 py-3 rounded-xl bg-primary hover:bg-primary/90 font-semibold transition-all shadow-lg shadow-primary/20">
+        <button className="flex items-center gap-2 px-6 py-3 rounded-xl bg-primary text-white hover:bg-primary/90 font-semibold transition-all shadow-lg shadow-primary/20">
           <Plus size={20} />
           Nuevo circuito
         </button>

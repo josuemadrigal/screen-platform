@@ -98,7 +98,12 @@ export function VideoItem({ data }: VideoProps) {
   }
 
   return (
-    <div className="glass rounded-3xl group transition-all hover:-translate-y-0.5 hover:shadow-xl hover:shadow-primary/10 relative flex flex-col overflow-visible">
+    <div className={cn(
+      'glass rounded-3xl group transition-all hover:-translate-y-0.5 hover:shadow-xl hover:shadow-primary/10 relative flex flex-col overflow-visible',
+      // Each card is its own stacking context (backdrop blur): lift the one with the open menu
+      // so the dropdown is not covered by the card below.
+      showMenu ? 'z-40' : 'z-0'
+    )}>
       <div
         className="aspect-video relative bg-slate-900 cursor-pointer overflow-hidden rounded-t-3xl"
         onMouseEnter={handleMouseEnter}
@@ -143,7 +148,7 @@ export function VideoItem({ data }: VideoProps) {
               <MoreVertical size={18} />
             </button>
             {showMenu && (
-              <div className="absolute right-0 top-full mt-1 w-44 bg-white rounded-2xl border border-slate-900/10 shadow-2xl z-[100] overflow-hidden py-1.5 animate-in fade-in zoom-in-95 duration-150">
+              <div className="absolute right-0 top-full mt-1 min-w-52 bg-white rounded-2xl border border-slate-900/10 shadow-2xl z-[100] overflow-hidden py-1.5 animate-in fade-in zoom-in-95 duration-150 [&_button]:whitespace-nowrap">
                 <button
                   onMouseDown={() => navigate({ to: `/video-edit/${data.id}` })}
                   className="w-full flex items-center gap-3 px-4 py-2 text-sm text-slate-700 hover:bg-slate-900/5 hover:text-slate-900 transition-colors text-left"

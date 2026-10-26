@@ -89,7 +89,7 @@ function VideosPage() {
           </button>
           <button 
             onClick={() => navigate({ to: '/upload' })}
-            className="flex items-center gap-2 px-6 py-3 rounded-2xl bg-primary hover:bg-primary/90 font-bold transition-all shadow-lg shadow-primary/20 active:scale-95"
+            className="flex items-center gap-2 px-6 py-3 rounded-2xl bg-primary text-white hover:bg-primary/90 font-bold transition-all shadow-lg shadow-primary/20 active:scale-95"
           >
             <Plus size={20} />
             <span className="hidden sm:inline">Agregar Video</span>
